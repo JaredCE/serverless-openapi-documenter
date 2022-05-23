@@ -3,11 +3,21 @@
   "version": "0.0.1",
   "description": "Generate OpenAPI v3 documentation and Postman Collections from your Serverless Config",
   "main": "index.js",
+  "keywords": ["serverless", "serverless2", "serverless3", "openAPI", "openAPIv3", "openAPI3", "PostmanCollections", "Postman-Collections"],
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
-  "license": "ISC",
+  "author": {
+    "name": "Jared Evans"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/JaredCE/serverless-openapi-documenter.git"
+  },
+  "bugs": {
+    "url": "https://github.com/JaredCE/serverless-openapi-documenter/issues"
+  },
+  "license": "MIT",
   "devDependencies": {
     "serverless": "^3.17.0"
   },
