@@ -22,6 +22,8 @@ class DefinitionGenerator {
         this.openAPI = {
             openapi: this.version,
         }
+
+        this.operationIds = []
     }
 
     parse() {
@@ -50,14 +52,28 @@ class DefinitionGenerator {
                 if (event?.http?.documentation || event?.httpApi?.documentation) {
                     const documentation = event.http.documentation || event.httpApi.documentation
 
-                    const path = this.createOperationObject(event.http.method || event.httpApi.method, documentation, httpFunction.functionInfo.name)
+                    let opId
+                    if (this.operationIds.includes(httpFunction.functionInfo.name) === false) {
+                        opId = httpFunction.functionInfo.name
+                        this.operationIds.push(opId)
+                    } else {
+                        opId = `${httpFunction.functionInfo.name}-${uuid()}`
+                    }
+
+                    const path = this.createOperationObject(event.http.method || event.httpApi.method, documentation, opId)
                     if (httpFunction.functionInfo?.summary)
                         path.summary = httpFunction.functionInfo.summary
 
                     if (httpFunction.functionInfo?.description)
                         path.description = httpFunction.functionInfo.description
 
-                    Object.assign(paths, {[`/${event.http.path}`]: path})
+                    let slashPath = event.http.path
+                    const pathStart = new RegExp(/^\//, 'g')
+                    if (pathStart.test(slashPath) === false) {
+                        slashPath = `/${event.http.path}`
+                    }
+
+                    Object.assign(paths, {[slashPath]: path})
                 }
             }
         }
