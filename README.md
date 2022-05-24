@@ -4,19 +4,39 @@ This will generate an OpenAPI V3 (up to v3.0.3) file for you from your serverles
 
 Originally based off of: https://github.com/temando/serverless-openapi-documentation
 
+## Install
+
+This plugin works for Serverless 2.x and up.
+
+To add this plugin to your package.json:
+
+**Using npm:**
+```bash
+npm install --save-dev serverless-openapi-documenter 
+```
+
+Next you need to add the plugin to the `plugins` section of your `serverless.yml` file.
+
+```yml
+plugins:
+  - serverless-openapi-documenter
+```
+
+> Note: Add this plugin _after_ `serverless-offline` to prevent issues with `String.replaceAll` being overridden incorrectly.
+
 ## Adding documentation to serverless
 
 To Run: `serverless openapi generate -o openapi.json -f json -a 3.0.3 -p postman.json`
 
 Options:
 
-| Option:      | What It Does: |
-|--------------|---------------|
-| -o filename | What filename the OpenAPI documentation should output under |
-| -f filetype | Whether to output the OpenAPI documentation as json or yaml |
-| -a OpenAPI Version | The version of OpenAPI v3 to conform too |
-| -p postman Collection filename | Whether to generate a postman collection from the OpenAPI v3 documentation and the filename to call it, json only |
-
+```
+--output                -o  What filename the OpenAPI documentation should output under. Default: openapi.json
+--format                -f  Whether to output the OpenAPI documentation as json or yaml. Default: json
+--indent                -i  File indentation in spaces. Default: 2
+--openApiVersion        -a  OpenAPI version to generate for. Default: 3.0.0
+--postmanCollection     -p  Will generate a postman collection (from the generated openAPI documentation), in json only, if passed in. Default postman.json
+```
 
 ### OpenAPI Mapping
 
@@ -311,26 +331,6 @@ requestHeaders:
 ## Example configuration
 
 Please view the example [serverless.yml](test/serverless\ 2/serverless.yml).
-
-## Install
-
-This plugin works for Serverless 2.x and up.
-
-To add this plugin to your package.json:
-
-**Using npm:**
-```bash
-npm install serverless-openapi-documenter --save-dev
-```
-
-Next you need to add the plugin to the `plugins` section of your `serverless.yml` file.
-
-```yml
-plugins:
-  - serverless-openapi-documenter
-```
-
-> Note: Add this plugin _after_ `serverless-offline` to prevent issues with `String.replaceAll` being overridden incorrectly.
 
 ## License
 
