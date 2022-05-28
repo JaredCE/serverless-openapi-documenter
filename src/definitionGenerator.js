@@ -84,7 +84,7 @@ class DefinitionGenerator {
     createExternalDocumentation() {
         const documentation = this.serverless.service.custom.documentation
         if (documentation.externalDocumentation) {
-            Object.assign(this.openAPI, externalDocs: {...documentation.externalDocumentation})
+            Object.assign(this.openAPI, {externalDocs: {...documentation.externalDocumentation}})
         }
     }
 
