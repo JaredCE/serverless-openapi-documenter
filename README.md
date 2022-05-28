@@ -89,6 +89,9 @@ custom:
     title: 'My API'
     description: 'This is my API'
     models: {}
+    externalDocumentation:
+      url: https://google.com
+      description: A link to google
 ```
 
 These configurations can be quite verbose; you can separate it out into it's own file, such as `serverless.doc.yml` as below:
@@ -178,6 +181,9 @@ functions:
         documentation:
           summary: "Create User"
           description: "Creates a user and then sends a generated password email"
+          externalDocumentation:
+            url: https://bing.com
+            description: A link to bing
           requestBody:
             description: "A user information object"
           requestModels:
