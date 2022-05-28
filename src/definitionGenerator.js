@@ -29,6 +29,7 @@ class DefinitionGenerator {
     parse() {
         this.createInfo()
         this.createPaths()
+        this.createExternalDocumentation()
     }
 
     createInfo() {
@@ -36,7 +37,7 @@ class DefinitionGenerator {
         const documentation = this.serverless.service.custom.documentation;
 
         const info = {
-            title: service.service,
+            title: documentation?.title || service.service,
             description: documentation?.description || '',
             version: documentation?.version || uuid(),
         }
@@ -80,6 +81,13 @@ class DefinitionGenerator {
         Object.assign(this.openAPI, {paths})
     }
 
+    createExternalDocumentation() {
+        const documentation = this.serverless.service.custom.documentation
+        if (documentation.externalDocumentation) {
+            Object.assign(this.openAPI, {externalDocs: {...documentation.externalDocumentation}})
+        }
+    }
+
     createOperationObject(method, documentation, name = uuid()) {
         const obj = {
             summary: documentation.summary || '',
@@ -109,8 +117,12 @@ class DefinitionGenerator {
             obj.parameters = obj.parameters.concat(paramObject)
         }
 
+        if (documentation.externalDocumentation) {
+            obj.externalDocs = documentation.externalDocumentation
+        }
+
         if (Object.keys(documentation).includes('deprecated'))
-            obj[method].deprecated = documentation.deprecated
+            obj.deprecated = documentation.deprecated
 
         if (documentation.requestBody)
             obj.requestBody = this.createRequestBody(documentation)

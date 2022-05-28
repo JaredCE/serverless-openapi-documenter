@@ -40,40 +40,45 @@ Options:
 
 ### OpenAPI Mapping
 
-| OpenAPI field      | Serverless field                                                                   |
-|--------------------|------------------------------------------------------------------------------------|
-| info.title         | service                                                                            |
-| info.description   | custom.documentation.description || blank string                                   |
-| info.version       | custom.documentation.version || random v4 uuid if not provided                     |
-| path[path]         | functions.functions.events.[http||httpApi].path                                    |
-| path[path].summary         | functions.functions.summary                                                                                                          |
-| path[path].description         | functions.functions.description                                                                                                  |
-| path[path].[operation]         | functions.functions.[http||httpApi].method                                                                                       |
-| path[path].[operation].summary         | functions.functions.[http||httpApi].documentation.summary                                                                |
-| path[path].[operation].description         | functions.functions.[http||httpApi].documentation.description                                                        |
-| path[path].[operation].operationId         | functions.functions.[http||httpApi].documentation.operationId || functionName                                        |
-| path[path].[operation].deprecated         | functions.functions.[http||httpApi].documentation.deprecated                                                          |
-| path[path].[operation].parameters         | functions.functions.[http||httpApi].documentation.[path|query|cookie|header]Params                                    |
-| path[path].[operation].parameters.name         | functions.functions.[http||httpApi].documentation.[path|query|cookie|header]Params.name                          |
-| path[path].[operation].parameters.in         | functions.functions.[http||httpApi].documentation.[path|query|cookie|header]Params                                 |
-| path[path].[operation].parameters.description         | functions.functions.[http||httpApi].documentation.[path|query|cookie|header]Params.description            |
-| path[path].[operation].parameters.required         | functions.functions.[http||httpApi].documentation.[path|query|cookie|header]Params.required                  |
-| path[path].[operation].parameters.deprecated         | functions.functions.[http||httpApi].documentation.[path|query|cookie|header]Params.deprecated              |
-| path[path].[operation].parameters.allowEmptyValue         | functions.functions.[http||httpApi].documentation.[path|query|cookie|header]Params.allowEmptyValue    |
-| path[path].[operation].parameters.style         | functions.functions.[http||httpApi].documentation.[path|query|cookie|header]Params.style                        |
-| path[path].[operation].parameters.explode         | functions.functions.[http||httpApi].documentation.[path|query|cookie|header]Params.explode                    |
-| path[path].[operation].parameters.allowReserved         | functions.functions.[http||httpApi].documentation.[path|query|cookie|header]Params.allowReserved        |
-| path[path].[operation].parameters.schema         | functions.functions.[http||httpApi].documentation.[path|query|cookie|header]Params.schema                      |
-| path[path].[operation].parameters.example         | functions.functions.[http||httpApi].documentation.[path|query|cookie|header]Params.example                    |
-| path[path].[operation].parameters.examples         | functions.functions.[http||httpApi].documentation.[path|query|cookie|header]Params.examples                  |
-| path[path].[operation].requestBody         | functions.functions.[http||httpApi].documentation.requestBody                  |
-| path[path].[operation].requestBody.description         | functions.functions.[http||httpApi].documentation.requestBody.description                  |
-| path[path].[operation].requestBody.required         | functions.functions.[http||httpApi].documentation.requestBody.required                  |
-| path[path].[operation].requestBody.content         | functions.functions.[http||httpApi].documentation.requestModels[contentType].name Links to custom.documentation.models.name                 |
-| path[path].[operation].responses         | functions.functions.[http||httpApi].documentation.methodResponses                  |
-| path[path].[operation].requestBody.[statusCode]         | functions.functions.[http||httpApi].documentation.methodResponses[statusCode]                  |
-| path[path].[operation].requestBody.[statusCode].description         | functions.functions.[http||httpApi].documentation.methodResponses[statusCode].responseBody.description                  |
-| path[path].[operation].requestBody.[statusCode].content         | functions.functions.[http||httpApi].documentation.methodResponses[statusCode].responseModels[contentType] Links to custom.documentation.models.name                 |
+| OpenAPI field            | Serverless field                                                                   |
+|--------------------------|------------------------------------------------------------------------------------|
+| info.title               | custom.documentation.title  OR  service                                            |
+| info.description         | custom.documentation.description  OR  blank string                                 |
+| info.version             | custom.documentation.version  OR  random v4 uuid if not provided                   |
+| externalDocs.description | custom.documentation.externalDocumentation.description                             |
+| externalDocs.url         | custom.documenation.externalDocumentation.url                                      |
+| path[path]         | functions.functions.events.[http OR httpApi].path                                        |
+| path[path].summary         | functions.functions.summary                                                      |
+| path[path].description         | functions.functions.description                                              |
+| path[path].[operation]         | functions.functions.[http OR httpApi].method                                 |
+| path[path].[operation].summary             | functions.functions.[http OR httpApi].documentation.summary      |
+| path[path].[operation].description         | functions.functions.[http OR httpApi].documentation.description  |
+| path[path].[operation].operationId         | functions.functions.[http OR httpApi].documentation.operationId  OR  functionName |
+| path[path].[operation].deprecated          | functions.functions.[http OR httpApi].documentation.deprecated   |
+| path[path].[operation].externalDocs.description | functions.functions.[http OR httpApi].documentation.externalDocumentation.description  |
+| path[path].[operation].externalDocs.url         | functions.functions.[http OR httpApi].documentation.externalDocumentation.url  |
+| path[path].[operation].deprecated         | functions.functions.[http OR httpApi].documentation.deprecated                       |
+| path[path].[operation].parameters         | functions.functions.[http OR httpApi].documentation.[path|query|cookie|header]Params |
+| path[path].[operation].parameters.name         | functions.functions.[http OR httpApi].documentation.[path|query|cookie|header]Params.name |
+| path[path].[operation].parameters.in         | functions.functions.[http OR httpApi].documentation.[path|query|cookie|header]Params |
+| path[path].[operation].parameters.description  | functions.functions.[http OR httpApi].documentation.[path|query|cookie|header]Params.description |
+| path[path].[operation].parameters.required     | functions.functions.[http OR httpApi].documentation.[path|query|cookie|header]Params.required |
+| path[path].[operation].parameters.deprecated   | functions.functions.[http OR httpApi].documentation.[path|query|cookie|header]Params.deprecated |
+| path[path].[operation].parameters.allowEmptyValue  | functions.functions.[http OR httpApi].documentation.[path|query|cookie|header]Params.allowEmptyValue    |
+| path[path].[operation].parameters.style | functions.functions.[http OR httpApi].documentation.[path|query|cookie|header]Params.style |
+| path[path].[operation].parameters.explode      | functions.functions.[http OR httpApi].documentation.[path|query|cookie|header]Params.explode                    |
+| path[path].[operation].parameters.allowReserved         | functions.functions.[http OR httpApi].documentation.[path|query|cookie|header]Params.allowReserved        |
+| path[path].[operation].parameters.schema | functions.functions.[http OR httpApi].documentation.[path|query|cookie|header]Params.schema |
+| path[path].[operation].parameters.example | functions.functions.[http OR httpApi].documentation.[path|query|cookie|header]Params.example |
+| path[path].[operation].parameters.examples | functions.functions.[http OR httpApi].documentation.[path|query|cookie|header]Params.examples |
+| path[path].[operation].requestBody         | functions.functions.[http OR httpApi].documentation.requestBody                  |
+| path[path].[operation].requestBody.description         | functions.functions.[http OR httpApi].documentation.requestBody.description                  |
+| path[path].[operation].requestBody.required         | functions.functions.[http OR httpApi].documentation.requestBody.required                  |
+| path[path].[operation].requestBody.content         | functions.functions.[http OR httpApi].documentation.requestModels[contentType].name Links to custom.documentation.models.name                 |
+| path[path].[operation].responses         | functions.functions.[http OR httpApi].documentation.methodResponses                  |
+| path[path].[operation].requestBody.[statusCode]  | functions.functions.[http OR httpApi].documentation.methodResponses[statusCode] |
+| path[path].[operation].requestBody.[statusCode].description | functions.functions.[http OR httpApi].documentation.methodResponses[statusCode].responseBody.description |
+| path[path].[operation].requestBody.[statusCode].content | functions.functions.[http OR httpApi].documentation.methodResponses[statusCode].responseModels[contentType] Links to custom.documentation.models.name |
 
 
 ### Configuration
@@ -89,6 +94,9 @@ custom:
     title: 'My API'
     description: 'This is my API'
     models: {}
+    externalDocumentation:
+      url: https://google.com
+      description: A link to google
 ```
 
 These configurations can be quite verbose; you can separate it out into it's own file, such as `serverless.doc.yml` as below:
@@ -178,6 +186,9 @@ functions:
         documentation:
           summary: "Create User"
           description: "Creates a user and then sends a generated password email"
+          externalDocumentation:
+            url: https://bing.com
+            description: A link to bing
           requestBody:
             description: "A user information object"
           requestModels:
