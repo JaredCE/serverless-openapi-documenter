@@ -367,7 +367,6 @@ class DefinitionGenerator {
     }
 
     async validate() {
-        console.log(this.openAPI)
         return await validator.validateInner(this.openAPI, {})
             .catch(err => {
                 throw err
