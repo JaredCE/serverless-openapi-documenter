@@ -70,7 +70,8 @@ class OpenAPIGenerator {
         this.serverless.configSchemaHandler.defineFunctionProperties('aws', {
           properties: {
             // description: {type: 'string'},
-            summary: {type: 'string'}
+            summary: {type: 'string'},
+            servers: {type: ['object', 'array']},
           }
         })
     }
@@ -126,7 +127,7 @@ class OpenAPIGenerator {
           }
 
           const postmanCollection = PostmanGenerator.convert(
-            {type: 'json', data: generator.openAPI},
+            {type: 'json', data: JSON.parse(JSON.stringify(generator.openAPI))},
             {},
             postmanGeneration
           )

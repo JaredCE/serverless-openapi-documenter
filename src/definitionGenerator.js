@@ -6,7 +6,7 @@ const SchemaConvertor = require('json-schema-for-openapi')
 
 class DefinitionGenerator {
     constructor(serverless, options = {}) {
-        this.version = options.v || '3.0.0'
+        this.version = serverless.processedInput.options.openApiVersion || '3.0.0'
 
         this.serverless = serverless
         this.httpKeys = {
@@ -29,6 +29,10 @@ class DefinitionGenerator {
     parse() {
         this.createInfo()
         this.createPaths()
+        if (this.serverless.service.custom.documentation.servers) {
+            const servers = this.createServers(this.serverless.service.custom.documentation.servers)
+            Object.assign(this.openAPI, {servers: servers})
+        }
         this.createExternalDocumentation()
     }
 
@@ -68,6 +72,11 @@ class DefinitionGenerator {
                     if (httpFunction.functionInfo?.description)
                         path.description = httpFunction.functionInfo.description
 
+                    if (httpFunction.functionInfo?.servers) {
+                        const servers = this.createServers(httpFunction.functionInfo.servers)
+                        path.servers = servers
+                    }
+
                     let slashPath = event.http.path
                     const pathStart = new RegExp(/^\//, 'g')
                     if (pathStart.test(slashPath) === false) {
@@ -79,6 +88,37 @@ class DefinitionGenerator {
             }
         }
         Object.assign(this.openAPI, {paths})
+    }
+
+    createServers(servers) {
+        const serverDoc = servers
+        const newServers = []
+
+        if (Array.isArray(serverDoc)) {
+            for (const server of serverDoc) {
+                const obj = {
+                    url: server.url,
+                }
+
+                if (server.description) {
+                    obj.description = server.description
+                }
+
+                newServers.push(obj)
+            }
+        } else {
+            const obj = {
+                url: servers.url,
+            }
+
+            if (servers.description) {
+                obj.description = servers.description
+            }
+
+            newServers.push(obj)
+        }
+
+        return newServers
     }
 
     createExternalDocumentation() {
@@ -129,6 +169,11 @@ class DefinitionGenerator {
 
         if (documentation.methodResponses)
             obj.responses = this.createResponses(documentation)
+
+        if (documentation.servers) {
+            const servers = this.createServers(documentation.servers)
+            obj.servers = servers
+        }
 
         return {[method]: obj}
     }
