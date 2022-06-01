@@ -71,7 +71,7 @@ class OpenAPIGenerator {
           properties: {
             // description: {type: 'string'},
             summary: {type: 'string'},
-            servers: {type: ['object', 'array']},
+            servers: {anyOf: [{type:'object'}, {type:'array'}]},
           }
         })
     }
