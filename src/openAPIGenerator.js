@@ -70,7 +70,8 @@ class OpenAPIGenerator {
         this.serverless.configSchemaHandler.defineFunctionProperties('aws', {
           properties: {
             // description: {type: 'string'},
-            summary: {type: 'string'}
+            summary: {type: 'string'},
+            servers: {type: ['object', 'array']},
           }
         })
     }
