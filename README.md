@@ -46,10 +46,14 @@ Options:
 | info.description         | custom.documentation.description  OR  blank string                                 |
 | info.version             | custom.documentation.version  OR  random v4 uuid if not provided                   |
 | externalDocs.description | custom.documentation.externalDocumentation.description                             |
-| externalDocs.url         | custom.documenation.externalDocumentation.url                                      |
+| externalDocs.url         | custom.documentation.externalDocumentation.url                                     |
+| servers[].description      | custom.documentation.servers.description                                           |
+| servers[].url              | custom.documentation.servers.url                                                   |
 | path[path]         | functions.functions.events.[http OR httpApi].path                                        |
 | path[path].summary         | functions.functions.summary                                                      |
 | path[path].description         | functions.functions.description                                              |
+| path[path].servers[].description      | functions.functions.servers.description                                           |
+| path[path].servers[].url              | functions.functions.servers.url                                                   |
 | path[path].[operation]         | functions.functions.[http OR httpApi].method                                 |
 | path[path].[operation].summary             | functions.functions.[http OR httpApi].documentation.summary      |
 | path[path].[operation].description         | functions.functions.[http OR httpApi].documentation.description  |
@@ -57,6 +61,8 @@ Options:
 | path[path].[operation].deprecated          | functions.functions.[http OR httpApi].documentation.deprecated   |
 | path[path].[operation].externalDocs.description | functions.functions.[http OR httpApi].documentation.externalDocumentation.description  |
 | path[path].[operation].externalDocs.url         | functions.functions.[http OR httpApi].documentation.externalDocumentation.url  |
+| path[path].[operation].servers[].description      | functions.functions.[http OR httpApi].documentation.servers.description      |
+| path[path].[operation].servers[].url              | functions.functions.[http OR httpApi].documentation.servers.url              |
 | path[path].[operation].deprecated         | functions.functions.[http OR httpApi].documentation.deprecated                       |
 | path[path].[operation].parameters         | functions.functions.[http OR httpApi].documentation.[path|query|cookie|header]Params |
 | path[path].[operation].parameters.name         | functions.functions.[http OR httpApi].documentation.[path|query|cookie|header]Params.name |
@@ -97,6 +103,9 @@ custom:
     externalDocumentation:
       url: https://google.com
       description: A link to google
+    servers:
+      url: https://example.com
+      description: The server
 ```
 
 These configurations can be quite verbose; you can separate it out into it's own file, such as `serverless.doc.yml` as below:
