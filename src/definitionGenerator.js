@@ -71,7 +71,7 @@ class DefinitionGenerator {
 
                     if (httpFunction.functionInfo?.description)
                         path.description = httpFunction.functionInfo.description
-                    
+
                     if (httpFunction.functionInfo?.servers) {
                         const servers = this.createServers(httpFunction.functionInfo.servers)
                         path.servers = servers
@@ -89,35 +89,35 @@ class DefinitionGenerator {
         }
         Object.assign(this.openAPI, {paths})
     }
-    
+
     createServers(servers) {
         const serverDoc = servers
         const newServers = []
-        
+
         if (Array.isArray(serverDoc)) {
             for (const server of serverDoc) {
                 const obj = {
                     url: server.url,
                 }
-                
+
                 if (server.description) {
-                    obj.description = server.description   
+                    obj.description = server.description
                 }
-                
+
                 newServers.push(obj)
             }
         } else {
             const obj = {
-                url: server.url,
+                url: servers.url,
             }
 
-            if (server.description) {
-                obj.description = server.description   
+            if (servers.description) {
+                obj.description = servers.description
             }
-            
+
             newServers.push(obj)
         }
-        
+
         return newServers
     }
 
@@ -169,7 +169,7 @@ class DefinitionGenerator {
 
         if (documentation.methodResponses)
             obj.responses = this.createResponses(documentation)
-        
+
         if (documentation.servers) {
             const servers = this.createServers(documentation.servers)
             obj.servers = servers
@@ -367,6 +367,7 @@ class DefinitionGenerator {
     }
 
     async validate() {
+        console.log(this.openAPI)
         return await validator.validateInner(this.openAPI, {})
             .catch(err => {
                 throw err
