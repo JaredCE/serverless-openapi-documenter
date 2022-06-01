@@ -127,7 +127,7 @@ class OpenAPIGenerator {
           }
 
           const postmanCollection = PostmanGenerator.convert(
-            {type: 'json', data: generator.openAPI},
+            {type: 'json', data: JSON.parse(JSON.stringify(generator.openAPI))},
             {},
             postmanGeneration
           )
