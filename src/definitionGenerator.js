@@ -29,11 +29,20 @@ class DefinitionGenerator {
     parse() {
         this.createInfo()
         this.createPaths()
+        
         if (this.serverless.service.custom.documentation.servers) {
             const servers = this.createServers(this.serverless.service.custom.documentation.servers)
             Object.assign(this.openAPI, {servers: servers})
         }
-        this.createExternalDocumentation()
+
+        if (this.serverless.service.custom.documentation.tags) {
+            this.createTags()
+        }
+
+        if (this.serverless.service.custom.documentation.externalDocumentation) {
+            const extDoc = this.createExternalDocumentation(this.serverless.service.custom.documentation.externalDocumentation)
+            Object.assign(this.openAPI, {externalDocs: extDoc})
+        }
     }
 
     createInfo() {
@@ -121,11 +130,32 @@ class DefinitionGenerator {
         return newServers
     }
 
-    createExternalDocumentation() {
-        const documentation = this.serverless.service.custom.documentation
-        if (documentation.externalDocumentation) {
-            Object.assign(this.openAPI, {externalDocs: {...documentation.externalDocumentation}})
+    createExternalDocumentation(docs) {
+        return {...docs}
+        // const documentation = this.serverless.service.custom.documentation
+        // if (documentation.externalDocumentation) {
+        //     // Object.assign(this.openAPI, {externalDocs: {...documentation.externalDocumentation}})
+        //     return 
+        // }
+    }
+
+    createTags() {
+        const tags = []
+        for (const tag of this.serverless.service.custom.documentation.tags) {
+            const obj = {
+                name: tag.name,
+            }
+
+            if (tag.description) {
+                obj.description = tag.description
+            }
+
+            if (tag.externalDocumentation) {
+                obj.externalDocs = this.createExternalDocumentation(tag.externalDocumentation)
+            }
+            tags.push(obj)
         }
+        Object.assign(this.openAPI, {tags: tags})
     }
 
     createOperationObject(method, documentation, name = uuid()) {
