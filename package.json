@@ -1,6 +1,6 @@
 {
   "name": "serverless-openapi-documenter",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "Generate OpenAPI v3 documentation and Postman Collections from your Serverless Config",
   "main": "index.js",
   "keywords": [
@@ -35,5 +35,8 @@
     "openapi-to-postmanv2": "^3.2.0",
     "swagger2openapi": "^7.0.8",
     "uuid": "^8.3.2"
+  },
+  "engines": {
+    "node": ">=14"
   }
 }
