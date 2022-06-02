@@ -67,6 +67,13 @@ class OpenAPIGenerator {
           required: ['documentation'],
         });
 
+        this.serverless.configSchemaHandler.defineFunctionEventProperties('aws', 'httpApi', {
+          properties: {
+            documentation: { type: 'object' },
+          },
+          required: ['documentation'],
+        });
+
         this.serverless.configSchemaHandler.defineFunctionProperties('aws', {
           properties: {
             // description: {type: 'string'},
