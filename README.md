@@ -1,5 +1,14 @@
 # OpenAPI Generator for serverless
 
+<p>
+  <a href="https://www.serverless.com">
+    <img src="http://public.serverless.com/badges/v3.svg">
+  </a>
+  <a href="https://www.npmjs.com/package/serverless-openapi-documenter">
+    <img src="https://img.shields.io/npm/v/serverless-openapi-documenter.svg?style=flat-square">
+  </a>
+</p>
+
 This will generate an OpenAPI V3 (up to v3.0.3) file for you from your serverless file.  It can optionally generate a Postman Collection V2 from the OpenAPI file for you too.
 
 Originally based off of: https://github.com/temando/serverless-openapi-documentation
@@ -47,13 +56,17 @@ Options:
 | info.version             | custom.documentation.version  OR  random v4 uuid if not provided                   |
 | externalDocs.description | custom.documentation.externalDocumentation.description                             |
 | externalDocs.url         | custom.documentation.externalDocumentation.url                                     |
-| servers[].description      | custom.documentation.servers.description                                           |
-| servers[].url              | custom.documentation.servers.url                                                   |
+| servers[].description      | custom.documentation.servers.description                                         |
+| servers[].url              | custom.documentation.servers.url                                                 |
+| tags[].name                     | custom.documentation.tags.name                                              |
+| tags[].description              | custom.documentation.tags.description                                       |
+| tags[].externalDocs.url         | custom.documentation.tags.externalDocumentation.url                         |
+| tags[].externalDocs.description | custom.documentation.tags.externalDocumentation.description                 |
 | path[path]         | functions.functions.events.[http OR httpApi].path                                        |
 | path[path].summary         | functions.functions.summary                                                      |
 | path[path].description         | functions.functions.description                                              |
-| path[path].servers[].description      | functions.functions.servers.description                                           |
-| path[path].servers[].url              | functions.functions.servers.url                                                   |
+| path[path].servers[].description      | functions.functions.servers.description                               |
+| path[path].servers[].url              | functions.functions.servers.url                                       |
 | path[path].[operation]         | functions.functions.[http OR httpApi].method                                 |
 | path[path].[operation].summary             | functions.functions.[http OR httpApi].documentation.summary      |
 | path[path].[operation].description         | functions.functions.[http OR httpApi].documentation.description  |
@@ -106,6 +119,12 @@ custom:
     servers:
       url: https://example.com
       description: The server
+    tags:
+      - name: tag1
+        description: this is a tag
+        externalDocumentation:
+          url: https://npmjs.com
+          description: A link to npm
 ```
 
 These configurations can be quite verbose; you can separate it out into it's own file, such as `serverless.doc.yml` as below:
@@ -195,6 +214,8 @@ functions:
         documentation:
           summary: "Create User"
           description: "Creates a user and then sends a generated password email"
+          tags:
+            - tag1
           externalDocumentation:
             url: https://bing.com
             description: A link to bing
