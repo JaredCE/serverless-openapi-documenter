@@ -153,7 +153,7 @@ The *required* directives for the models section are as follow:
 * `name`: the name of the schema
 * `description`: a description of the schema
 * `contentType`: the content type of the described request/response (ie. `application/json` or `application/xml`).
-* `schema`: The JSON Schema ([website](http://json-schema.org/)) that describes the model. You can either use inline `YAML` to define these, or refer to an external schema file as below
+* `schema`: The JSON Schema ([website](http://json-schema.org/)) that describes the model. You can either use inline `YAML` to define these or use either an external file schema that serverless will resolve (as below), or a reference to an externally hosted schema that will be attempted to be resolved.
 
 ```yml
 custom:
@@ -262,7 +262,7 @@ Query parameters can be described as follow:
 * `name`: the name of the query variable
 * `description`: a description of the query variable
 * `required`: whether the query parameter is mandatory (boolean)
-* `schema`: JSON schema (inline or file)
+* `schema`: JSON schema (inline, file or externally hosted)
 
 ```yml
 queryParams:
@@ -279,7 +279,7 @@ Path parameters can be described as follow:
 
 * `name`: the name of the query variable
 * `description`: a description of the query variable
-* `schema`: JSON schema (inline or file)
+* `schema`: JSON schema (inline, file or externally hosted)
 
 ```yml
 pathParams:
@@ -296,7 +296,7 @@ Cookie parameters can be described as follow:
 * `name`: the name of the query variable
 * `description`: a description of the query variable
 * `required`: whether the query parameter is mandatory (boolean)
-* `schema`: JSON schema (inline or file)
+* `schema`: JSON schema (inline, file or externally hosted)
 
 ```yml
 cookieParams:
@@ -354,7 +354,7 @@ The attributes for a header are as follow:
 
 * `name`: the name of the HTTP Header
 * `description`: a description of the HTTP Header
-* `schema`: JSON schema (inline or file)
+* `schema`: JSON schema (inline, file or externally hosted)
 
 ```yml
 responseHeaders:
@@ -372,6 +372,82 @@ requestHeaders:
 ## Example configuration
 
 Please view the example [serverless.yml](test/serverless\ 2/serverless.yml).
+
+## Notes on schemas
+
+Schemas can be either: inline, in file or externally hosted.  If they're inline or in file, the plugin will attempt to normalise the schema to [OpenAPI 3.0.X specification](https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.0.md#schemaObject).  
+
+If they exist as an external reference, for instance:
+
+```yaml
+schema: https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/schemas/json/bettercodehub.json
+```
+
+We use the plugin [JSON Schema $Ref Parser](https://apitools.dev/json-schema-ref-parser/) to attempt to parse and resolve the references.  There are limitations to this.  Consider the schema:
+
+```json
+{
+    "$schema": "https://json-schema.org/draft-04/schema",
+    "title": "Reusable Definitions",
+    "type": "object",
+    "id": "https://raw.githubusercontent.com/json-editor/json-editor/master/tests/fixtures/definitions.json",
+    "definitions": {
+        "address": {
+            "title": "Address",
+            "type": "object",
+            "properties": {
+                "street_address": { "type": "string" },
+                "city":           { "type": "string" },
+                "state":          { "type": "string" }
+            },
+            "required": ["street_address"]
+        },
+        "link" : {"$refs": "./properties.json#/properties/title"}
+    },
+    "properties": {
+        "address" : {"$refs": "#/definitions/address"}
+    }
+  }
+```
+Where the definition "link" refers to a schema held in a directory that the resolver does not know about, we will not be able to fully resolve the schema which will likely cause errors in validation of the openAPI 3.0.X specification.
+
+Because of the dependency we use to parse externally linked schemas, we can supply our own options to resolve schemas that are more difficult than a straight forward example.
+
+You can create your own options file: https://apitools.dev/json-schema-ref-parser/docs/options.html to pass into the dependency that contains it's own resolver to allow you to resolve references that might be in hard to reach places.  In your main project folder, you should have a folder called `options` with a file called `ref-parser.js` that looks like:
+
+```js
+'use strict'
+
+// options from: https://apitools.dev/json-schema-ref-parser/docs/options.html
+
+module.exports = {
+  continueOnError: true,            // Don't throw on the first error
+  parse: {
+    json: false,                    // Disable the JSON parser
+    yaml: {
+      allowEmpty: false             // Don't allow empty YAML files
+    },
+    text: {
+      canParse: [".txt", ".html"],  // Parse .txt and .html files as plain text (strings)
+      encoding: 'utf16'             // Use UTF-16 encoding
+    }
+  },
+  resolve: {
+    file: false,                    // Don't resolve local file references
+    http: {
+      timeout: 2000,                // 2 second timeout
+      withCredentials: true,        // Include auth credentials when resolving HTTP references
+    }
+  },
+  dereference: {
+    circular: false,                // Don't allow circular $refs
+    excludedPathMatcher: (path) =>  // Skip dereferencing content under any 'example' key
+      path.includes("/example/")
+  }
+}
+```
+
+If you don't supply this file, it will use the default options.
 
 ## License
 
