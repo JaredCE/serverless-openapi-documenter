@@ -1,8 +1,11 @@
 'use strict'
 
+const path = require('path')
+
 const { v4: uuid } = require('uuid')
 const validator = require('oas-validator');
 const SchemaConvertor = require('json-schema-for-openapi')
+const $RefParser = require("@apidevtools/json-schema-ref-parser");
 
 class DefinitionGenerator {
     constructor(serverless, options = {}) {
@@ -24,6 +27,13 @@ class DefinitionGenerator {
         }
 
         this.operationIds = []
+
+        try {
+            this.refParserOptions = require(path.resolve('options', 'ref-parser.js'))
+        } catch (err) {
+            this.refParserOptions = {}
+        }
+        
     }
 
     parse() {
@@ -335,7 +345,7 @@ class DefinitionGenerator {
             if (param.style)
                 obj.style = param.style
 
-            if (param.explode)
+            if (Object.keys(param).includes('explode'))
                 obj.explode = param.explode
 
             if (paramIn === 'query' && param.allowReserved)
