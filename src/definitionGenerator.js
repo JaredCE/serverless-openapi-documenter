@@ -36,9 +36,12 @@ class DefinitionGenerator {
         
     }
 
-    parse() {
+    async parse() {
         this.createInfo()
-        this.createPaths()
+        await this.createPaths()
+            .catch(err => {
+                throw err
+            })
         
         if (this.serverless.service.custom.documentation.servers) {
             const servers = this.createServers(this.serverless.service.custom.documentation.servers)
@@ -67,7 +70,7 @@ class DefinitionGenerator {
         Object.assign(this.openAPI, {info})
     }
 
-    createPaths() {
+    async createPaths() {
         const paths = {}
         const httpFunctions = this.getHTTPFunctions()
 
@@ -84,7 +87,11 @@ class DefinitionGenerator {
                         opId = `${httpFunction.functionInfo.name}-${uuid()}`
                     }
 
-                    const path = this.createOperationObject(event.http.method || event.httpApi.method, documentation, opId)
+                    const path = await this.createOperationObject(event.http.method || event.httpApi.method, documentation, opId)
+                        .catch(err => {
+                            throw err
+                        })
+                    
                     if (httpFunction.functionInfo?.summary)
                         path.summary = httpFunction.functionInfo.summary
 
@@ -168,7 +175,7 @@ class DefinitionGenerator {
         Object.assign(this.openAPI, {tags: tags})
     }
 
-    createOperationObject(method, documentation, name = uuid()) {
+    async createOperationObject(method, documentation, name = uuid()) {
         const obj = {
             summary: documentation.summary || '',
             description: documentation.description || '',
@@ -178,22 +185,34 @@ class DefinitionGenerator {
         }
 
         if (documentation.pathParams) {
-            const paramObject = this.createParamObject('path', documentation)
+            const paramObject = await this.createParamObject('path', documentation)
+                .catch(err => {
+                    throw err
+                })
             obj.parameters = obj.parameters.concat(paramObject)
         }
 
         if (documentation.queryParams) {
-            const paramObject = this.createParamObject('query', documentation)
+            const paramObject = await this.createParamObject('query', documentation)
+                .catch(err => {
+                    throw err
+                })
             obj.parameters = obj.parameters.concat(paramObject)
         }
 
         if (documentation.headerParams) {
-            const paramObject = this.createParamObject('header', documentation)
+            const paramObject = await this.createParamObject('header', documentation)
+                .catch(err => {
+                    throw err
+                })
             obj.parameters = obj.parameters.concat(paramObject)
         }
 
         if (documentation.cookieParams) {
-            const paramObject = this.createParamObject('cookie', documentation)
+            const paramObject = await this.createParamObject('cookie', documentation)
+                .catch(err => {
+                    throw err
+                })
             obj.parameters = obj.parameters.concat(paramObject)
         }
 
@@ -205,10 +224,16 @@ class DefinitionGenerator {
             obj.deprecated = documentation.deprecated
 
         if (documentation.requestBody)
-            obj.requestBody = this.createRequestBody(documentation)
+            obj.requestBody = await this.createRequestBody(documentation)
+                .catch(err => {
+                    throw err
+                })
 
         if (documentation.methodResponses)
-            obj.responses = this.createResponses(documentation)
+            obj.responses = await this.createResponses(documentation)
+                .catch(err => {
+                    throw err
+                })
 
         if (documentation.servers) {
             const servers = this.createServers(documentation.servers)
@@ -218,14 +243,17 @@ class DefinitionGenerator {
         return {[method]: obj}
     }
 
-    createResponses(documentation) {
+    async createResponses(documentation) {
         const responses = {}
         for (const response of documentation.methodResponses) {
             const obj = {
                 description: response.responseBody.description || '',
             }
 
-            obj.content = this.createMediaTypeObject(response.responseModels, 'responses')
+            obj.content = await this.createMediaTypeObject(response.responseModels, 'responses')
+                .catch(err => {
+                    throw err
+                })
 
             Object.assign(responses,{[response.statusCode]: obj})
         }
@@ -233,18 +261,21 @@ class DefinitionGenerator {
         return responses
     }
 
-    createRequestBody(documentation) {
+    async createRequestBody(documentation) {
         const obj = {
             description: documentation.requestBody.description,
             required: documentation.requestBody.required || false,
         }
 
-        obj.content = this.createMediaTypeObject(documentation.requestModels, 'requestBody')
+        obj.content = await this.createMediaTypeObject(documentation.requestModels, 'requestBody')
+            .catch(err => {
+                throw err
+            })
 
         return obj
     }
 
-    createMediaTypeObject(models, type) {
+    async createMediaTypeObject(models, type) {
         const mediaTypeObj = {}
         for (const mediaTypeDocumentation of this.serverless.service.custom.documentation.models) {
             if (Object.values(models).includes(mediaTypeDocumentation.name)) {
@@ -262,59 +293,12 @@ class DefinitionGenerator {
                     obj.examples = this.createExamples(mediaTypeDocumentation.examples)
 
                 if (mediaTypeDocumentation.content[contentKey].schema) {
-                    const schema = SchemaConvertor.convert(mediaTypeDocumentation.content[contentKey].schema)
-                    for (const key of Object.keys(schema.schemas)) {
-                        if (key === 'main' || key.split('-')[0] === 'main') {
-                            obj.schema = {
-                                $ref: `#/components/schemas/${mediaTypeDocumentation.name}`
-                            }
-
-                            if (this.openAPI?.components) {
-                                if (this.openAPI.components?.schemas) {
-                                    const schemaObj = {
-                                        [mediaTypeDocumentation.name]: schema.schemas[key]
-                                    }
-                                    Object.assign(this.openAPI.components.schemas, schemaObj)
-                                } else {
-                                    const schemaObj = {
-                                        [mediaTypeDocumentation.name]: schema.schemas[key]
-                                    }
-                                    Object.assign(this.openAPI.components, {schemas: schemaObj})
-                                }
-                            } else {
-                                const components = {
-                                    components: {
-                                        schemas: {
-                                            [mediaTypeDocumentation.name]: schema.schemas[key]
-                                        }
-                                    }
-                                }
-                                Object.assign(this.openAPI, components)
-                            }
-                        } else {
-                            if (this.openAPI?.components) {
-                                if (this.openAPI.components?.schemas) {
-                                    const schemaObj = {
-                                        [key]: schema.schemas[key]
-                                    }
-                                    Object.assign(this.openAPI.components.schemas, schemaObj)
-                                } else {
-                                    const schemaObj = {
-                                        [key]: schema.schemas[key]
-                                    }
-                                    Object.assign(this.openAPI.components, {schemas: schemaObj})
-                                }
-                            } else {
-                                const components = {
-                                    components: {
-                                        schemas: {
-                                            [key]: schema.schemas[key]
-                                        }
-                                    }
-                                }
-                                Object.assign(this.openAPI, components)
-                            }
-                        }
+                    const schemaRef = await this.schemaCreator(mediaTypeDocumentation.content[contentKey].schema, mediaTypeDocumentation.name)
+                        .catch(err => {
+                            throw err
+                        })
+                    obj.schema = {
+                        $ref: schemaRef
                     }
                 }
 
@@ -324,7 +308,7 @@ class DefinitionGenerator {
         return mediaTypeObj
     }
 
-    createParamObject(paramIn, documentation) {
+    async createParamObject(paramIn, documentation) {
         const params = []
         for (const param of documentation[`${paramIn}Params`]) {
             const obj = {
@@ -358,16 +342,63 @@ class DefinitionGenerator {
                 obj.examples = this.createExamples(param.examples)
 
             if (param.schema) {
-                const schema = SchemaConvertor.convert(param.schema)
-                if (schema.schemas.main) {
-                    Object.assign(obj,{schema: schema.schemas.main})
-
+                const schemaRef = await this.schemaCreator(param.schema, param.name)
+                    .catch(err => {
+                        throw err
+                    })
+                obj.schema = {
+                    $ref: schemaRef
                 }
             }
 
             params.push(obj)
         }
         return params;
+    }
+
+    async schemaCreator(schema, name) {
+        const addToComponents = (schema, name) => {
+            const schemaObj = {
+                [name]: schema
+            }
+
+            if (this.openAPI?.components) {
+                if (this.openAPI.components?.schemas) {
+                    Object.assign(this.openAPI.components.schemas, schemaObj)
+                } else {
+                    Object.assign(this.openAPI.components, {schemas: schemaObj})
+                }
+            } else {
+                const components = {
+                    components: {
+                        schemas: schemaObj
+                    }
+                }
+
+                Object.assign(this.openAPI, components)
+            }
+        }
+
+        if (Object.keys(schema).length > 0) {
+            const convertedSchema = SchemaConvertor.convert(schema)
+            for (const key of Object.keys(convertedSchema.schemas)) {
+                if (key === 'main' || key.split('-')[0] === 'main') {
+                    const ref = `#/components/schemas/${name}`
+
+                    addToComponents(convertedSchema.schemas[key], name)
+                    return ref
+                } else {
+                    addToComponents(convertedSchema.schemas[key], key)
+                }
+            }
+        } else {
+            const combinedSchema = await $RefParser.dereference(schema, this.refParserOptions)
+                .catch(err => {
+                    console.error(err)
+                    throw err
+                })
+            return await this.schemaCreator(combinedSchema, name)
+        }
     }
 
     createExamples(examples) {
