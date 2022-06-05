@@ -379,7 +379,7 @@ class DefinitionGenerator {
             }
         }
 
-        if (Object.keys(schema).length > 0) {
+        if (typeof schema !== 'string' && Object.keys(schema).length > 0) {
             const convertedSchema = SchemaConvertor.convert(schema)
             for (const key of Object.keys(convertedSchema.schemas)) {
                 if (key === 'main' || key.split('-')[0] === 'main') {
@@ -397,7 +397,11 @@ class DefinitionGenerator {
                     console.error(err)
                     throw err
                 })
+
             return await this.schemaCreator(combinedSchema, name)
+                .catch(err => {
+                    throw err
+                })
         }
     }
 
