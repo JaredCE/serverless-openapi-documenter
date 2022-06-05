@@ -104,7 +104,7 @@ class OpenAPIGenerator {
         const config = this.processCliInput()
         const generator = new DefinitionGenerator(this.serverless);
 
-        generator.parse();
+        await generator.parse();
 
         const valid = await generator.validate()
           .catch(err => {
