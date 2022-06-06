@@ -27,6 +27,7 @@ class DefinitionGenerator {
         }
 
         this.operationIds = []
+        this.schemaIDs = []
 
         try {
             this.refParserOptions = require(path.resolve('options', 'ref-parser.js'))
@@ -383,13 +384,19 @@ class DefinitionGenerator {
             }
         }
 
+        let schemaName = name
+        if (this.schemaIDs.includes(schemaName)) 
+            schemaName = `${name}-${uuid()}`
+        else 
+            this.schemaIDs.push(schemaName)
+
         if (typeof schema !== 'string' && Object.keys(schema).length > 0) {
             const convertedSchema = SchemaConvertor.convert(schema)
             for (const key of Object.keys(convertedSchema.schemas)) {
                 if (key === 'main' || key.split('-')[0] === 'main') {
-                    const ref = `#/components/schemas/${name}`
+                    const ref = `#/components/schemas/${schemaName}`
 
-                    addToComponents(convertedSchema.schemas[key], name)
+                    addToComponents(convertedSchema.schemas[key], schemaName)
                     return ref
                 } else {
                     addToComponents(convertedSchema.schemas[key], key)
@@ -402,7 +409,7 @@ class DefinitionGenerator {
                     throw err
                 })
 
-            return await this.schemaCreator(combinedSchema, name)
+            return await this.schemaCreator(combinedSchema, schemaName)
                 .catch(err => {
                     throw err
                 })
