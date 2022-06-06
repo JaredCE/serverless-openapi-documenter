@@ -392,14 +392,27 @@ class DefinitionGenerator {
 
         if (typeof schema !== 'string' && Object.keys(schema).length > 0) {
             const convertedSchema = SchemaConvertor.convert(schema)
+
             for (const key of Object.keys(convertedSchema.schemas)) {
                 if (key === 'main' || key.split('-')[0] === 'main') {
-                    const ref = `#/components/schemas/${schemaName}`
-
+                    let ref = `#/components/schemas/`
+                    
+                    if (this.openAPI?.components?.schemas?.[name]) {
+                        if (JSON.stringify(convertedSchema.schemas[key]) === JSON.stringify(this.openAPI.components.schemas[name])) {
+                            return `${ref}${name}`
+                        } 
+                    } 
+                    
                     addToComponents(convertedSchema.schemas[key], schemaName)
-                    return ref
+                    return `${ref}${schemaName}`
                 } else {
-                    addToComponents(convertedSchema.schemas[key], key)
+                    if (this.openAPI?.components?.schemas?.[key]) {
+                        if (JSON.stringify(convertedSchema.schemas[key]) !== JSON.stringify(this.openAPI.components.schemas[key])) {
+                            addToComponents(convertedSchema.schemas[key], key)
+                        }
+                    } else {
+                        addToComponents(convertedSchema.schemas[key], key)
+                    }
                 }
             }
         } else {
