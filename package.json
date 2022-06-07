@@ -1,6 +1,6 @@
 {
   "name": "serverless-openapi-documenter",
-  "version": "0.0.9",
+  "version": "0.0.10",
   "description": "Generate OpenAPI v3 documentation and Postman Collections from your Serverless Config",
   "main": "index.js",
   "keywords": [
@@ -31,7 +31,7 @@
     "@apidevtools/json-schema-ref-parser": "^9.0.9",
     "chalk": "^4.1.2",
     "js-yaml": "^4.1.0",
-    "json-schema-for-openapi": "^0.1.2",
+    "json-schema-for-openapi": "^0.1.3",
     "oas-validator": "^5.0.8",
     "openapi-to-postmanv2": "^3.2.0",
     "swagger2openapi": "^7.0.8",
