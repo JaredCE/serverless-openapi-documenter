@@ -355,8 +355,9 @@ describe('DefinitionGenerator', () => {
                     })
 
                 expect(definitionGenerator.openAPI.components.schemas).to.have.property('LicensedMember')
-                expect(definitionGenerator.openAPI.components.schemas).to.have.property('UUID')
-                expect(definitionGenerator.openAPI.components.schemas).to.have.property('AATDate')
+                expect(definitionGenerator.openAPI.components.schemas).to.have.property('log')
+                expect(definitionGenerator.openAPI.components.schemas).to.have.property('template')
+                expect(definitionGenerator.openAPI.components.schemas).to.have.property('database')
                 expect(expected).to.equal('#/components/schemas/LicensedMember')
 
                 stub.restore()
@@ -377,7 +378,7 @@ describe('DefinitionGenerator', () => {
                     type: "object",
                     properties: {
                         UUID: {
-                            $ref: "#/definitions/UUID"
+                            $ref: "#/definitions/log"
                         },
                         name: {
                             type: "string"
@@ -392,8 +393,9 @@ describe('DefinitionGenerator', () => {
                     })
 
                 expect(definitionGenerator.openAPI.components.schemas).to.have.property('LicensedMember')
-                expect(definitionGenerator.openAPI.components.schemas).to.have.property('UUID')
-                expect(definitionGenerator.openAPI.components.schemas).to.have.property('AATDate')
+                expect(definitionGenerator.openAPI.components.schemas).to.have.property('log')
+                expect(definitionGenerator.openAPI.components.schemas).to.have.property('template')
+                expect(definitionGenerator.openAPI.components.schemas).to.have.property('database')
                 expect(definitionGenerator.openAPI.components.schemas).to.have.property('simpleSchema')
                 expect(expected).to.equal('#/components/schemas/simpleSchema')
 
