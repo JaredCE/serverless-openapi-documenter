@@ -27,13 +27,14 @@ class DefinitionGenerator {
         }
 
         this.operationIds = []
+        this.schemaNames = {}
 
         try {
             this.refParserOptions = require(path.resolve('options', 'ref-parser.js'))
         } catch (err) {
             this.refParserOptions = {}
         }
-        
+
     }
 
     async parse() {
@@ -42,7 +43,7 @@ class DefinitionGenerator {
             .catch(err => {
                 throw err
             })
-        
+
         if (this.serverless.service.custom.documentation.servers) {
             const servers = this.createServers(this.serverless.service.custom.documentation.servers)
             Object.assign(this.openAPI, {servers: servers})
@@ -91,7 +92,7 @@ class DefinitionGenerator {
                         .catch(err => {
                             throw err
                         })
-                    
+
                     if (httpFunction.functionInfo?.summary)
                         path.summary = httpFunction.functionInfo.summary
 
@@ -149,11 +150,6 @@ class DefinitionGenerator {
 
     createExternalDocumentation(docs) {
         return {...docs}
-        // const documentation = this.serverless.service.custom.documentation
-        // if (documentation.externalDocumentation) {
-        //     // Object.assign(this.openAPI, {externalDocs: {...documentation.externalDocumentation}})
-        //     return 
-        // }
     }
 
     createTags() {
@@ -357,51 +353,72 @@ class DefinitionGenerator {
     }
 
     async schemaCreator(schema, name) {
-        const addToComponents = (schema, name) => {
-            const schemaObj = {
-                [name]: schema
-            }
+        let newSchema = schema
 
-            if (this.openAPI?.components) {
-                if (this.openAPI.components?.schemas) {
-                    Object.assign(this.openAPI.components.schemas, schemaObj)
-                } else {
-                    Object.assign(this.openAPI.components, {schemas: schemaObj})
-                }
-            } else {
-                const components = {
-                    components: {
-                        schemas: schemaObj
-                    }
-                }
-
-                Object.assign(this.openAPI, components)
-            }
-        }
-
-        if (typeof schema !== 'string' && Object.keys(schema).length > 0) {
-            const convertedSchema = SchemaConvertor.convert(schema)
-            for (const key of Object.keys(convertedSchema.schemas)) {
-                if (key === 'main' || key.split('-')[0] === 'main') {
-                    const ref = `#/components/schemas/${name}`
-
-                    addToComponents(convertedSchema.schemas[key], name)
-                    return ref
-                } else {
-                    addToComponents(convertedSchema.schemas[key], key)
-                }
-            }
-        } else {
-            const combinedSchema = await $RefParser.dereference(schema, this.refParserOptions)
+        if (typeof newSchema === 'string')
+            newSchema = await $RefParser.dereference(newSchema, this.refParserOptions)
                 .catch(err => {
                     console.error(err)
                     throw err
                 })
 
-            return await this.schemaCreator(combinedSchema, name)
-                .catch(err => {
-                    throw err
-                })
+        const convertedSchemas = SchemaConvertor.convert(newSchema)
+
+        let newName = name
+        for (const key of Object.keys(convertedSchemas.schemas)) {
+            if (key === 'main' || key.split('-')[0] === 'main') {
+                newName = this.addToComponents(convertedSchemas.schemas[key], name)
+            } else {
+                this.addToComponents(convertedSchemas.schemas[key], key)
+            }
+        }
+
+        let ref = `#/components/schemas/${newName ?? name}`
+
+        return ref
+    }
+
+    addToComponents(schema, name) {
+        const schemaObj = {
+            [name]: schema
+        }
+
+        if (this.openAPI?.components) {
+            if (this.openAPI.components?.schemas) {
+                if (
+                    this.openAPI.components.schemas[name] &&
+                    JSON.stringify(this.openAPI.components.schemas[name]) !== JSON.stringify(schema)
+                ) {
+                    let inc
+                    if (this.schemaNames[name])
+                        inc = this.schemaNames[name]++
+                    else {
+                        Object.assign(this.schemaNames, {[name]: 1})
+                        inc = 1
+                    }
+
+                    let newSchemaObj = {
+                        [`${name}${inc}`]: schema
+                    }
+                    if (schema !== undefined) {
+                        Object.assign(this.openAPI.components.schemas, newSchemaObj)
+
+                        return `${name}${inc}`
+                    }
+                } else if (this.openAPI.components.schemas[name] === undefined) {
+                    Object.assign(this.openAPI.components.schemas, schemaObj)
+                }
+            } else {
+                Object.assign(this.openAPI.components, {schemas: schemaObj})
+            }
+        } else {
+            const components = {
+                components: {
+                    schemas: schemaObj
+                }
+            }
+
+            Object.assign(this.openAPI, components)
         }
     }
 
