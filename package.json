@@ -14,7 +14,7 @@
     "Postman-Collections"
   ],
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha --config './test/.mocharc.js'"
   },
   "author": {
     "name": "Jared Evans"
@@ -39,5 +39,11 @@
   },
   "engines": {
     "node": ">=14"
+  },
+  "devDependencies": {
+    "chai": "^4.3.6",
+    "mocha": "^10.0.0",
+    "nock": "^13.2.6",
+    "sinon": "^14.0.0"
   }
 }
