@@ -15,13 +15,13 @@ Originally based off of: https://github.com/temando/serverless-openapi-documenta
 
 ## Install
 
-This plugin works for Serverless 2.x and up.
+This plugin works for Serverless 2.x and up and only supports node.js 14 and up.
 
 To add this plugin to your package.json:
 
 **Using npm:**
 ```bash
-npm install --save-dev serverless-openapi-documenter 
+npm install --save-dev serverless-openapi-documenter
 ```
 
 Next you need to add the plugin to the `plugins` section of your `serverless.yml` file.
@@ -195,17 +195,17 @@ custom:
     models:
       - name: "ErrorResponse"
         description: "This is an error"
-        content: 
+        content:
           application/json:
             schema: ${file(models/ErrorResponse.json)}
       - name: "PutDocumentResponse"
         description: "PUT Document response model (external reference example)"
-        content: 
+        content:
           application/json:
             schema: ${file(models/PutDocumentResponse.json)}
       - name: "PutDocumentRequest"
         description: "PUT Document request model (inline example)"
-        content: 
+        content:
           application/json:
             schema:
               $schema: "http://json-schema.org/draft-04/schema#"
@@ -248,7 +248,7 @@ functions:
       - http:
         path: create
         method: post
-        summary: 
+        summary:
         documentation:
           summary: "Create User"
           description: "Creates a user and then sends a generated password email"
@@ -413,7 +413,7 @@ Please view the example [serverless.yml](test/serverless\ 2/serverless.yml).
 
 ## Notes on schemas
 
-Schemas can be either: inline, in file or externally hosted.  If they're inline or in file, the plugin will attempt to normalise the schema to [OpenAPI 3.0.X specification](https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.0.md#schemaObject).  
+Schemas can be either: inline, in file or externally hosted.  If they're inline or in file, the plugin will attempt to normalise the schema to [OpenAPI 3.0.X specification](https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.0.md#schemaObject).
 
 If they exist as an external reference, for instance:
 
