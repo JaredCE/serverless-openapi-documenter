@@ -19,7 +19,7 @@ functions:
           documentation:
             summary: Create User
             description: Creates a user and then sends a generated password email
-            tags: 
+            tags:
               - jesus
             externalDocumentation:
               url: https://bing.com
@@ -64,12 +64,28 @@ functions:
       - http:
           path: delete
           method: delete
-
+  patchUser:
+    handler: handler.patch
+    events:
+      - httpApi:
+          path: /patch/
+          method: PATCH
+          documentation:
+            summary: Patch a User
+            description: Patch details about the user
+            tags:
+              - patching
+            methodResponses:
+              - statusCode: 200
+                responseBody:
+                  description: A user object along with generated API Keys
+                responseModels:
+                  application/json: PutDocumentResponse
 custom:
   documentation:
     description: This is a description of what this does
     version: 1.0.0
-    tags: 
+    tags:
       - name: jesus
         description: jesus was a man
         externalDocumentation:
