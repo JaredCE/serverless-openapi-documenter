@@ -33,7 +33,7 @@ class DefinitionGenerator {
         } catch (err) {
             this.refParserOptions = {}
         }
-        
+
     }
 
     async parse() {
@@ -42,7 +42,7 @@ class DefinitionGenerator {
             .catch(err => {
                 throw err
             })
-        
+
         if (this.serverless.service.custom.documentation.servers) {
             const servers = this.createServers(this.serverless.service.custom.documentation.servers)
             Object.assign(this.openAPI, {servers: servers})
@@ -77,7 +77,7 @@ class DefinitionGenerator {
             for (const event of httpFunction.event) {
                 if (event?.http?.documentation || event?.httpApi?.documentation) {
                     const documentation = event?.http?.documentation || event?.httpApi?.documentation
-                    
+
                     let opId
                     if (this.operationIds.includes(httpFunction.functionInfo.name) === false) {
                         opId = httpFunction.functionInfo.name
@@ -90,7 +90,7 @@ class DefinitionGenerator {
                         .catch(err => {
                             throw err
                         })
-                    
+
                     if (httpFunction.functionInfo?.summary)
                         path.summary = httpFunction.functionInfo.summary
 
@@ -151,7 +151,7 @@ class DefinitionGenerator {
         // const documentation = this.serverless.service.custom.documentation
         // if (documentation.externalDocumentation) {
         //     // Object.assign(this.openAPI, {externalDocs: {...documentation.externalDocumentation}})
-        //     return 
+        //     return
         // }
     }
 
@@ -239,7 +239,7 @@ class DefinitionGenerator {
             obj.servers = servers
         }
 
-        return {[method]: obj}
+        return {[method.toLowerCase()]: obj}
     }
 
     async createResponses(documentation) {
@@ -296,8 +296,8 @@ class DefinitionGenerator {
                     schema = mediaTypeDocumentation.content[contentKey].schema
                 } else if (mediaTypeDocumentation?.contentType && mediaTypeDocumentation.schema) {
                     schema = mediaTypeDocumentation.schema
-                } 
-    
+                }
+
                 const schemaRef = await this.schemaCreator(schema, mediaTypeDocumentation.name)
                     .catch(err => {
                         throw err
