@@ -15,13 +15,13 @@ Originally based off of: https://github.com/temando/serverless-openapi-documenta
 
 ## Install
 
-This plugin works for Serverless 2.x and up.
+This plugin works for Serverless 2.x and up and only supports node.js 14 and up.
 
 To add this plugin to your package.json:
 
 **Using npm:**
 ```bash
-npm install --save-dev serverless-openapi-documenter 
+npm install --save-dev serverless-openapi-documenter
 ```
 
 Next you need to add the plugin to the `plugins` section of your `serverless.yml` file.
@@ -112,7 +112,6 @@ custom:
     version: '1'
     title: 'My API'
     description: 'This is my API'
-    models: {}
     externalDocumentation:
       url: https://google.com
       description: A link to google
@@ -125,7 +124,10 @@ custom:
         externalDocumentation:
           url: https://npmjs.com
           description: A link to npm
+    models: {}
 ```
+
+Mostly everything here is optional.  A version from a UUID will be generated for you if you don't specify one, title will be the name of your service if you don't specify one.
 
 These configurations can be quite verbose; you can separate it out into it's own file, such as `serverless.doc.yml` as below:
 
@@ -146,9 +148,10 @@ For more info on `serverless.yml` syntax, see their docs.
 
 #### Models
 
-Models contain additional information that you can use to define schemas for endpoints.  You must define the *content type* for each schema that you provide in the models.
+There are two ways to write the Models.  Models contain additional information that you can use to define schemas for endpoints.  You must define the *content type* for each schema that you provide in the models.
 
-The *required* directives for the models section are as follow:
+The first way of writing the model is:
+*required* directives for the models section are as follow:
 
 * `name`: the name of the schema
 * `description`: a description of the schema
@@ -180,6 +183,40 @@ custom:
                   type: "string"
 ```
 
+The Second way of writing the models:
+
+* `name`: the name of the schema
+* `description`: a description of the schema
+* `content`: an Object made up of the contentType and the schema, as shown below
+
+```yml
+custom:
+  documentation:
+    models:
+      - name: "ErrorResponse"
+        description: "This is an error"
+        content:
+          application/json:
+            schema: ${file(models/ErrorResponse.json)}
+      - name: "PutDocumentResponse"
+        description: "PUT Document response model (external reference example)"
+        content:
+          application/json:
+            schema: ${file(models/PutDocumentResponse.json)}
+      - name: "PutDocumentRequest"
+        description: "PUT Document request model (inline example)"
+        content:
+          application/json:
+            schema:
+              $schema: "http://json-schema.org/draft-04/schema#"
+              properties:
+                SomeObject:
+                  type: "object"
+                  properties:
+                    SomeAttribute:
+                      type: "string"
+```
+
 #### Functions
 
 To define the documentation for a given function event, you need to create a `documentation` attribute for your http event in your `serverless.yml` file.
@@ -206,11 +243,12 @@ The `documentation` section of the event configuration can contain the following
 ```yml
 functions:
   createUser:
-    handler: "handler.create"
+    handler: handler.create
     events:
       - http:
-        path: "create"
-        method: "post"
+        path: create
+        method: post
+        summary:
         documentation:
           summary: "Create User"
           description: "Creates a user and then sends a generated password email"
@@ -375,7 +413,7 @@ Please view the example [serverless.yml](test/serverless\ 2/serverless.yml).
 
 ## Notes on schemas
 
-Schemas can be either: inline, in file or externally hosted.  If they're inline or in file, the plugin will attempt to normalise the schema to [OpenAPI 3.0.X specification](https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.0.md#schemaObject).  
+Schemas can be either: inline, in file or externally hosted.  If they're inline or in file, the plugin will attempt to normalise the schema to [OpenAPI 3.0.X specification](https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.0.md#schemaObject).
 
 If they exist as an external reference, for instance:
 

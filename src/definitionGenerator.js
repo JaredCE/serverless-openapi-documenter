@@ -33,7 +33,7 @@ class DefinitionGenerator {
         } catch (err) {
             this.refParserOptions = {}
         }
-        
+
     }
 
     async parse() {
@@ -42,7 +42,7 @@ class DefinitionGenerator {
             .catch(err => {
                 throw err
             })
-        
+
         if (this.serverless.service.custom.documentation.servers) {
             const servers = this.createServers(this.serverless.service.custom.documentation.servers)
             Object.assign(this.openAPI, {servers: servers})
@@ -73,11 +73,10 @@ class DefinitionGenerator {
     async createPaths() {
         const paths = {}
         const httpFunctions = this.getHTTPFunctions()
-
         for (const httpFunction of httpFunctions) {
             for (const event of httpFunction.event) {
                 if (event?.http?.documentation || event?.httpApi?.documentation) {
-                    const documentation = event.http.documentation || event.httpApi.documentation
+                    const documentation = event?.http?.documentation || event?.httpApi?.documentation
 
                     let opId
                     if (this.operationIds.includes(httpFunction.functionInfo.name) === false) {
@@ -87,11 +86,11 @@ class DefinitionGenerator {
                         opId = `${httpFunction.functionInfo.name}-${uuid()}`
                     }
 
-                    const path = await this.createOperationObject(event.http.method || event.httpApi.method, documentation, opId)
+                    const path = await this.createOperationObject(event?.http?.method || event?.httpApi?.method, documentation, opId)
                         .catch(err => {
                             throw err
                         })
-                    
+
                     if (httpFunction.functionInfo?.summary)
                         path.summary = httpFunction.functionInfo.summary
 
@@ -103,10 +102,10 @@ class DefinitionGenerator {
                         path.servers = servers
                     }
 
-                    let slashPath = event.http.path
+                    let slashPath = event?.http?.path || event.httpApi?.path
                     const pathStart = new RegExp(/^\//, 'g')
                     if (pathStart.test(slashPath) === false) {
-                        slashPath = `/${event.http.path}`
+                        slashPath = `/${event?.http?.path||event.httpApi?.path}`
                     }
 
                     Object.assign(paths, {[slashPath]: path})
@@ -152,7 +151,7 @@ class DefinitionGenerator {
         // const documentation = this.serverless.service.custom.documentation
         // if (documentation.externalDocumentation) {
         //     // Object.assign(this.openAPI, {externalDocs: {...documentation.externalDocumentation}})
-        //     return 
+        //     return
         // }
     }
 
@@ -240,7 +239,7 @@ class DefinitionGenerator {
             obj.servers = servers
         }
 
-        return {[method]: obj}
+        return {[method.toLowerCase()]: obj}
     }
 
     async createResponses(documentation) {
@@ -292,14 +291,19 @@ class DefinitionGenerator {
                 if (mediaTypeDocumentation.examples)
                     obj.examples = this.createExamples(mediaTypeDocumentation.examples)
 
-                if (mediaTypeDocumentation.content[contentKey].schema) {
-                    const schemaRef = await this.schemaCreator(mediaTypeDocumentation.content[contentKey].schema, mediaTypeDocumentation.name)
-                        .catch(err => {
-                            throw err
-                        })
-                    obj.schema = {
-                        $ref: schemaRef
-                    }
+                let schema
+                if (mediaTypeDocumentation?.content) {
+                    schema = mediaTypeDocumentation.content[contentKey].schema
+                } else if (mediaTypeDocumentation?.contentType && mediaTypeDocumentation.schema) {
+                    schema = mediaTypeDocumentation.schema
+                }
+
+                const schemaRef = await this.schemaCreator(schema, mediaTypeDocumentation.name)
+                    .catch(err => {
+                        throw err
+                    })
+                obj.schema = {
+                    $ref: schemaRef
                 }
 
                 Object.assign(mediaTypeObj, {[contentKey]: obj})
