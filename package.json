@@ -1,6 +1,6 @@
 {
   "name": "serverless-openapi-documenter",
-  "version": "0.0.15",
+  "version": "0.0.16",
   "description": "Generate OpenAPI v3 documentation and Postman Collections from your Serverless Config",
   "main": "index.js",
   "keywords": [
@@ -14,7 +14,7 @@
     "Postman-Collections"
   ],
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha --config './test/.mocharc.js'"
   },
   "author": {
     "name": "Jared Evans"
@@ -39,5 +39,10 @@
   },
   "engines": {
     "node": ">=14"
+  },
+  "devDependencies": {
+    "chai": "^4.3.6",
+    "mocha": "^10.0.0",
+    "sinon": "^14.0.0"
   }
 }
