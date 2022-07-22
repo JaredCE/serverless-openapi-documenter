@@ -9,7 +9,7 @@ const $RefParser = require("@apidevtools/json-schema-ref-parser");
 
 class DefinitionGenerator {
     constructor(serverless, options = {}) {
-        this.version = serverless.processedInput.options.openApiVersion || '3.0.0'
+        this.version = serverless?.processedInput?.options?.openApiVersion || '3.0.0'
 
         this.serverless = serverless
         this.httpKeys = {
@@ -384,25 +384,25 @@ class DefinitionGenerator {
             }
         }
 
-        let schemaName = name
-        if (this.schemaIDs.includes(schemaName)) 
-            schemaName = `${name}-${uuid()}`
-        else 
-            this.schemaIDs.push(schemaName)
-
         if (typeof schema !== 'string' && Object.keys(schema).length > 0) {
             const convertedSchema = SchemaConvertor.convert(schema)
+
+            let schemaName = name
+            if (this.schemaIDs.includes(schemaName))
+                schemaName = `${name}-${uuid()}`
+
+            this.schemaIDs.push(schemaName)
 
             for (const key of Object.keys(convertedSchema.schemas)) {
                 if (key === 'main' || key.split('-')[0] === 'main') {
                     let ref = `#/components/schemas/`
-                    
+
                     if (this.openAPI?.components?.schemas?.[name]) {
                         if (JSON.stringify(convertedSchema.schemas[key]) === JSON.stringify(this.openAPI.components.schemas[name])) {
                             return `${ref}${name}`
-                        } 
-                    } 
-                    
+                        }
+                    }
+
                     addToComponents(convertedSchema.schemas[key], schemaName)
                     return `${ref}${schemaName}`
                 } else {
@@ -422,7 +422,7 @@ class DefinitionGenerator {
                     throw err
                 })
 
-            return await this.schemaCreator(combinedSchema, schemaName)
+            return await this.schemaCreator(combinedSchema, name)
                 .catch(err => {
                     throw err
                 })

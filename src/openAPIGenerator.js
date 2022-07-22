@@ -54,7 +54,6 @@ class OpenAPIGenerator {
         }
 
         this.hooks = {
-          // 'before:deploy': this.beforeDeploy.bind(this),
           'openapi:generate:serverless': this.generate.bind(this),
         };
 
@@ -76,7 +75,6 @@ class OpenAPIGenerator {
 
         this.serverless.configSchemaHandler.defineFunctionProperties('aws', {
           properties: {
-            // description: {type: 'string'},
             summary: {type: 'string'},
             servers: {anyOf: [{type:'object'}, {type:'array'}]},
           }
