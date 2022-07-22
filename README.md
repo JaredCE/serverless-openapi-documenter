@@ -7,9 +7,12 @@
   <a href="https://www.npmjs.com/package/serverless-openapi-documenter">
     <img src="https://img.shields.io/npm/v/serverless-openapi-documenter.svg?style=flat-square">
   </a>
+  <a href="https://github.com/JaredCE/serverless-openapi-documenter/actions/workflows/node.yml">
+    <img src="https://github.com/JaredCE/serverless-openapi-documenter/actions/workflows/node.yml/badge.svg">
+  </a>
 </p>
 
-![node.js tests](https://github.com/JaredCE/serverless-openapi-documenter/actions/workflows/node.js.yml/badge.svg)
+
 
 This will generate an OpenAPI V3 (up to v3.0.3) file for you from your serverless file.  It can optionally generate a Postman Collection V2 from the OpenAPI file for you too.
 
