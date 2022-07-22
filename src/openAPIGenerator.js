@@ -184,7 +184,8 @@ class OpenAPIGenerator {
       config.postmanCollection = this.serverless.processedInput.options.postmanCollection || null
 
       if (['yaml', 'json'].indexOf(config.format.toLowerCase()) < 0) {
-        throw new Error('Invalid Output Format Specified - must be one of "yaml" or "json"');
+        // throw new Error('Invalid Output Format Specified - must be one of "yaml" or "json"');
+        throw new this.serverless.classes.Error('Invalid Output Format Specified - must be one of "yaml" or "json"')
       }
 
       config.file = this.serverless.processedInput.options.output ||
