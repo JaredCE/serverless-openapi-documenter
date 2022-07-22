@@ -12,11 +12,16 @@ functions:
     handler: handler.create
     events:
       - http:
-          path: create
+          path: create/{username}
           method: post
           documentation:
             summary: Create User
             description: Creates a user and then sends a generated password email
+            tags:
+              - jesus
+            externalDocumentation:
+              url: https://bing.com
+              description: A link to bing
             requestBody:
               description: A user information object
             requestModels:
@@ -54,25 +59,30 @@ functions:
 
 custom:
   documentation:
+    description: This is a description of what this does
+    version: 1.0.0
     models:
       - name: ErrorResponse
         description: This is an error
-        contentType: application/json
-        schema: ${file(models/ErrorResponse.json)}
+        content:
+          application/json:
+            schema: ${file(../models/ErrorResponse.json)}
 
       - name: PutDocumentResponse
         description: PUT Document response model (external reference example)
-        contentType: application/json
-        schema: ${file(models/PutDocumentResponse.json)}
+        content:
+          application/json:
+            schema: ${file(../models/PutDocumentResponse.json)}
 
       - name: PutDocumentRequest
         description: PUT Document request model (inline example)
-        contentType: application/json
-        schema:
-          $schema: http://json-schema.org/draft-04/schema#
-          properties:
-            SomeObject:
-              type: object
+        content:
+          application/json:
+            schema:
+              $schema: http://json-schema.org/draft-04/schema#
               properties:
-                SomeAttribute:
-                  type: string
+                SomeObject:
+                  type: object
+                  properties:
+                    SomeAttribute:
+                      type: string
