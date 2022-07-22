@@ -83,10 +83,17 @@ class OpenAPIGenerator {
         })
     }
 
-    log(type = this.defaultLog, ...str) {
+    log(type = this.defaultLog, str) {
         switch(this.serverless.version[0]) {
           case '2':
-            this.serverless.cli.log(str)
+            let colouredString = str
+            if (type === 'error') {
+              colouredString = chalk.bold.red(`✖ ${str}`)
+            } else if (type === 'success') {
+              colouredString = chalk.bold.green(`✓ ${str}`)
+            }
+
+            this.serverless.cli.log(colouredString)
             break
 
           case '3':
@@ -106,32 +113,32 @@ class OpenAPIGenerator {
 
         await generator.parse()
           .catch(err => {
-            this.log('error', chalk.bold.red(`ERROR: An error was thrown generating the OpenAPI v3 documentation`))
+            this.log('error', `ERROR: An error was thrown generating the OpenAPI v3 documentation`)
             throw new this.serverless.classes.Error(err)
           })
 
         const valid = await generator.validate()
           .catch(err => {
-            this.log('error', chalk.bold.red(`ERROR: An error was thrown validating the OpenAPI v3 documentation`))
+            this.log('error', `ERROR: An error was thrown validating the OpenAPI v3 documentation`)
             throw new this.serverless.classes.Error(err)
           })
 
         if (valid)
-          this.log(this.defaultLog, chalk.bold.green('OpenAPI v3 Documentation Successfully Generated'))
+          this.log('success', 'OpenAPI v3 Documentation Successfully Generated')
 
         if (config.postmanCollection) {
           const postmanGeneration = (err, result) => {
             if (err) {
-              this.log('error', chalk.bold.red(`ERROR: An error was thrown when generating the postman collection`))
+              this.log('error', `ERROR: An error was thrown when generating the postman collection`)
               throw new this.serverless.classes.Error(err)
             }
 
-            this.log(this.defaultLog, chalk.bold.green('postman collection v2 Documentation Successfully Generated'))
+            this.log('success', 'postman collection v2 Documentation Successfully Generated')
             try {
               fs.writeFileSync(config.postmanCollection, JSON.stringify(result.output[0].data))
-              this.log(this.defaultLog, chalk.bold.green('postman collection v2 Documentation Successfully Written'))
+              this.log('success', 'postman collection v2 Documentation Successfully Written')
             } catch (err) {
-              this.log('error', chalk.bold.red(`ERROR: An error was thrown whilst writing the postman collection`))
+              this.log('error', `ERROR: An error was thrown whilst writing the postman collection`)
               throw new this.serverless.classes.Error(err)
             }
           }
@@ -155,9 +162,9 @@ class OpenAPIGenerator {
         }
         try {
           fs.writeFileSync(config.file, output);
-          this.log(this.defaultLog, chalk.bold.green('OpenAPI v3 Documentation Successfully Written'))
+          this.log('success', 'OpenAPI v3 Documentation Successfully Written')
         } catch (err) {
-          this.log('error', chalk.bold.red(`ERROR: An error was thrown whilst writing the openAPI Documentation`))
+          this.log('error', `ERROR: An error was thrown whilst writing the openAPI Documentation`)
           throw new this.serverless.classes.Error(err)
         }
     }
@@ -177,7 +184,8 @@ class OpenAPIGenerator {
       config.postmanCollection = this.serverless.processedInput.options.postmanCollection || null
 
       if (['yaml', 'json'].indexOf(config.format.toLowerCase()) < 0) {
-        throw new Error('Invalid Output Format Specified - must be one of "yaml" or "json"');
+        // throw new Error('Invalid Output Format Specified - must be one of "yaml" or "json"');
+        throw new this.serverless.classes.Error('Invalid Output Format Specified - must be one of "yaml" or "json"')
       }
 
       config.file = this.serverless.processedInput.options.output ||
@@ -185,12 +193,12 @@ class OpenAPIGenerator {
 
       this.log(
         this.defaultLog,
-        `${chalk.bold.green('[OPTIONS]')}`,
-        ` openApiVersion: "${chalk.bold.red(String(config.openApiVersion))}"`,
-        ` format: "${chalk.bold.red(config.format)}"`,
-        ` output file: "${chalk.bold.red(config.file)}"`,
-        ` indentation: "${chalk.bold.red(String(config.indent))}"`,
-        ` ${config.postmanCollection ? `postman collection: ${chalk.bold.red(config.postmanCollection)}`: `\n\n`}`
+        `${chalk.bold.green('[OPTIONS]')}
+  openApiVersion: "${chalk.bold.green(String(config.openApiVersion))}"
+  format: "${chalk.bold.green(config.format)}"
+  output file: "${chalk.bold.green(config.file)}"
+  indentation: "${chalk.bold.green(String(config.indent))}"
+  ${config.postmanCollection ? `postman collection: ${chalk.bold.green(config.postmanCollection)}`: `\n\n`}`
       )
 
       return config
