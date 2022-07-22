@@ -109,7 +109,11 @@ class DefinitionGenerator {
                         slashPath = `/${event?.http?.path||event.httpApi?.path}`
                     }
 
-                    Object.assign(paths, {[slashPath]: path})
+                    if (paths[slashPath]) {
+                        Object.assign(paths[slashPath], path);
+                    } else {
+                        Object.assign(paths, {[slashPath]: path});
+                    }
                 }
             }
         }
