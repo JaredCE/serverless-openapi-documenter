@@ -1,3 +1,3 @@
-const OpenAPIGenerator = require('./src/openAPIGenerator')
+const Plugin = require('./src/Plugin')
 
-module.exports = OpenAPIGenerator
+module.exports = Plugin
