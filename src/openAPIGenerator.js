@@ -148,32 +148,32 @@ class OpenAPIGenerator {
         }
 
         if (this.httpEvent.cors) {
-            if (this.httpEvent.cors === true) {
-                obj.parameters = []
-                this.defaultCORSHeaders.forEach(header => {
-                    obj.parameters.push({
-                        name: header.name,
-                        in: header.in,
-                        '$ref': `#/components/headers/${header.name}`
-                    })
-
-                    const refHeader = {
-                        // name: header.name,
-                        // required: header.required,
-                        schema: header.schema,
-                        // example: header.example,
-                        // in: 'header'
-                    }
-
-                    if (!this.openAPI.components.headers)
-                        this.openAPI.components.headers = {}
-
-                    Object.assign(this.openAPI.components.headers, {[header.name]: refHeader})
-                })
-            }
+            obj.parameters = this.createCORS()
         }
 
         return {[method.toLowerCase()]: obj}
+    }
+
+    createCORS() {
+        if (this.httpEvent.cors === true) {
+            return this.defaultCORSHeaders.map(header => {
+                const refHeader = {
+                    name: header.name,
+                    required: header.required,
+                    schema: header.schema,
+                    example: header.example,
+                    in: header.in,
+                }
+
+                if (!this.openAPI.components.parameters)
+                    this.openAPI.components.parameters = {}
+
+                if (!this.openAPI.components.parameters[header.name])
+                    Object.assign(this.openAPI.components.parameters, {[header.name]: refHeader})
+
+                return {'$ref': `#/components/parameters/${header.name}`}
+            })
+        }
     }
 
     getHTTPFunctions() {
@@ -203,7 +203,7 @@ class OpenAPIGenerator {
     }
 
     async validate() {
-        return await validator.validateInner(this.openAPI, {})
+        return await validator.validate(this.openAPI, {})
             .catch(err => {
                 throw err
             })
