@@ -1,226 +1,212 @@
 'use strict'
 
-const fs = require('fs')
-const yaml = require('js-yaml');
-const chalk = require('chalk')
-
-const DefinitionGenerator = require('./definitionGenerator')
-const PostmanGenerator = require('openapi-to-postmanv2')
+const { v4: uuid } = require('uuid')
+const validator = require('oas-validator');
 
 class OpenAPIGenerator {
-    constructor(serverless, options, {log = {}} = {}) {
-        this.logOutput = log;
+    constructor(serverless) {
         this.serverless = serverless
-        this.options = options
-        this.defaultLog = 'notice';
-        this.commands = {
-          openapi: {
-            commands: {
-              generate: {
-                lifecycleEvents: [
-                  'serverless',
-                ],
-                usage: 'Generate OpenAPI v3 Documentation',
-                options: {
-                  output: {
-                    usage: 'Output file location [default: openapi.json|yml]',
-                    shortcut: 'o',
-                    type: 'string',
-                  },
-                  format: {
-                    usage: 'OpenAPI file format (yml|json) [default: json]',
-                    shortcut: 'f',
-                    type: 'string',
-                  },
-                  indent: {
-                    usage: 'File indentation in spaces [default: 2]',
-                    shortcut: 'i',
-                    type: 'string',
-                  },
-                  openApiVersion: {
-                    usage: 'OpenAPI version number [default 3.0.0]',
-                    shortcut: 'a',
-                    type: 'string'
-                  },
-                  postmanCollection: {
-                    usage: 'Output a postman collection and attach to openApi external documents [default: postman.json if passed]',
-                    shortcut: 'p',
-                    type: 'string'
-                  }
-                },
-              },
+
+        this.openAPI = {
+            openapi: this.serverless?.processedInput?.options?.openApiVersion || '3.0.0',
+            info: {
+                title: this.serverless.service.service,
+                version: uuid(),
             },
-          },
         }
 
-        this.hooks = {
-          'openapi:generate:serverless': this.generate.bind(this),
-        };
+        this.httpKeys = {
+            http: 'http',
+            httpAPI: 'httpApi',
+        }
+        this.operations = ['get', 'put', 'post', 'delete', 'options', 'head', 'patch', 'trace']
 
-        this.customVars = this.serverless.variables.service.custom;
-
-        this.serverless.configSchemaHandler.defineFunctionEventProperties('aws', 'http', {
-          properties: {
-            documentation: { type: 'object' },
-          },
-          required: ['documentation'],
-        });
-
-        this.serverless.configSchemaHandler.defineFunctionEventProperties('aws', 'httpApi', {
-          properties: {
-            documentation: { type: 'object' },
-          },
-          required: ['documentation'],
-        });
-
-        this.serverless.configSchemaHandler.defineFunctionProperties('aws', {
-          properties: {
-            summary: {type: 'string'},
-            servers: {anyOf: [{type:'object'}, {type:'array'}]},
-          }
-        })
-    }
-
-    log(type = this.defaultLog, str) {
-        switch(this.serverless.version[0]) {
-          case '2':
-            let colouredString = str
-            if (type === 'error') {
-              colouredString = chalk.bold.red(`✖ ${str}`)
-            } else if (type === 'success') {
-              colouredString = chalk.bold.green(`✓ ${str}`)
+        this.openAPI.components = {
+            responses: {
+                '200': {
+                    description: 'default response',
+                    content: {
+                        'application/json': {
+                            schema: {
+                                type: 'object',
+                            },
+                        },
+                    },
+                }
             }
-
-            this.serverless.cli.log(colouredString)
-            break
-
-          case '3':
-            this.logOutput[type](str)
-            break
-
-          default:
-            process.stdout.write(str.join(' '))
-            break
         }
-    }
 
-    async generate() {
-        this.log(this.defaultLog, chalk.bold.underline('OpenAPI v3 Document Generation'))
-        const config = this.processCliInput()
-        const generator = new DefinitionGenerator(this.serverless);
-
-        await generator.parse()
-          .catch(err => {
-            this.log('error', `ERROR: An error was thrown generating the OpenAPI v3 documentation`)
-            throw new this.serverless.classes.Error(err)
-          })
-
-        const valid = await generator.validate()
-          .catch(err => {
-            this.log('error', `ERROR: An error was thrown validating the OpenAPI v3 documentation`)
-            throw new this.serverless.classes.Error(err)
-          })
-
-        if (valid)
-          this.log('success', 'OpenAPI v3 Documentation Successfully Generated')
-
-        if (config.postmanCollection) {
-          const postmanGeneration = (err, result) => {
-            if (err) {
-              this.log('error', `ERROR: An error was thrown when generating the postman collection`)
-              throw new this.serverless.classes.Error(err)
+        this.defaultCORSHeaders = [
+            {
+                in: 'header',
+                name: 'Access-Control-Allow-Origin',
+                required: true,
+                schema: {
+                    type: 'string'
+                },
+                example: '*',
+            },
+            {
+                in: 'header',
+                name: 'Access-Control-Allow-Headers',
+                required: true,
+                schema: {
+                    type: 'string'
+                },
+                example: 'Content-Type, X-Amz-Date, Authorization, X-Api-Key, X-Amz-Security-Token, X-Amz-User-Agent, X-Amzn-Trace-Id',
+            },
+            {
+                in: 'header',
+                name: 'Access-Control-Allow-Methods',
+                required: true,
+                schema: {
+                    type: 'string'
+                },
+                example: 'OPTIONS'
             }
+        ]
+    }
 
-            this.log('success', 'postman collection v2 Documentation Successfully Generated')
-            try {
-              fs.writeFileSync(config.postmanCollection, JSON.stringify(result.output[0].data))
-              this.log('success', 'postman collection v2 Documentation Successfully Written')
-            } catch (err) {
-              this.log('error', `ERROR: An error was thrown whilst writing the postman collection`)
-              throw new this.serverless.classes.Error(err)
+    parse() {
+        this.createPaths()
+    }
+
+    createPaths() {
+        const paths = {}
+        const httpFunctions = this.getHTTPFunctions()
+        for (const httpFunction of httpFunctions) {
+            for (const event of httpFunction.event) {
+                const isHTTPApi = (event?.httpApi) ? true : false
+                // const httpEvent = event?.http || event?.httpApi
+                this.httpEvent = event?.http || event?.httpApi
+
+                const pathObj = this.createOpertations()
+                Object.assign(paths, pathObj)
             }
-          }
-
-          const postmanCollection = PostmanGenerator.convert(
-            {type: 'json', data: JSON.parse(JSON.stringify(generator.openAPI))},
-            {},
-            postmanGeneration
-          )
         }
-
-        let output
-        switch (config.format.toLowerCase()) {
-          case 'json':
-            output = JSON.stringify(generator.openAPI, null, config.indent);
-            break;
-          case 'yaml':
-          default:
-            output = yaml.dump(generator.openAPI, { indent: config.indent });
-            break;
-        }
-        try {
-          fs.writeFileSync(config.file, output);
-          this.log('success', 'OpenAPI v3 Documentation Successfully Written')
-        } catch (err) {
-          this.log('error', `ERROR: An error was thrown whilst writing the openAPI Documentation`)
-          throw new this.serverless.classes.Error(err)
-        }
+        Object.assign(this.openAPI, {paths})
     }
 
-    processCliInput () {
-      const config = {
-        format: 'json',
-        file: 'openapi.json',
-        indent: 2,
-        openApiVersion: '3.0.0',
-        postmanCollection: 'postman.json'
-      };
+    createOpertations() {
+        const pathObj = {}
+        let catchAll = false
+        let method
+        let path
 
-      config.indent = this.serverless.processedInput.options.indent || 2;
-      config.format = this.serverless.processedInput.options.format || 'json';
-      config.openApiVersion = this.serverless.processedInput.options.openApiVersion || '3.0.0';
-      config.postmanCollection = this.serverless.processedInput.options.postmanCollection || null
-
-      if (['yaml', 'json'].indexOf(config.format.toLowerCase()) < 0) {
-        // throw new Error('Invalid Output Format Specified - must be one of "yaml" or "json"');
-        throw new this.serverless.classes.Error('Invalid Output Format Specified - must be one of "yaml" or "json"')
-      }
-
-      config.file = this.serverless.processedInput.options.output ||
-        ((config.format === 'yaml') ? 'openapi.yml' : 'openapi.json');
-
-      this.log(
-        this.defaultLog,
-        `${chalk.bold.green('[OPTIONS]')}
-  openApiVersion: "${chalk.bold.green(String(config.openApiVersion))}"
-  format: "${chalk.bold.green(config.format)}"
-  output file: "${chalk.bold.green(config.file)}"
-  indentation: "${chalk.bold.green(String(config.indent))}"
-  ${config.postmanCollection ? `postman collection: ${chalk.bold.green(config.postmanCollection)}`: `\n\n`}`
-      )
-
-      return config
-    }
-
-    validateDetails(validation) {
-      if (validation.valid) {
-        this.log(this.defaultLog, `${ chalk.bold.green('[VALIDATION]') } OpenAPI valid: ${chalk.bold.green('true')}\n\n`);
-      } else {
-        this.log(this.defaultLog, `${chalk.bold.red('[VALIDATION]')} Failed to validate OpenAPI document: \n\n`);
-        this.log(this.defaultLog, `${chalk.bold.green('Context:')} ${JSON.stringify(validation.context, null, 2)}\n`);
-        this.log(this.defaultLog, `${chalk.bold.green('Error Message:')} ${JSON.stringify(validation.error, null, 2)}\n`);
-        if (typeof validation.error === 'string') {
-          this.log(this.defaultLog, `${validation.error}\n\n`);
+        if (this.httpEvent.method) {
+            catchAll = (this.httpEvent.method === '*')
+            method = this.httpEvent.method
+            path = this.httpEvent.path
         } else {
-          for (const info of validation.error) {
-            this.log(this.defaultLog, chalk.grey('\n\n--------\n\n'));
-            this.log(this.defaultLog, ' ', chalk.blue(info.dataPath), '\n');
-            this.log(this.defaultLog, ' ', info.schemaPath, chalk.bold.yellow(info.message));
-            this.log(this.defaultLog, chalk.grey('\n\n--------\n\n'));
-            this.log(this.defaultLog, `${inspect(info, { colors: true, depth: 2 })}\n\n`);
-          }
+            try {
+                [method, path] = this.httpEvent.path.split(' ')
+            } catch {
+                catchAll = true
+                method = '*'
+                path = '/'
+            }
+
         }
-      }
+
+        method = method.toLowerCase()
+
+        const pathStart = new RegExp(/^\//, 'g')
+        let slashPath = path
+        if (pathStart.test(slashPath) === false) {
+            slashPath = `/${slashPath}`
+        }
+
+        if (catchAll) {
+            for (const operation of this.operations) {
+                const operationObj = this.createOperationObject(operation)
+                if (pathObj[slashPath]) {
+                    Object.assign(pathObj[slashPath], operationObj);
+                } else {
+                    Object.assign(pathObj, {[slashPath]: operationObj});
+                }
+            }
+        } else {
+            const operationObj = this.createOperationObject(method)
+            if (pathObj[slashPath]) {
+                Object.assign(pathObj[slashPath], operationObj);
+            } else {
+                Object.assign(pathObj, {[slashPath]: operationObj});
+            }
+        }
+
+        return pathObj
+    }
+
+    createOperationObject(method) {
+        const obj = {
+            operationId: uuid(),
+            responses: {
+                default: {
+                    '$ref': '#/components/responses/200'
+                }
+            }
+        }
+
+        if (this.httpEvent.cors) {
+            if (this.httpEvent.cors === true) {
+                obj.parameters = []
+                this.defaultCORSHeaders.forEach(header => {
+                    obj.parameters.push({
+                        name: header.name,
+                        in: header.in,
+                        '$ref': `#/components/headers/${header.name}`
+                    })
+
+                    const refHeader = {
+                        // name: header.name,
+                        // required: header.required,
+                        schema: header.schema,
+                        // example: header.example,
+                        // in: 'header'
+                    }
+
+                    if (!this.openAPI.components.headers)
+                        this.openAPI.components.headers = {}
+
+                    Object.assign(this.openAPI.components.headers, {[header.name]: refHeader})
+                })
+            }
+        }
+
+        return {[method.toLowerCase()]: obj}
+    }
+
+    getHTTPFunctions() {
+        const isHttpFunction = (funcType) => {
+            const keys = Object.keys(funcType)
+            if (keys.includes(this.httpKeys.http) || keys.includes(this.httpKeys.httpAPI))
+                return true
+        }
+        const functionNames = this.serverless.service.getAllFunctions()
+
+        return functionNames.map(functionName => {
+            return this.serverless.service.getFunction(functionName)
+        })
+            .filter(functionType => {
+                if (functionType?.events.some(isHttpFunction))
+                    return functionType
+            })
+            .map(functionType => {
+                const event = functionType.events.filter(isHttpFunction)
+                return {
+                    functionInfo: functionType,
+                    handler: functionType.handler,
+                    name: functionType.name,
+                    event
+                }
+            })
+    }
+
+    async validate() {
+        return await validator.validateInner(this.openAPI, {})
+            .catch(err => {
+                throw err
+            })
     }
 }
 
