@@ -77,7 +77,7 @@ class OpenAPIGenerator {
         for (const httpFunction of httpFunctions) {
             for (const event of httpFunction.event) {
                 const isHTTPApi = (event?.httpApi) ? true : false
-                // const httpEvent = event?.http || event?.httpApi
+
                 this.httpEvent = event?.http || event?.httpApi
 
                 const pathObj = this.createOpertations()
@@ -90,8 +90,7 @@ class OpenAPIGenerator {
     createOpertations() {
         const pathObj = {}
         let catchAll = false
-        let method
-        let path
+        let method, path
 
         if (this.httpEvent.method) {
             catchAll = (this.httpEvent.method === '*')
@@ -108,7 +107,9 @@ class OpenAPIGenerator {
 
         }
 
+        this.path = path
         method = method.toLowerCase()
+        this.method = method
 
         const pathStart = new RegExp(/^\//, 'g')
         let slashPath = path
@@ -118,7 +119,7 @@ class OpenAPIGenerator {
 
         if (catchAll) {
             for (const operation of this.operations) {
-                const operationObj = this.createOperationObject(operation)
+                const operationObj = this.createOperationObject()
                 if (pathObj[slashPath]) {
                     Object.assign(pathObj[slashPath], operationObj);
                 } else {
@@ -126,7 +127,7 @@ class OpenAPIGenerator {
                 }
             }
         } else {
-            const operationObj = this.createOperationObject(method)
+            const operationObj = this.createOperationObject()
             if (pathObj[slashPath]) {
                 Object.assign(pathObj[slashPath], operationObj);
             } else {
@@ -137,7 +138,7 @@ class OpenAPIGenerator {
         return pathObj
     }
 
-    createOperationObject(method) {
+    createOperationObject() {
         const obj = {
             operationId: uuid(),
             responses: {
@@ -147,11 +148,45 @@ class OpenAPIGenerator {
             }
         }
 
+        let parameters = []
+
         if (this.httpEvent.cors) {
-            obj.parameters = this.createCORS()
+            const corsParams = this.createCORS()
+            parameters = parameters.concat(corsParams)
         }
 
-        return {[method.toLowerCase()]: obj}
+        if (/({[a-zA-Z0-9]+})/.test(this.path)) {
+            const params = this.createPathParameters()
+            parameters = parameters.concat(params)
+        }
+
+        if (parameters.length) {
+            obj.parameters = parameters
+        }
+
+        return {[this.method.toLowerCase()]: obj}
+    }
+
+    createPathParameters() {
+        const paramRegExp = /({[a-zA-Z0-9]+})/gi
+        let arr
+        const params = []
+        while ((arr = paramRegExp.exec(this.path)) !== null) {
+            let name = arr[0].replace(/{/g, '')
+            name = name.replace(/}/g, '')
+            const obj = {
+                in: 'path',
+                name: name,
+                required: true,
+                schema: {
+
+                }
+            }
+
+            params.push(obj)
+        }
+
+        return params
     }
 
     createCORS() {
