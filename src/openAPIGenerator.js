@@ -106,7 +106,7 @@ class OpenAPIGenerator {
 
     async generate() {
         this.log(this.defaultLog, chalk.bold.underline('OpenAPI v3 Document Generation'))
-        const config = this.processCliInput()
+        this.processCliInput()
         const generator = new DefinitionGenerator(this.serverless);
 
         await generator.parse()
@@ -124,47 +124,51 @@ class OpenAPIGenerator {
         if (valid)
           this.log('success', 'OpenAPI v3 Documentation Successfully Generated')
 
-        if (config.postmanCollection) {
-          const postmanGeneration = (err, result) => {
-            if (err) {
-              this.log('error', `ERROR: An error was thrown when generating the postman collection`)
-              throw new this.serverless.classes.Error(err)
-            }
-
-            this.log('success', 'postman collection v2 Documentation Successfully Generated')
-            try {
-              fs.writeFileSync(config.postmanCollection, JSON.stringify(result.output[0].data))
-              this.log('success', 'postman collection v2 Documentation Successfully Written')
-            } catch (err) {
-              this.log('error', `ERROR: An error was thrown whilst writing the postman collection`)
-              throw new this.serverless.classes.Error(err)
-            }
-          }
-
-          const postmanCollection = PostmanGenerator.convert(
-            {type: 'json', data: JSON.parse(JSON.stringify(generator.openAPI))},
-            {},
-            postmanGeneration
-          )
+        if (this.config.postmanCollection) {
+          this.createPostman(generator.openAPI)
         }
 
         let output
-        switch (config.format.toLowerCase()) {
+        switch (this.config.format.toLowerCase()) {
           case 'json':
-            output = JSON.stringify(generator.openAPI, null, config.indent);
+            output = JSON.stringify(generator.openAPI, null, this.config.indent);
             break;
           case 'yaml':
           default:
-            output = yaml.dump(generator.openAPI, { indent: config.indent });
+            output = yaml.dump(generator.openAPI, { indent: this.config.indent });
             break;
         }
         try {
-          fs.writeFileSync(config.file, output);
+          fs.writeFileSync(this.config.file, output);
           this.log('success', 'OpenAPI v3 Documentation Successfully Written')
         } catch (err) {
           this.log('error', `ERROR: An error was thrown whilst writing the openAPI Documentation`)
           throw new this.serverless.classes.Error(err)
         }
+    }
+
+    createPostman(openAPI) {
+      const postmanGeneration = (err, result) => {
+        if (err) {
+          this.log('error', `ERROR: An error was thrown when generating the postman collection`)
+          throw new this.serverless.classes.Error(err)
+        }
+
+        this.log('success', 'postman collection v2 Documentation Successfully Generated')
+        try {
+          fs.writeFileSync(this.config.postmanCollection, JSON.stringify(result.output[0].data))
+          this.log('success', 'postman collection v2 Documentation Successfully Written')
+        } catch (err) {
+          this.log('error', `ERROR: An error was thrown whilst writing the postman collection`)
+          throw new this.serverless.classes.Error(err)
+        }
+      }
+
+      PostmanGenerator.convert(
+        {type: 'json', data: JSON.parse(JSON.stringify(openAPI))},
+        {},
+        postmanGeneration
+      )
     }
 
     processCliInput () {
@@ -182,7 +186,6 @@ class OpenAPIGenerator {
       config.postmanCollection = this.serverless.processedInput.options.postmanCollection || null
 
       if (['yaml', 'json'].indexOf(config.format.toLowerCase()) < 0) {
-        // throw new Error('Invalid Output Format Specified - must be one of "yaml" or "json"');
         throw new this.serverless.classes.Error('Invalid Output Format Specified - must be one of "yaml" or "json"')
       }
 
@@ -199,7 +202,7 @@ class OpenAPIGenerator {
   ${config.postmanCollection ? `postman collection: ${chalk.bold.green(config.postmanCollection)}`: `\n\n`}`
       )
 
-      return config
+      this.config = config
     }
 
     validateDetails(validation) {
