@@ -134,6 +134,10 @@ class DefinitionGenerator {
                     obj.description = server.description
                 }
 
+                if (server.variables) {
+                    obj.variables = server.variables
+                }
+
                 newServers.push(obj)
             }
         } else {
@@ -143,6 +147,10 @@ class DefinitionGenerator {
 
             if (servers.description) {
                 obj.description = servers.description
+            }
+
+            if (servers.variables) {
+                obj.variables = servers.variables
             }
 
             newServers.push(obj)
