@@ -1,0 +1,274 @@
+{
+    "openapi": "3.0.3",
+    "info": {
+        "title": "serverless-openapi-doc-demo",
+        "description": "This is a description of what this does",
+        "version": "1.0.0"
+    },
+    "components": {
+        "schemas": {
+            "username": {
+                "type": "string",
+                "pattern": "^[-a-z0-9_]+$"
+            },
+            "membershipType": {
+                "type": "string",
+                "enum": [
+                    "premium",
+                    "standard"
+                ]
+            },
+            "SessionId": {
+                "type": "string"
+            },
+            "PutDocumentRequest": {
+                "properties": {
+                    "SomeObject": {
+                        "type": "object",
+                        "properties": {
+                            "SomeAttribute": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
+            "PutDocumentResponse": {
+                "title": "Empty Schema",
+                "type": "object"
+            },
+            "error": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "description": "A unique identifier for this particular occurrence of the problem.",
+                        "type": "string"
+                    },
+                    "links": {
+                        "$ref": "#/components/schemas/links"
+                    },
+                    "status": {
+                        "description": "The HTTP status code applicable to this problem, expressed as a string value.",
+                        "type": "string"
+                    },
+                    "code": {
+                        "description": "An application-specific error code, expressed as a string value.",
+                        "type": "string"
+                    },
+                    "title": {
+                        "description": "A short, human-readable summary of the problem. It **SHOULD NOT** change from occurrence to occurrence of the problem, except for purposes of localization.",
+                        "type": "string"
+                    },
+                    "detail": {
+                        "description": "A human-readable explanation specific to this occurrence of the problem.",
+                        "type": "string"
+                    },
+                    "source": {
+                        "type": "object",
+                        "properties": {
+                            "pointer": {
+                                "description": "A JSON Pointer [RFC6901] to the associated entity in the request document [e.g. \"/data\" for a primary data object, or \"/data/attributes/title\" for a specific attribute].",
+                                "type": "string"
+                            },
+                            "parameter": {
+                                "description": "A string indicating which query parameter caused the error.",
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "meta": {
+                        "$ref": "#/components/schemas/meta"
+                    }
+                },
+                "additionalProperties": false
+            },
+            "meta": {
+                "description": "Non-standard meta-information that can not be represented as an attribute or relationship.",
+                "type": "object",
+                "additionalProperties": true
+            },
+            "links": {
+                "description": "A resource object **MAY** contain references to other resource objects (\"relationships\"). Relationships may be to-one or to-many. Relationships can be specified by including a member in a resource's links object.",
+                "type": "object",
+                "properties": {
+                    "self": {
+                        "description": "A `self` member, whose value is a URL for the relationship itself (a \"relationship URL\"). This URL allows the client to directly manipulate the relationship. For example, it would allow a client to remove an `author` from an `article` without deleting the people resource itself.",
+                        "type": "string",
+                        "format": "uri"
+                    },
+                    "related": {
+                        "$ref": "#/components/schemas/link"
+                    }
+                },
+                "additionalProperties": true
+            },
+            "link": {
+                "description": "A link **MUST** be represented as either: a string containing the link's URL or a link object.",
+                "oneOf": [
+                    {
+                        "description": "A string containing the link's URL.",
+                        "type": "string",
+                        "format": "uri"
+                    },
+                    {
+                        "type": "object",
+                        "required": [
+                            "href"
+                        ],
+                        "properties": {
+                            "href": {
+                                "description": "A string containing the link's URL.",
+                                "type": "string",
+                                "format": "uri"
+                            },
+                            "meta": {
+                                "$ref": "#/components/schemas/meta"
+                            }
+                        }
+                    }
+                ]
+            },
+            "ErrorResponse": {
+                "title": "JSON API Schema",
+                "description": "This is a schema for responses in the JSON API format. For more, see http://jsonapi.org",
+                "type": "object",
+                "required": [
+                    "errors"
+                ],
+                "properties": {
+                    "errors": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/error"
+                        },
+                        "uniqueItems": true
+                    },
+                    "meta": {
+                        "$ref": "#/components/schemas/meta"
+                    },
+                    "links": {
+                        "$ref": "#/components/schemas/links"
+                    }
+                },
+                "additionalProperties": false
+            }
+        }
+    },
+    "paths": {
+        "/create/{username}": {
+            "post": {
+                "summary": "Create User",
+                "description": "Creates a user and then sends a generated password email",
+                "operationId": "serverless-openapi-doc-demo-dev-createUser",
+                "parameters": [
+                    {
+                        "name": "username",
+                        "in": "path",
+                        "description": "The username for a user to create",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/components/schemas/username"
+                        }
+                    },
+                    {
+                        "name": "membershipType",
+                        "in": "query",
+                        "description": "The user's Membership Type",
+                        "required": false,
+                        "schema": {
+                            "$ref": "#/components/schemas/membershipType"
+                        }
+                    },
+                    {
+                        "name": "SessionId",
+                        "in": "cookie",
+                        "description": "A Session ID variable",
+                        "required": false,
+                        "schema": {
+                            "$ref": "#/components/schemas/SessionId"
+                        }
+                    }
+                ],
+                "tags": [
+                    "jesus"
+                ],
+                "externalDocs": {
+                    "url": "https://bing.com",
+                    "description": "A link to bing"
+                },
+                "requestBody": {
+                    "description": "A user information object",
+                    "required": false,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PutDocumentRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "A user object along with generated API Keys",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PutDocumentResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "An error message when creating a new user",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "summary": "a function",
+            "description": "blah blah"
+        },
+        "/patch/": {
+            "patch": {
+                "summary": "Patch a User",
+                "description": "Patch details about the user",
+                "operationId": "serverless-openapi-doc-demo-dev-patchUser",
+                "parameters": [],
+                "tags": [
+                    "patching"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "A user object along with generated API Keys",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PutDocumentResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "jesus",
+            "description": "jesus was a man",
+            "externalDocs": {
+                "url": "https://whitehouse.gov",
+                "description": "a link to the whitehouse"
+            }
+        }
+    ],
+    "externalDocs": {
+        "url": "https://google.com",
+        "description": "A link to google"
+    }
+}
