@@ -1,0 +1,37 @@
+service: serverless-openapi-doc-demo
+frameworkVersion: ">=3.0.0 < 4.0.0"
+provider:
+  name: aws
+  runtime: nodejs14.x
+
+plugins:
+  - ../../index.js
+
+functions:
+  updateUser:
+    handler: handler.update
+    events:
+      - httpApi:
+          path: 'PUT /update'
+          cors: true
+
+  createUser:
+    handler: handler.create
+    events:
+      - httpApi:
+          path: 'POST /create/{id}'
+          cors: true
+
+  # createUser:
+  #   handler: handler.create
+  #   events:
+  #     - httpApi:
+  #         path: /create
+  #         method: '*'
+  #         cors: true
+
+  # createUser:
+  #   handler: handler.create
+  #   events:
+  #     - httpApi: '*'
+
