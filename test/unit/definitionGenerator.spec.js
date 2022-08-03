@@ -270,7 +270,7 @@ describe('DefinitionGenerator', () => {
                     })
 
                 expect(definitionGenerator.openAPI.components.schemas).to.have.property('PutRequest')
-                expect(definitionGenerator.openAPI.components.schemas).to.have.property('error')
+                expect(definitionGenerator.openAPI.components.schemas).to.not.have.property('error')
                 expect(expected).to.equal('#/components/schemas/PutRequest')
             });
 
@@ -311,7 +311,7 @@ describe('DefinitionGenerator', () => {
                     })
 
                 expect(definitionGenerator.openAPI.components.schemas).to.have.property('PutRequest')
-                expect(definitionGenerator.openAPI.components.schemas).to.have.property('error')
+                expect(definitionGenerator.openAPI.components.schemas).to.not.have.property('error')
                 expect(expected).to.equal('#/components/schemas/PutRequest')
 
                 expected = await definitionGenerator.schemaCreator(complexSchema, 'PutRequest')
@@ -320,7 +320,7 @@ describe('DefinitionGenerator', () => {
                     })
 
                 expect(definitionGenerator.openAPI.components.schemas).to.have.property('PutRequest')
-                expect(definitionGenerator.openAPI.components.schemas).to.have.property('error')
+                expect(definitionGenerator.openAPI.components.schemas).to.not.have.property('error')
                 expect(expected).to.equal('#/components/schemas/PutRequest')
             });
 
@@ -361,7 +361,7 @@ describe('DefinitionGenerator', () => {
                     })
 
                 expect(definitionGenerator.openAPI.components.schemas).to.have.property('PutRequest')
-                expect(definitionGenerator.openAPI.components.schemas).to.have.property('error')
+                expect(definitionGenerator.openAPI.components.schemas).to.not.have.property('error')
                 expect(expected).to.equal('#/components/schemas/PutRequest')
 
                 complexSchema.properties.cheese = {
@@ -374,7 +374,7 @@ describe('DefinitionGenerator', () => {
                     })
 
                 expect(definitionGenerator.openAPI.components.schemas).to.have.property('PutRequest')
-                expect(definitionGenerator.openAPI.components.schemas).to.have.property('error')
+                expect(definitionGenerator.openAPI.components.schemas).to.not.have.property('error')
 
                 let newSchemaStr = expected.split('/')
                 expect(v4.test(newSchemaStr[newSchemaStr.length-1].split('PutRequest-')[1])).to.be.true
@@ -401,7 +401,7 @@ describe('DefinitionGenerator', () => {
                     })
 
                 expect(definitionGenerator.openAPI.components.schemas).to.have.property('PutRequest')
-                expect(definitionGenerator.openAPI.components.schemas).to.have.property('error')
+                expect(definitionGenerator.openAPI.components.schemas).to.not.have.property('error')
                 expect(definitionGenerator.openAPI.components.schemas).to.have.property(newSchemaStr[newSchemaStr.length-1])
                 newSchemaStr = expected.split('/')
                 expect(v4.test(newSchemaStr[newSchemaStr.length-1].split('PutRequest-')[1])).to.be.true
@@ -445,7 +445,7 @@ describe('DefinitionGenerator', () => {
                     })
 
                 expect(definitionGenerator.openAPI.components.schemas).to.have.property('PutRequest')
-                expect(definitionGenerator.openAPI.components.schemas).to.have.property('error')
+                expect(definitionGenerator.openAPI.components.schemas).to.not.have.property('error')
                 expect(expected).to.equal('#/components/schemas/PutRequest')
 
                 expected = await definitionGenerator.schemaCreator(complexSchema, 'ContactPutRequest')
@@ -454,73 +454,9 @@ describe('DefinitionGenerator', () => {
                     })
 
                 expect(definitionGenerator.openAPI.components.schemas).to.have.property('PutRequest')
-                expect(definitionGenerator.openAPI.components.schemas).to.have.property('error')
+                expect(definitionGenerator.openAPI.components.schemas).to.not.have.property('error')
                 expect(definitionGenerator.openAPI.components.schemas).to.have.property('ContactPutRequest')
                 expect(expected).to.equal('#/components/schemas/ContactPutRequest')
-            });
-
-            it('should not create an object that already references schemas in components', async function() {
-                const simpleSchema = {
-                    "$schema": "http://json-schema.org/draft-04/schema#",
-                    "title": "JSON API Schema",
-                    "description": "This is a blah blah for responses in the JSON API format. For more, see http://jsonapi.org",
-                    "type": "object",
-                    "properties": {
-                        "meta": {
-                            "type": "string",
-
-                        }
-                    }
-                }
-                const definitionGenerator = new DefinitionGenerator(mockServerless)
-                let expected = await definitionGenerator.schemaCreator(simpleSchema, 'meta')
-                    .catch((err) => {
-                        console.error(err)
-                    })
-
-                expect(expected).to.equal('#/components/schemas/meta')
-
-                const complexSchema = {
-                    "$schema": "http://json-schema.org/draft-04/schema#",
-                    "title": "JSON API Schema",
-                    "description": "This is a blah blah for responses in the JSON API format. For more, see http://jsonapi.org",
-                    "type": "object",
-                    "required": [
-                        "errors"
-                    ],
-                    "properties": {
-                        "errors": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/error"
-                            },
-                            "uniqueItems": true
-                        },
-                        "meta": {
-                            "$ref": "#/definitions/meta"
-                        }
-                    },
-                    "definitions": {
-                        "error": {
-                            "type": "object",
-                            "properties": {
-                                "id": {
-                                    "description": "A unique identifier for this particular occurrence of the problem.",
-                                    "type": "string"
-                                }
-                            }
-                        }
-                    }
-                }
-
-                expected = await definitionGenerator.schemaCreator(complexSchema, 'PutRequest')
-                    .catch((err) => {
-                        console.error(err)
-                    })
-
-                expect(definitionGenerator.openAPI.components.schemas).to.have.property('PutRequest')
-                expect(definitionGenerator.openAPI.components.schemas).to.have.property('error')
-                expect(expected).to.equal('#/components/schemas/PutRequest')
             });
         });
 

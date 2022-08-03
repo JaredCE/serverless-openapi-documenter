@@ -396,48 +396,41 @@ class DefinitionGenerator {
             }
         }
 
-        if (typeof schema !== 'string' && Object.keys(schema).length > 0) {
-            const convertedSchema = SchemaConvertor.convert(schema)
+        const deReferencedSchema = await $RefParser.dereference(schema, this.refParserOptions)
+            .catch(err => {
+                console.error(err)
+                throw err
+            })
 
-            let schemaName = name
-            if (this.schemaIDs.includes(schemaName))
-                schemaName = `${name}-${uuid()}`
 
-            this.schemaIDs.push(schemaName)
+        const convertedSchema = SchemaConvertor.convert(deReferencedSchema)
+        let schemaName = name
+        if (this.schemaIDs.includes(schemaName))
+            schemaName = `${name}-${uuid()}`
 
-            for (const key of Object.keys(convertedSchema.schemas)) {
-                if (key === 'main' || key.split('-')[0] === 'main') {
-                    let ref = `#/components/schemas/`
+        this.schemaIDs.push(schemaName)
 
-                    if (this.openAPI?.components?.schemas?.[name]) {
-                        if (JSON.stringify(convertedSchema.schemas[key]) === JSON.stringify(this.openAPI.components.schemas[name])) {
-                            return `${ref}${name}`
-                        }
-                    }
+        for (const key of Object.keys(convertedSchema.schemas)) {
+            if (key === 'main' || key.split('-')[0] === 'main') {
+                let ref = `#/components/schemas/`
 
-                    addToComponents(convertedSchema.schemas[key], schemaName)
-                    return `${ref}${schemaName}`
-                } else {
-                    if (this.openAPI?.components?.schemas?.[key]) {
-                        if (JSON.stringify(convertedSchema.schemas[key]) !== JSON.stringify(this.openAPI.components.schemas[key])) {
-                            addToComponents(convertedSchema.schemas[key], key)
-                        }
-                    } else {
-                        addToComponents(convertedSchema.schemas[key], key)
+                if (this.openAPI?.components?.schemas?.[name]) {
+                    if (JSON.stringify(convertedSchema.schemas[key]) === JSON.stringify(this.openAPI.components.schemas[name])) {
+                        return `${ref}${name}`
                     }
                 }
-            }
-        } else {
-            const combinedSchema = await $RefParser.dereference(schema, this.refParserOptions)
-                .catch(err => {
-                    console.error(err)
-                    throw err
-                })
 
-            return await this.schemaCreator(combinedSchema, name)
-                .catch(err => {
-                    throw err
-                })
+                addToComponents(convertedSchema.schemas[key], schemaName)
+                return `${ref}${schemaName}`
+            } else {
+                if (this.openAPI?.components?.schemas?.[key]) {
+                    if (JSON.stringify(convertedSchema.schemas[key]) !== JSON.stringify(this.openAPI.components.schemas[key])) {
+                        addToComponents(convertedSchema.schemas[key], key)
+                    }
+                } else {
+                    addToComponents(convertedSchema.schemas[key], key)
+                }
+            }
         }
     }
 
