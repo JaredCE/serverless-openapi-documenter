@@ -1,6 +1,6 @@
 'use strict'
 
-const { v4: uuid } = require('uuid')
+const { v4: uuid, validate: validateUUID } = require('uuid')
 const validator = require('oas-validator');
 
 class OpenAPIGenerator {
@@ -36,7 +36,7 @@ class OpenAPIGenerator {
             }
         }
 
-        this.defaultCORSHeaders = [
+        this.defaultHTTPApiCORSHeaders = [
             {
                 in: 'header',
                 name: 'Access-Control-Allow-Origin',
@@ -65,6 +65,19 @@ class OpenAPIGenerator {
                 example: 'OPTIONS'
             }
         ]
+
+        this.defaultRESTApiCORSHeaders = [
+            ...this.defaultHTTPApiCORSHeaders,
+            {
+                in: 'header',
+                name: 'Access-Control-Allow-Credentials',
+                required: true,
+                schema: {
+                    type: 'boolean'
+                },
+                example: 'false'
+            },
+        ]
     }
 
     parse() {
@@ -76,7 +89,7 @@ class OpenAPIGenerator {
         const httpFunctions = this.getHTTPFunctions()
         for (const httpFunction of httpFunctions) {
             for (const event of httpFunction.event) {
-                const isHTTPApi = (event?.httpApi) ? true : false
+                this.isHTTPApi = (event?.httpApi) ? true : false
 
                 this.httpEvent = event?.http || event?.httpApi
 
@@ -117,17 +130,7 @@ class OpenAPIGenerator {
             slashPath = `/${slashPath}`
         }
 
-        if (catchAll) {
-            for (const operation of this.operations) {
-                const operationObj = this.createOperationObject()
-                if (pathObj[slashPath]) {
-                    Object.assign(pathObj[slashPath], operationObj);
-                } else {
-                    Object.assign(pathObj, {[slashPath]: operationObj});
-                }
-            }
-        } else {
-            const operationObj = this.createOperationObject()
+        const addOperation = (operationObj) => {
             if (pathObj[slashPath]) {
                 Object.assign(pathObj[slashPath], operationObj);
             } else {
@@ -135,12 +138,33 @@ class OpenAPIGenerator {
             }
         }
 
+        if (catchAll) {
+            const operationObj = this.createOperationObject()
+            Object.freeze(operationObj)
+            for (const operation of this.operations) {
+                const newOperationObj = {
+                    [operation]: JSON.parse(JSON.stringify(operationObj['*']))
+                }
+
+                if (validateUUID(newOperationObj[operation].operationId)) {
+                    newOperationObj[operation].operationId = uuid()
+                } else {
+                    newOperationObj[operation].operationId = `${newOperationObj[operation].operationId}-${uuid()}`
+                }
+
+                addOperation(newOperationObj)
+            }
+        } else {
+            const operationObj = this.createOperationObject()
+            addOperation(operationObj)
+        }
+
         return pathObj
     }
 
     createOperationObject() {
         const obj = {
-            operationId: uuid(),
+            operationId: this.httpEvent?.operationId || uuid(),
             responses: {
                 default: {
                     '$ref': '#/components/responses/200'
@@ -148,23 +172,68 @@ class OpenAPIGenerator {
             }
         }
 
-        let parameters = []
+        this.parameters = []
 
         if (this.httpEvent.cors) {
             const corsParams = this.createCORS()
-            parameters = parameters.concat(corsParams)
+            this.parameters = this.parameters.concat(corsParams)
         }
+
+        if (this.httpEvent?.request?.parameters) {
+            const params = this.createParameters()
+            this.parameters = this.parameters.concat(params)
+        }
+
 
         if (/({[a-zA-Z0-9]+})/.test(this.path)) {
             const params = this.createPathParameters()
-            parameters = parameters.concat(params)
+            this.parameters = this.parameters.concat(params)
         }
 
-        if (parameters.length) {
-            obj.parameters = parameters
+        if (this.parameters.length) {
+            obj.parameters = this.parameters
         }
 
         return {[this.method.toLowerCase()]: obj}
+    }
+
+    createParameters() {
+        const params = []
+        const addParam = (paramType) => {
+            for (const param of Object.keys(this.httpEvent.request.parameters[paramType])) {
+                let inParam
+                switch (paramType) {
+                    case 'paths':
+                        inParam = 'path'
+                        break
+                    case 'headers':
+                        inParam = 'header'
+                        break
+                    case 'querystrings':
+                        inParam = 'query'
+                        break
+                }
+                const obj = {}
+                obj.required = this.httpEvent.request.parameters[paramType][param]
+                obj.name = param
+                obj.in = inParam
+                obj.schema = {}
+                params.push(obj)
+            }
+        }
+        if (this.httpEvent.request.parameters?.paths) {
+            addParam('paths')
+        }
+
+        if (this.httpEvent.request.parameters?.headers) {
+            addParam('headers')
+        }
+
+        if (this.httpEvent.request.parameters?.querystrings) {
+            addParam('querystrings')
+        }
+
+        return params
     }
 
     createPathParameters() {
@@ -174,16 +243,22 @@ class OpenAPIGenerator {
         while ((arr = paramRegExp.exec(this.path)) !== null) {
             let name = arr[0].replace(/{/g, '')
             name = name.replace(/}/g, '')
-            const obj = {
-                in: 'path',
-                name: name,
-                required: true,
-                schema: {
-
-                }
+            let found = false
+            for (const param of this.parameters) {
+                if (param.in === 'path' && param.name === name)
+                    found = true
             }
 
-            params.push(obj)
+            if (found === false) {
+                const obj = {
+                    in: 'path',
+                    name: name,
+                    required: true,
+                    schema: {}
+                }
+
+                params.push(obj)
+            }
         }
 
         return params
@@ -191,7 +266,7 @@ class OpenAPIGenerator {
 
     createCORS() {
         if (this.httpEvent.cors === true) {
-            return this.defaultCORSHeaders.map(header => {
+            const headerCreator = (header) => {
                 const refHeader = {
                     name: header.name,
                     required: header.required,
@@ -207,7 +282,9 @@ class OpenAPIGenerator {
                     Object.assign(this.openAPI.components.parameters, {[header.name]: refHeader})
 
                 return {'$ref': `#/components/parameters/${header.name}`}
-            })
+            }
+
+            return (this.isHTTPApi) ? this.defaultCORSHeaders.map(headerCreator) : this.defaultRESTApiCORSHeaders.map(headerCreator)
         }
     }
 
