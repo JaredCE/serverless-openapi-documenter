@@ -259,10 +259,22 @@ class OpenAPIGenerator {
     async createRequest() {
         const requestObj = {}
         for (const schemaType of Object.keys(this.httpEvent.request.schemas)) {
-            console.log(schemaType)
-
             if (typeof this.httpEvent.request.schemas[schemaType] !== 'string') {
+                const schemaToConvert = this.httpEvent.request.schemas[schemaType].schema || this.httpEvent.request.schemas[schemaType]
+                const convertedSchema = await this.schemaHandler(schemaToConvert)
+                    .catch(err => {
+                        throw err
+                    })
 
+                const obj = {
+                    [schemaType]: {
+                        schema: convertedSchema.schemas.main
+                    }
+                }
+                if (requestObj?.content)
+                    Object.assign(requestObj.content, obj)
+                else
+                    Object.assign(requestObj, {content: obj})
             } else {
                 if (this.modelNames.includes(this.httpEvent.request.schemas[schemaType])) {
                     const obj = {}
@@ -283,8 +295,22 @@ class OpenAPIGenerator {
 
                     requestObj[this.httpEvent.request.schemas[schemaType]] = {'$ref': `#/components/requestBodies/${this.httpEvent.request.schemas[schemaType]}`}
                 } else {
+                    const schemaToConvert = this.httpEvent.request.schemas[schemaType].schema || this.httpEvent.request.schemas[schemaType]
+                    const convertedSchema = await this.schemaHandler(schemaToConvert)
+                        .catch(err => {
+                            throw err
+                        })
 
-                }
+                    const obj = {
+                        [schemaType]: {
+                            schema: convertedSchema.schemas.main
+                        }
+                    }
+                    if (requestObj?.content)
+                        Object.assign(requestObj.content, obj)
+                    else
+                        Object.assign(requestObj, {content: obj})
+                    }
             }
         }
         return requestObj
