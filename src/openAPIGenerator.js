@@ -2,10 +2,18 @@
 
 const { v4: uuid, validate: validateUUID } = require('uuid')
 const validator = require('oas-validator');
+const SchemaConvertor = require('json-schema-for-openapi')
+const $RefParser = require("@apidevtools/json-schema-ref-parser");
 
 class OpenAPIGenerator {
     constructor(serverless) {
         this.serverless = serverless
+
+        try {
+            this.refParserOptions = require(path.resolve('options', 'ref-parser.js'))
+        } catch (err) {
+            this.refParserOptions = {}
+        }
 
         this.openAPI = {
             openapi: this.serverless?.processedInput?.options?.openApiVersion || '3.0.0',
@@ -78,13 +86,59 @@ class OpenAPIGenerator {
                 example: 'false'
             },
         ]
+
+        this.modelNames = []
+        this.models = {}
     }
 
-    parse() {
-        this.createPaths()
+    async parse() {
+        await this.createRequestModels()
+            .catch(err => {
+                throw err
+            })
+        await this.createPaths()
+            .catch(err => {
+                throw err
+            })
     }
 
-    createPaths() {
+    async createRequestModels() {
+        if (this.serverless.service.provider?.apiGateway?.request?.schemas) {
+            const schemas = this.serverless.service.provider.apiGateway.request.schemas
+            for (const modelName of Object.keys(schemas)) {
+                this.modelNames.push(modelName)
+
+                const obj = {}
+
+                if (schemas[modelName].description)
+                    obj.description = schemas[modelName].description
+
+                const newSchema = await this.schemaHandler(schemas[modelName].schema)
+                    .catch(err => {
+                        throw err
+                    })
+
+                obj.schema = newSchema.schemas.main
+
+                Object.assign(this.models, {[modelName]: obj})
+            }
+        }
+    }
+
+    async schemaHandler(schema) {
+        const deReferencedSchema = await $RefParser.dereference(schema, this.refParserOptions)
+            .catch(err => {
+                console.error(err)
+                throw err
+            })
+
+
+        const convertedSchema = SchemaConvertor.convert(deReferencedSchema)
+
+        return convertedSchema
+    }
+
+    async createPaths() {
         const paths = {}
         const httpFunctions = this.getHTTPFunctions()
         for (const httpFunction of httpFunctions) {
@@ -93,14 +147,14 @@ class OpenAPIGenerator {
 
                 this.httpEvent = event?.http || event?.httpApi
 
-                const pathObj = this.createOpertations()
+                const pathObj = await this.createOpertations()
                 Object.assign(paths, pathObj)
             }
         }
         Object.assign(this.openAPI, {paths})
     }
 
-    createOpertations() {
+    async createOpertations() {
         const pathObj = {}
         let catchAll = false
         let method, path
@@ -138,8 +192,9 @@ class OpenAPIGenerator {
             }
         }
 
+        const operationObj = await this.createOperationObject()
+
         if (catchAll) {
-            const operationObj = this.createOperationObject()
             Object.freeze(operationObj)
             for (const operation of this.operations) {
                 const newOperationObj = {
@@ -155,14 +210,13 @@ class OpenAPIGenerator {
                 addOperation(newOperationObj)
             }
         } else {
-            const operationObj = this.createOperationObject()
             addOperation(operationObj)
         }
 
         return pathObj
     }
 
-    createOperationObject() {
+    async createOperationObject() {
         const obj = {
             operationId: this.httpEvent?.operationId || uuid(),
             responses: {
@@ -184,6 +238,11 @@ class OpenAPIGenerator {
             this.parameters = this.parameters.concat(params)
         }
 
+        if (this.httpEvent?.request?.schemas) {
+            const requestModels = await this.createRequest()
+            obj.requestBody = requestModels
+        }
+
 
         if (/({[a-zA-Z0-9]+})/.test(this.path)) {
             const params = this.createPathParameters()
@@ -195,6 +254,40 @@ class OpenAPIGenerator {
         }
 
         return {[this.method.toLowerCase()]: obj}
+    }
+
+    async createRequest() {
+        const requestObj = {}
+        for (const schemaType of Object.keys(this.httpEvent.request.schemas)) {
+            console.log(schemaType)
+
+            if (typeof this.httpEvent.request.schemas[schemaType] !== 'string') {
+
+            } else {
+                if (this.modelNames.includes(this.httpEvent.request.schemas[schemaType])) {
+                    const obj = {}
+                    obj.content = {
+                        [schemaType]: this.models[this.httpEvent.request.schemas[schemaType]]
+                    }
+
+                    if (obj.content[schemaType].description) {
+                        obj.description = obj.content[schemaType].description
+                        delete obj.content[schemaType].description
+                    }
+
+                    if (this.openAPI.components.requestBodies) {
+                        Object.assign(this.openAPI.components.requestBodies, {[this.httpEvent.request.schemas[schemaType]]: obj})
+                    } else {
+                        Object.assign(this.openAPI.components, {requestBodies: {[this.httpEvent.request.schemas[schemaType]]: obj}})
+                    }
+
+                    requestObj[this.httpEvent.request.schemas[schemaType]] = {'$ref': `#/components/requestBodies/${this.httpEvent.request.schemas[schemaType]}`}
+                } else {
+
+                }
+            }
+        }
+        return requestObj
     }
 
     createParameters() {
