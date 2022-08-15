@@ -112,12 +112,14 @@ class OpenAPIGenerator {
         await generator.parse()
           .catch(err => {
             this.log('error', `ERROR: An error was thrown generating the OpenAPI v3 documentation`)
+            console.error(err)
             throw new this.serverless.classes.Error(err)
           })
 
         const valid = await generator.validate()
           .catch(err => {
             this.log('error', `ERROR: An error was thrown validating the OpenAPI v3 documentation`)
+            console.error(err)
             throw new this.serverless.classes.Error(err)
           })
 
