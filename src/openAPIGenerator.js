@@ -115,7 +115,7 @@ class OpenAPIGenerator {
             console.error(err)
             throw new this.serverless.classes.Error(err)
           })
-
+        console.dir(generator.openAPI, {depth: null})
         const valid = await generator.validate()
           .catch(err => {
             this.log('error', `ERROR: An error was thrown validating the OpenAPI v3 documentation`)
