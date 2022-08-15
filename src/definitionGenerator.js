@@ -395,13 +395,13 @@ class DefinitionGenerator {
                 Object.assign(this.openAPI, components)
             }
         }
-
+        console.log(schema)
         const deReferencedSchema = await $RefParser.dereference(schema, this.refParserOptions)
             .catch(err => {
                 console.error(err)
                 throw err
             })
-
+        console.dir(deReferencedSchema, {depth: null})
 
         const convertedSchema = SchemaConvertor.convert(deReferencedSchema)
         let schemaName = name
