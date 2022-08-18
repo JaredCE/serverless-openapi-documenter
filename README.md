@@ -414,7 +414,7 @@ requestHeaders:
 
 ## Example configuration
 
-Please view the example [serverless.yml](test/serverless\ 2/serverless.yml).
+Please view the example [serverless.yml](test/serverless-tests/serverless%202/serverless.yml).
 
 ## Notes on schemas
 

@@ -6,7 +6,7 @@ provider:
   runtime: nodejs14.x
 
 plugins:
-  - ../../index.js
+  - ../../../index.js
 
 functions:
   createUser:
@@ -59,12 +59,12 @@ custom:
       - name: ErrorResponse
         description: This is an error
         contentType: application/json
-        schema: ${file(models/ErrorResponse.json)}
+        schema: ${file(../../models/ErrorResponse.json)}
 
       - name: PutDocumentResponse
         description: PUT Document response model (external reference example)
         contentType: application/json
-        schema: ${file(models/PutDocumentResponse.json)}
+        schema: ${file(../../models/PutDocumentResponse.json)}
 
       - name: PutDocumentRequest
         description: PUT Document request model (inline example)

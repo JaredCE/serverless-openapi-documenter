@@ -5,7 +5,7 @@ provider:
   runtime: nodejs14.x
 
 plugins:
-  - ../../index.js
+  - ../../../index.js
 
 functions:
   updateUser:
@@ -117,13 +117,13 @@ custom:
         description: This is an error
         content:
           application/json:
-            schema: ${file(../models/ErrorResponse.json)}
+            schema: ${file(../../models/ErrorResponse.json)}
 
       - name: PutDocumentResponse
         description: PUT Document response model (external reference example)
         content:
           application/json:
-            schema: ${file(../models/PutDocumentResponse.json)}
+            schema: ${file(../../models/PutDocumentResponse.json)}
 
       - name: PutDocumentRequest
         description: PUT Document request model (inline example)
