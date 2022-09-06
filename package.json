@@ -35,7 +35,7 @@
     "oas-validator": "^5.0.8",
     "openapi-to-postmanv2": "^4.1.0",
     "swagger2openapi": "^7.0.8",
-    "uuid": "^8.3.2"
+    "uuid": "^9.0.0"
   },
   "engines": {
     "node": ">=14"
