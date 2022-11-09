@@ -79,6 +79,8 @@ class DefinitionGenerator {
                 if (event?.http?.documentation || event?.httpApi?.documentation) {
                     const documentation = event?.http?.documentation || event?.httpApi?.documentation
 
+                    this.currentFunctionName = httpFunction.functionInfo.name
+
                     let opId
                     if (this.operationIds.includes(httpFunction.functionInfo.name) === false) {
                         opId = httpFunction.functionInfo.name
@@ -262,6 +264,8 @@ class DefinitionGenerator {
                 description: response.responseBody.description || '',
             }
 
+            this.currentStatusCode = response.statusCode
+
             obj.content = await this.createMediaTypeObject(response.responseModels, 'responses')
                 .catch(err => {
                     throw err
@@ -290,6 +294,10 @@ class DefinitionGenerator {
     async createMediaTypeObject(models, type) {
         const mediaTypeObj = {}
         for (const mediaTypeDocumentation of this.serverless.service.custom.documentation.models) {
+            if (models === undefined || models === null) {
+                throw new Error(`${this.currentFunctionName} is missing a Response Model for statusCode ${this.currentStatusCode}`)
+            }
+
             if (Object.values(models).includes(mediaTypeDocumentation.name)) {
                 let contentKey = ''
                 for (const [key, value] of Object.entries(models)) {

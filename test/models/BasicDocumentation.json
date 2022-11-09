@@ -1,0 +1,30 @@
+{
+    "custom": {
+        "documentation": {
+            "title": "test-service",
+            "models": [
+                {
+                    "name": "SuccessResponse",
+                    "description": "Success response",
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$schema": "http://json-schema.org/draft-04/schema#",
+                                "properties": {
+                                    "SomeObject": {
+                                        "type": "object",
+                                        "properties": {
+                                            "SomeAttribute": {
+                                                "type": "string"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            ]
+        }
+    }
+}

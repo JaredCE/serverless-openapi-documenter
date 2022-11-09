@@ -7,12 +7,20 @@ const expect = require('chai').expect
 
 const validOpenAPI = require('../json/valid-openAPI.json')
 
+const basicDocumentation = require('../models/BasicDocumentation.json')
+const basicValidFunction = require('../models/BasicValidFunction.json')
+
 const OpenAPIGenerator = require('../../src/openAPIGenerator')
 
 describe('OpenAPIGenerator', () => {
     let sls, logOutput
     beforeEach(function() {
         sls = {
+            service: {
+                service: 'test-service',
+                getAllFunctions: () => {},
+                getFunction: () => {}
+            },
             version: '3.0.0',
             variables: {
                 service: {
@@ -32,7 +40,7 @@ describe('OpenAPIGenerator', () => {
                 options: {
                     postmanCollection: 'postman.json'
                 }
-            }
+            },
         }
 
         logOutput = {
@@ -43,6 +51,119 @@ describe('OpenAPIGenerator', () => {
             }
         }
     });
+
+    describe('generationAndValidation', () => {
+        it('should correctly generate a valid openAPI document', async function() {
+            const succSpy = sinon.spy(logOutput.log, 'success')
+            const errSpy = sinon.spy(logOutput.log, 'error')
+
+            Object.assign(sls.service, basicDocumentation)
+            const getAllFuncsStub = sinon.stub(sls.service, 'getAllFunctions').returns(['createUser'])
+
+            const getFuncStub = sinon.stub(sls.service, 'getFunction').returns(basicValidFunction.createUser)
+
+            const openAPIGenerator = new OpenAPIGenerator(sls, {}, logOutput)
+            openAPIGenerator.processCliInput()
+
+            const validOpenAPIDocument = await openAPIGenerator.generationAndValidation()
+                .catch(err => {
+                    expect(err).to.be.undefined
+                })
+
+            expect(succSpy.called).to.be.true
+            expect(errSpy.called).to.be.false
+
+            succSpy.restore()
+            errSpy.restore()
+            getAllFuncsStub.reset()
+            getFuncStub.reset()
+        });
+
+        it('should throw an error when trying to generate an invalid openAPI document', async function() {
+            const succSpy = sinon.spy(logOutput.log, 'success')
+            const errSpy = sinon.spy(logOutput.log, 'error')
+
+            Object.assign(sls.service, basicDocumentation)
+            const getAllFuncsStub = sinon.stub(sls.service, 'getAllFunctions').returns(['createUser'])
+            const basicInvalidFunction = JSON.parse(JSON.stringify(basicValidFunction))
+
+            delete basicInvalidFunction.createUser.events[0].http.documentation.methodResponses[0].responseModels
+            const getFuncStub = sinon.stub(sls.service, 'getFunction').returns(basicInvalidFunction.createUser)
+
+            const openAPIGenerator = new OpenAPIGenerator(sls, {}, logOutput)
+            openAPIGenerator.processCliInput()
+
+            const validOpenAPIDocument = await openAPIGenerator.generationAndValidation()
+                .catch(err => {
+                    expect(err.message).to.be.equal('Error: createUser is missing a Response Model for statusCode 200')
+                })
+
+            expect(succSpy.called).to.be.false
+            expect(errSpy.called).to.be.true
+
+            succSpy.restore()
+            errSpy.restore()
+            getAllFuncsStub.reset()
+            getFuncStub.reset()
+        });
+
+        it('should correctly validate a valid openAPI document', async function() {
+            const succSpy = sinon.spy(logOutput.log, 'success')
+            const errSpy = sinon.spy(logOutput.log, 'error')
+
+            Object.assign(sls.service, basicDocumentation)
+            const getAllFuncsStub = sinon.stub(sls.service, 'getAllFunctions').returns(['createUser'])
+            const basicInvalidFunction = JSON.parse(JSON.stringify(basicValidFunction))
+
+            const getFuncStub = sinon.stub(sls.service, 'getFunction').returns(basicInvalidFunction.createUser)
+
+            const openAPIGenerator = new OpenAPIGenerator(sls, {}, logOutput)
+            openAPIGenerator.processCliInput()
+
+            const validOpenAPIDocument = await openAPIGenerator.generationAndValidation()
+                .catch(err => {
+                    expect(err).to.be.undefined
+                })
+
+            expect(succSpy.called).to.be.true
+            expect(errSpy.called).to.be.false
+            expect(validOpenAPIDocument).to.have.property('openapi')
+
+            succSpy.restore()
+            errSpy.restore()
+            getAllFuncsStub.reset()
+            getFuncStub.reset()
+        });
+
+        it('should throw an error when trying to validate an invalid openAPI document', async function() {
+            const succSpy = sinon.spy(logOutput.log, 'success')
+            const errSpy = sinon.spy(logOutput.log, 'error')
+
+            Object.assign(sls.service, basicDocumentation)
+            const getAllFuncsStub = sinon.stub(sls.service, 'getAllFunctions').returns(['createUser'])
+            const basicInvalidFunction = JSON.parse(JSON.stringify(basicValidFunction))
+
+            delete basicInvalidFunction.createUser.events[0].http.documentation.pathParams
+            const getFuncStub = sinon.stub(sls.service, 'getFunction').returns(basicInvalidFunction.createUser)
+
+            const openAPIGenerator = new OpenAPIGenerator(sls, {}, logOutput)
+            openAPIGenerator.processCliInput()
+
+            const validOpenAPIDocument = await openAPIGenerator.generationAndValidation()
+                .catch(err => {
+                    expect(err.message).to.be.equal('AssertionError: Templated parameter name not found')
+                })
+
+            expect(succSpy.called).to.be.false
+            expect(errSpy.called).to.be.true
+
+            succSpy.restore()
+            errSpy.restore()
+            getAllFuncsStub.reset()
+            getFuncStub.reset()
+        });
+    });
+
     describe('createPostman', () => {
         it('should generate a postman collection when a valid openAPI file is generated', function() {
             const fsStub = sinon.stub(fs, 'writeFileSync').returns(true)
