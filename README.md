@@ -350,6 +350,24 @@ cookieParams:
       type: "string"
 ```
 
+#### `headerParams` - Request Headers
+
+Request Headers can be described as follow:
+
+* `name`: the name of the query variable
+* `description`: a description of the query variable
+* `required`: whether the query parameter is mandatory (boolean)
+* `schema`: JSON schema (inline, file or externally hosted)
+
+```yml
+headerParams:
+  - name: "Content-Type"
+    description: "The content type"
+    required: true
+    schema:
+      type: "string"
+```
+
 #### `requestModels`
 
 The `requestModels` property allows you to define models for the HTTP Request of the function event. You can define a different model for each different `Content-Type`. You can define a reference to the relevant request model named in the `models` section of your configuration (see [Defining Models](#models) section).
@@ -369,14 +387,24 @@ For an example of a `methodResponses` configuration for an event see below:
 ```yml
 methodResponse:
   - statusCode: 200
-    responseHeaders:
-      - name: "Content-Type"
-        description: "Content Type header"
-        schema:
-          type: "string"
+    responseBody:
+      description: Success
     responseModels:
       application/json: "CreateResponse"
       application/xml: "CreateResponseXML"
+    responseHeaders:
+      X-Rate-Limit-Limit:
+        description: The number of allowed requests in the current period
+        schema:
+          type: integer
+      X-Rate-Limit-Remaining:
+        description: The number of remaining requests in the current period
+        schema:
+          type: integer
+      X-Rate-Limit-Reset:
+        description: The number of seconds left in the current period
+        schema:
+          type: integer
 ```
 
 ##### `responseModels`
@@ -389,27 +417,16 @@ responseModels:
   application/xml: "CreateResponseXML"
 ```
 
-##### `responseHeaders` and `requestHeaders`
+##### `responseHeaders`
 
-The `responseHeaders/requestHeaders` section of the configuration allows you to define the HTTP headers for the function event.
-
-The attributes for a header are as follow:
-
-* `name`: the name of the HTTP Header
-* `description`: a description of the HTTP Header
-* `schema`: JSON schema (inline, file or externally hosted)
+The `responseHeaders` property allows you to define the headers expected in a HTTP Response of the function event.  This should only contain a description and a schema, which must be a JSON schema (inline, file or externally hosted).
 
 ```yml
 responseHeaders:
-  - name: "Content-Type"
-    description: "Content Type header"
+  X-Rate-Limit-Limit:
+    description: The number of allowed requests in the current period
     schema:
-      type: "string"
-requestHeaders:
-  - name: "Content-Type"
-    description: "Content Type header"
-    schema:
-      type: "string"
+      type: integer
 ```
 
 ## Example configuration
