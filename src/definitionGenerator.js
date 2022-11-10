@@ -271,10 +271,40 @@ class DefinitionGenerator {
                     throw err
                 })
 
+            if (response.responseHeaders) {
+                obj.headers = await this.createResponseHeaders(response.responseHeaders)
+                    .catch(err => {
+                        throw err
+                    })
+            }
+
             Object.assign(responses,{[response.statusCode]: obj})
         }
 
         return responses
+    }
+
+    async createResponseHeaders(headers) {
+        const obj = {}
+
+        for (const header of Object.keys(headers)) {
+            const newHeader = {}
+            newHeader.description = headers[header].description || ''
+
+            if (headers[header].schema) {
+                const schemaRef = await this.schemaCreator(headers[header].schema, header, 'headers')
+                    .catch(err => {
+                        throw err
+                    })
+                newHeader.schema = {
+                    $ref: schemaRef
+                }
+
+                Object.assign(obj, {[header]: newHeader})
+            }
+        }
+
+        return obj
     }
 
     async createRequestBody(documentation) {
