@@ -392,6 +392,19 @@ methodResponse:
     responseModels:
       application/json: "CreateResponse"
       application/xml: "CreateResponseXML"
+    responseHeaders:
+      X-Rate-Limit-Limit:
+        description: The number of allowed requests in the current period
+        schema:
+          type: integer
+      X-Rate-Limit-Remaining:
+        description: The number of remaining requests in the current period
+        schema:
+          type: integer
+      X-Rate-Limit-Reset:
+        description: The number of seconds left in the current period
+        schema:
+          type: integer
 ```
 
 ##### `responseModels`
@@ -402,6 +415,18 @@ The `responseModels` property allows you to define models for the HTTP Response 
 responseModels:
   application/json: "CreateResponse"
   application/xml: "CreateResponseXML"
+```
+
+##### `responseHeaders`
+
+The `responseHeaders` property allows you to define the headers expected in a HTTP Response of the function event.  This should only contain a description and optionally a schema, which must be a JSON schema (inline, file or externally hosted).
+
+```yml
+responseHeaders:
+  X-Rate-Limit-Limit:
+    description: The number of allowed requests in the current period
+    schema:
+      type: integer
 ```
 
 ## Example configuration
