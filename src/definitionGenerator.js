@@ -286,22 +286,21 @@ class DefinitionGenerator {
 
     async createResponseHeaders(headers) {
         const obj = {}
-
         for (const header of Object.keys(headers)) {
             const newHeader = {}
             newHeader.description = headers[header].description || ''
 
             if (headers[header].schema) {
-                const schemaRef = await this.schemaCreator(headers[header].schema, header, 'headers')
+                const schemaRef = await this.schemaCreator(headers[header].schema, header)
                     .catch(err => {
                         throw err
                     })
                 newHeader.schema = {
                     $ref: schemaRef
                 }
-
-                Object.assign(obj, {[header]: newHeader})
             }
+
+            Object.assign(obj, {[header]: newHeader})
         }
 
         return obj
