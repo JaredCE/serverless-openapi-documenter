@@ -350,6 +350,24 @@ cookieParams:
       type: "string"
 ```
 
+#### `headerParams` - Request Headers
+
+Request Headers can be described as follow:
+
+* `name`: the name of the query variable
+* `description`: a description of the query variable
+* `required`: whether the query parameter is mandatory (boolean)
+* `schema`: JSON schema (inline, file or externally hosted)
+
+```yml
+headerParams:
+  - name: "Content-Type"
+    description: "The content type"
+    required: true
+    schema:
+      type: "string"
+```
+
 #### `requestModels`
 
 The `requestModels` property allows you to define models for the HTTP Request of the function event. You can define a different model for each different `Content-Type`. You can define a reference to the relevant request model named in the `models` section of your configuration (see [Defining Models](#models) section).
@@ -369,11 +387,8 @@ For an example of a `methodResponses` configuration for an event see below:
 ```yml
 methodResponse:
   - statusCode: 200
-    responseHeaders:
-      - name: "Content-Type"
-        description: "Content Type header"
-        schema:
-          type: "string"
+    responseBody:
+      description: Success
     responseModels:
       application/json: "CreateResponse"
       application/xml: "CreateResponseXML"
@@ -387,29 +402,6 @@ The `responseModels` property allows you to define models for the HTTP Response 
 responseModels:
   application/json: "CreateResponse"
   application/xml: "CreateResponseXML"
-```
-
-##### `responseHeaders` and `requestHeaders`
-
-The `responseHeaders/requestHeaders` section of the configuration allows you to define the HTTP headers for the function event.
-
-The attributes for a header are as follow:
-
-* `name`: the name of the HTTP Header
-* `description`: a description of the HTTP Header
-* `schema`: JSON schema (inline, file or externally hosted)
-
-```yml
-responseHeaders:
-  - name: "Content-Type"
-    description: "Content Type header"
-    schema:
-      type: "string"
-requestHeaders:
-  - name: "Content-Type"
-    description: "Content Type header"
-    schema:
-      type: "string"
 ```
 
 ## Example configuration
