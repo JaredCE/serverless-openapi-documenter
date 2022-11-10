@@ -419,7 +419,7 @@ responseModels:
 
 ##### `responseHeaders`
 
-The `responseHeaders` property allows you to define the headers expected in a HTTP Response of the function event.  This should only contain a description and optionally a schema, which must be a JSON schema (inline, file or externally hosted).
+The `responseHeaders` property allows you to define the headers expected in a HTTP Response of the function event.  This should only contain a description and a schema, which must be a JSON schema (inline, file or externally hosted).
 
 ```yml
 responseHeaders:
