@@ -222,6 +222,39 @@ custom:
                       type: "string"
 ```
 
+##### Model re-use
+
+Through the magic of YAML, you can re-use models:
+
+```yml
+custom:
+  documentation:
+    ...
+    models:
+      - name: "ErrorResponse"
+        description: "This is an error"
+        content:
+          application/json:
+            schema: &ErrorItem
+            type: object
+            properties:
+              message: 
+                type: string
+              code:
+                type: integer
+                  
+      - name: "PutDocumentResponse"
+        description: "PUT Document response model (external reference example)"
+        content:
+          application/json:
+            schema: 
+            type: array
+            items: *ErrorItem
+```
+
+`&ErrorItem` in the above example creates a node anchor (&ErrorItem) to the `ErrorResponse` schema which then can be used in the `PutDocumentResponse` schema via the reference (*ErrorItem).  The node anchor needs to be declared first before it can be used elsewhere via the reference, swapping the above example around would result in an error.
+
+
 #### Functions
 
 To define the documentation for a given function event, you need to create a `documentation` attribute for your http event in your `serverless.yml` file.
