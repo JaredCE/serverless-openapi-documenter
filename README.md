@@ -63,6 +63,7 @@ Options:
 | externalDocs.url         | custom.documentation.externalDocumentation.url                                     |
 | servers[].description      | custom.documentation.servers.description                                         |
 | servers[].url              | custom.documentation.servers.url                                                 |
+| servers[].variables              | custom.documentation.servers.variables                                     |
 | tags[].name                     | custom.documentation.tags.name                                              |
 | tags[].description              | custom.documentation.tags.description                                       |
 | tags[].externalDocs.url         | custom.documentation.tags.externalDocumentation.url                         |
@@ -121,8 +122,15 @@ custom:
       url: https://google.com
       description: A link to google
     servers:
-      url: https://example.com
+      url: https://example.com:{port}/
       description: The server
+      variables:
+        port:
+          enum: 
+            - 4000
+            - 3000
+          default: 3000
+          description: The port the server operates on
     tags:
       - name: tag1
         description: this is a tag
