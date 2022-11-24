@@ -364,8 +364,8 @@ queryParams:
 
 Path parameters can be described as follow:
 
-* `name`: the name of the query variable
-* `description`: a description of the query variable
+* `name`: the name of the path parameter
+* `description`: a description of the path parameter
 * `schema`: JSON schema (inline, file or externally hosted)
 
 ```yml
@@ -380,9 +380,9 @@ pathParams:
 
 Cookie parameters can be described as follow:
 
-* `name`: the name of the query variable
-* `description`: a description of the query variable
-* `required`: whether the query parameter is mandatory (boolean)
+* `name`: the name of the cookie parameter
+* `description`: a description of the cookie parameter
+* `required`: whether the cookie parameter is mandatory (boolean)
 * `schema`: JSON schema (inline, file or externally hosted)
 
 ```yml
@@ -398,9 +398,9 @@ cookieParams:
 
 Request Headers can be described as follow:
 
-* `name`: the name of the query variable
-* `description`: a description of the query variable
-* `required`: whether the query parameter is mandatory (boolean)
+* `name`: the name of the header
+* `description`: a description of the header
+* `required`: whether the header is mandatory (boolean)
 * `schema`: JSON schema (inline, file or externally hosted)
 
 ```yml
