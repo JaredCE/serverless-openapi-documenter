@@ -271,6 +271,7 @@ The `documentation` section of the event configuration can contain the following
 * `queryParams`: a list of query parameters (see [queryParams](#queryparams) below)
 * `pathParams`: a list of path parameters (see [pathParams](#pathparams) below)
 * `cookieParams`: a list of cookie parameters (see [cookieParams](#cookieparams) below)
+* `headerParams`: a list of headers (see [headerParams](#headerparams---request-headers) below)
 * `methodResponses`: an array of response models and applicable status codes
   * `statusCode`: applicable http status code (ie. 200/404/500 etc.)
   * `responseBody`: contains description of the response
@@ -318,12 +319,22 @@ functions:
               description: "A Session ID variable"
               schema:
                 type: "string"
+          headerParams:
+            name: "Content-Type"
+            description: "The content type"
+            schema:
+              type: "string"
           methodResponses:
             - statusCode: 201
               responseBody:
                 description: "A user object along with generated API Keys"
               responseModels:
                 application/json: "PutDocumentResponse"
+              responseHeaders:
+                X-Rate-Limit-Limit:
+                  description: The number of allowed requests in the current period
+                  schema:
+                    type: integer
             - statusCode: 500
               responseBody:
                 description: "An error message when creating a new user"
