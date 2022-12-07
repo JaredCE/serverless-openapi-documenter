@@ -410,6 +410,14 @@ class DefinitionGenerator {
         return params;
     }
 
+    async dereferenceSchema(schema) {
+        return await $RefParser.dereference(schema, this.refParserOptions)
+            .catch(err => {
+                console.error(err)
+                throw err
+            })
+    }
+
     async schemaCreator(schema, name) {
         const addToComponents = (schema, name) => {
             const schemaObj = {
@@ -433,14 +441,27 @@ class DefinitionGenerator {
             }
         }
 
-        const deReferencedSchema = await $RefParser.dereference(schema, this.refParserOptions)
-            .catch(err => {
-                console.error(err)
+        let deReferencedSchema = await this.dereferenceSchema(schema)
+            .catch((err) => {
                 throw err
             })
 
+        // deal with schemas that have been de-referenced poorly
+        if (deReferencedSchema.$ref === '#') {
+            const oldRef = schema.$ref
+            const path = oldRef.split('/')
 
-        const convertedSchema = SchemaConvertor.convert(deReferencedSchema)
+            const pathTitle = path[path.length-1]
+            const property = deReferencedSchema.definitions[path[path.length-1]]
+            Object.assign(deReferencedSchema, {properties: {[pathTitle]: property}})
+            delete deReferencedSchema.$ref
+            deReferencedSchema = await this.dereferenceSchema(deReferencedSchema)
+                .catch((err) => {
+                    throw err
+                })
+        }
+
+        const convertedSchema = SchemaConvertor.convert(deReferencedSchema, name)
         let schemaName = name
         if (this.schemaIDs.includes(schemaName))
             schemaName = `${name}-${uuid()}`
@@ -448,7 +469,7 @@ class DefinitionGenerator {
         this.schemaIDs.push(schemaName)
 
         for (const key of Object.keys(convertedSchema.schemas)) {
-            if (key === 'main' || key.split('-')[0] === 'main') {
+            if (key === name || key.split('-')[0] === name) {
                 let ref = `#/components/schemas/`
 
                 if (this.openAPI?.components?.schemas?.[name]) {
