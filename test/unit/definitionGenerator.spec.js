@@ -458,6 +458,35 @@ describe('DefinitionGenerator', () => {
                 expect(definitionGenerator.openAPI.components.schemas).to.have.property('ContactPutRequest')
                 expect(expected).to.equal('#/components/schemas/ContactPutRequest')
             });
+
+            it('should handle a schema that has been improperly dereferenced', async function() {
+                const simpleSchema = {
+                    $schema: 'http://json-schema.org/draft-04/schema#',
+                    title: 'JSON API Schema',
+                    $ref: '#/definitions/Error',
+                    definitions: {
+                        Error: {
+                            type: 'string'
+                        }
+                    }
+                }
+                const definitionGenerator = new DefinitionGenerator(mockServerless)
+                const expected = await definitionGenerator.schemaCreator(simpleSchema, 'simpleSchema')
+                    .catch((err) => {
+                        console.error(err)
+                    })
+
+                expect(definitionGenerator.openAPI.components.schemas).to.have.property('simpleSchema')
+                expect(definitionGenerator.openAPI.components.schemas.simpleSchema).to.deep.equal({
+                    title: 'JSON API Schema',
+                    properties: {
+                        Error: {
+                            type: 'string'
+                        }
+                    }
+                })
+                expect(expected).to.equal('#/components/schemas/simpleSchema')
+            });
         });
 
         describe('schemas that are urls', () => {
@@ -473,9 +502,9 @@ describe('DefinitionGenerator', () => {
                     })
 
                 expect(definitionGenerator.openAPI.components.schemas).to.have.property('LicensedMember')
-                expect(definitionGenerator.openAPI.components.schemas).to.have.property('log')
-                expect(definitionGenerator.openAPI.components.schemas).to.have.property('template')
-                expect(definitionGenerator.openAPI.components.schemas).to.have.property('database')
+                expect(definitionGenerator.openAPI.components.schemas.LicensedMember.properties).to.have.property('log')
+                expect(definitionGenerator.openAPI.components.schemas.LicensedMember.properties).to.have.property('template')
+                expect(definitionGenerator.openAPI.components.schemas.LicensedMember.properties).to.have.property('database')
                 expect(expected).to.equal('#/components/schemas/LicensedMember')
 
                 stub.restore()
@@ -485,13 +514,27 @@ describe('DefinitionGenerator', () => {
                 const complexSchema = 'https:///google.com/build/LicensedMember.json'
                 const LicensedMemberJSON = require('../json/complex.json')
 
-                const stub = sinon.stub($RefParser, 'dereference').resolves(LicensedMemberJSON)
+                // const stub = sinon.stub($RefParser, 'dereference').resolves(LicensedMemberJSON)
+                const stub = sinon.stub($RefParser, 'dereference')
+                    .onFirstCall().resolves(LicensedMemberJSON)
+                    .onSecondCall().resolves({
+                        type: "object",
+                        properties: {
+                            UUID: {
+                                $ref: "#/definitions/log"
+                            },
+                            name: {
+                                type: "string"
+                            }
+                        }
+                    })
                 const definitionGenerator = new DefinitionGenerator(mockServerless)
                 let expected = await definitionGenerator.schemaCreator(complexSchema, 'LicensedMember')
                     .catch((err) => {
                         console.error(err)
                     })
 
+                // this will fail validation due to a missing definition
                 const simpleSchema = {
                     type: "object",
                     properties: {
@@ -511,10 +554,12 @@ describe('DefinitionGenerator', () => {
                     })
 
                 expect(definitionGenerator.openAPI.components.schemas).to.have.property('LicensedMember')
-                expect(definitionGenerator.openAPI.components.schemas).to.have.property('log')
-                expect(definitionGenerator.openAPI.components.schemas).to.have.property('template')
-                expect(definitionGenerator.openAPI.components.schemas).to.have.property('database')
+                expect(definitionGenerator.openAPI.components.schemas.LicensedMember.properties).to.have.property('log')
+                expect(definitionGenerator.openAPI.components.schemas.LicensedMember.properties).to.have.property('template')
+                expect(definitionGenerator.openAPI.components.schemas.LicensedMember.properties).to.have.property('database')
                 expect(definitionGenerator.openAPI.components.schemas).to.have.property('simpleSchema')
+                expect(definitionGenerator.openAPI.components.schemas.simpleSchema.properties).to.have.property('UUID')
+                expect(definitionGenerator.openAPI.components.schemas.simpleSchema.properties).to.have.property('name')
                 expect(expected).to.equal('#/components/schemas/simpleSchema')
 
                 stub.restore()
@@ -528,6 +573,7 @@ describe('DefinitionGenerator', () => {
                 const expected = await definitionGenerator.schemaCreator(simpleSchema, 'simpleSchema')
                     .catch((err) => {
                         console.error(err)
+                        expect(err).to.be.an('error')
                     })
 
                 expect(expected).to.be.undefined
