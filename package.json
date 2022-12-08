@@ -29,7 +29,7 @@
   "license": "MIT",
   "dependencies": {
     "@apidevtools/json-schema-ref-parser": "^9.1.0",
-    "chalk": "^4.1.2",
+    "chalk": "^5.1.2",
     "js-yaml": "^4.1.0",
     "json-schema-for-openapi": "^0.3.1",
     "oas-validator": "^5.0.8",
