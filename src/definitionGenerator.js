@@ -68,6 +68,37 @@ class DefinitionGenerator {
             description: documentation?.description || '',
             version: documentation?.version || uuid(),
         }
+
+        if (documentation.termsOfService)
+            info.termsOfService = documentation.termsOfService
+
+        if (documentation.contact) {
+            const contactObj = {}
+            contactObj.name = documentation.contact.name || ''
+
+            if (documentation.contact.url)
+                contactObj.url = documentation.contact.url
+
+            contactObj.email = documentation.contact.email || ''
+            Object.assign(info, {contact: contactObj})
+        }
+
+        if (documentation.license && documentation.license.name) {
+            const licenseObj = {}
+            licenseObj.name = documentation.license.name || ''
+
+            if (documentation.license.url)
+                licenseObj.url = documentation.license.url || ''
+
+            Object.assign(info, {license: licenseObj})
+        }
+
+        for (const key of Object.keys(documentation)) {
+            if (/^[x\-]/i.test(key)) {
+                Object.assign(info, {[key]: documentation[key]})
+            }
+        }
+
         Object.assign(this.openAPI, {info})
     }
 
