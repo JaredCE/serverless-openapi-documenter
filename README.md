@@ -59,6 +59,13 @@ Options:
 | info.title               | custom.documentation.title  OR  service                                            |
 | info.description         | custom.documentation.description  OR  blank string                                 |
 | info.version             | custom.documentation.version  OR  random v4 uuid if not provided                   |
+| info.termsOfService      | custom.documentation.termsOfService                   |
+| info.contact             | custom.documentation.contact                                                     |
+| info.contact.name         | custom.documentation.contact.name OR  blank string                                 |
+| info.contact.url          | custom.documentation.contact.url  if provided                           |
+| info.license             | custom.documentation.license                                                     |
+| info.license.name         | custom.documentation.license.name OR  blank string                                 |
+| info.license.url          | custom.documentation.license.url  if provided                           |
 | externalDocs.description | custom.documentation.externalDocumentation.description                             |
 | externalDocs.url         | custom.documentation.externalDocumentation.url                                     |
 | servers[].description      | custom.documentation.servers.description                                         |
@@ -118,6 +125,7 @@ custom:
     version: '1'
     title: 'My API'
     description: 'This is my API'
+    termsOfService: https://google.com
     externalDocumentation:
       url: https://google.com
       description: A link to google
@@ -126,7 +134,7 @@ custom:
       description: The server
       variables:
         port:
-          enum: 
+          enum:
             - 4000
             - 3000
           default: 3000
@@ -141,6 +149,58 @@ custom:
 ```
 
 Mostly everything here is optional.  A version from a UUID will be generated for you if you don't specify one, title will be the name of your service if you don't specify one.
+
+#### termsOfService
+
+Must be in the format of a url if included.
+
+#### Contact
+
+You can provide an optional contact object such as:
+
+```yml
+custom:
+  documentation:
+    contact:
+      name: John
+      url: https://example.com
+      email: John@example.com
+```
+
+These fields are optional, though `url` and `email` need to be in the format of an email address (ed: what that might be, i'm not 100% sure... go read the email RFC(s)) and a url.
+
+#### License
+
+You can provide an optional license object such as:
+
+```yml
+custom:
+  documentation:
+    license:
+      name: Apache 2.0
+      url: https://www.apache.org/licenses/LICENSE-2.0.html
+```
+
+Name is required but `url` is optional and must be in the format of a url.
+#### Extended Fields
+
+You can also add extended fields to the documentation object:
+
+```yml
+custom:
+  documentation:
+    x-other-field: This is an extended field
+```
+
+These fields must have `x-` before them, otherwise they will be ignored:
+
+```yml
+custom:
+  documentation:
+    other-field: This is an extended field
+```
+
+`other-field` here will not make it to the generated OpenAPI schema.
 
 These configurations can be quite verbose; you can separate it out into it's own file, such as `serverless.doc.yml` as below:
 
@@ -246,16 +306,16 @@ custom:
             schema: &ErrorItem
             type: object
             properties:
-              message: 
+              message:
                 type: string
               code:
                 type: integer
-                  
+
       - name: "PutDocumentResponse"
         description: "PUT Document response model (external reference example)"
         content:
           application/json:
-            schema: 
+            schema:
             type: array
             items: *ErrorItem
 ```
