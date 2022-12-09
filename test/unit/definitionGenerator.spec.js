@@ -174,6 +174,101 @@ describe('DefinitionGenerator', () => {
             expect(definitionGenerator.openAPI.info).to.be.an('object')
             expect(v4.test(definitionGenerator.openAPI.info.version)).to.be.true
         });
+
+        it('should assign a contact Object when a contact object is included', function() {
+            mockServerless.service.custom.documentation.contact = {
+                name: 'John',
+                url: 'http://example.com',
+                email: 'john@example.com'
+            }
+            const definitionGenerator = new DefinitionGenerator(mockServerless)
+            definitionGenerator.createInfo()
+
+            expect(definitionGenerator.openAPI).to.be.an('object')
+            expect(definitionGenerator.openAPI.info).to.be.an('object')
+            expect(definitionGenerator.openAPI.info).to.have.property('contact')
+            expect(definitionGenerator.openAPI.info.contact).to.be.an('object')
+            expect(definitionGenerator.openAPI.info.contact.name).to.be.an('string')
+        });
+
+        it('should only assign a contact url if one is provided', function() {
+            mockServerless.service.custom.documentation.contact = {
+                name: 'John',
+                email: 'john@example.com'
+            }
+            const definitionGenerator = new DefinitionGenerator(mockServerless)
+            definitionGenerator.createInfo()
+
+            expect(definitionGenerator.openAPI).to.be.an('object')
+            expect(definitionGenerator.openAPI.info).to.be.an('object')
+            expect(definitionGenerator.openAPI.info).to.have.property('contact')
+            expect(definitionGenerator.openAPI.info.contact).to.be.an('object')
+            expect(definitionGenerator.openAPI.info.contact.name).to.be.an('string')
+            expect(definitionGenerator.openAPI.info.contact).to.not.have.property('url')
+        });
+
+        it('should assign a license Object when a license object is included with a name', function() {
+            mockServerless.service.custom.documentation.license = {
+                name: 'Apache 2.0',
+                url: 'https://www.apache.org/licenses/LICENSE-2.0.html',
+            }
+            const definitionGenerator = new DefinitionGenerator(mockServerless)
+            definitionGenerator.createInfo()
+
+            expect(definitionGenerator.openAPI).to.be.an('object')
+            expect(definitionGenerator.openAPI.info).to.be.an('object')
+            expect(definitionGenerator.openAPI.info).to.have.property('license')
+            expect(definitionGenerator.openAPI.info.license).to.be.an('object')
+            expect(definitionGenerator.openAPI.info.license.name).to.be.an('string')
+        });
+
+        it('should not assign a license Object when a license object is included without a name', function() {
+            mockServerless.service.custom.documentation.license = {
+                url: 'https://www.apache.org/licenses/LICENSE-2.0.html',
+            }
+            const definitionGenerator = new DefinitionGenerator(mockServerless)
+            definitionGenerator.createInfo()
+
+            expect(definitionGenerator.openAPI).to.be.an('object')
+            expect(definitionGenerator.openAPI.info).to.be.an('object')
+            expect(definitionGenerator.openAPI.info).to.not.have.property('license')
+        });
+
+        it('should only assign a contact url if one is provided', function() {
+            mockServerless.service.custom.documentation.license = {
+                name: 'John',
+            }
+            const definitionGenerator = new DefinitionGenerator(mockServerless)
+            definitionGenerator.createInfo()
+
+            expect(definitionGenerator.openAPI).to.be.an('object')
+            expect(definitionGenerator.openAPI.info).to.be.an('object')
+            expect(definitionGenerator.openAPI.info).to.have.property('license')
+            expect(definitionGenerator.openAPI.info.license).to.be.an('object')
+            expect(definitionGenerator.openAPI.info.license.name).to.be.an('string')
+            expect(definitionGenerator.openAPI.info.license).to.not.have.property('url')
+        });
+
+        it('should assign specification extension fields when included', function() {
+            mockServerless.service.custom.documentation['x-field'] = 'john'
+            const definitionGenerator = new DefinitionGenerator(mockServerless)
+            definitionGenerator.createInfo()
+
+            expect(definitionGenerator.openAPI).to.be.an('object')
+            expect(definitionGenerator.openAPI.info).to.be.an('object')
+            expect(definitionGenerator.openAPI.info).to.have.property('x-field')
+            expect(definitionGenerator.openAPI.info['x-field']).to.be.equal('john')
+        });
+
+        it('should ignore fields that do not conform to specifiction extension', function() {
+            mockServerless.service.custom.documentation.otherField = 'john'
+            const definitionGenerator = new DefinitionGenerator(mockServerless)
+            definitionGenerator.createInfo()
+
+            expect(definitionGenerator.openAPI).to.be.an('object')
+            expect(definitionGenerator.openAPI.info).to.be.an('object')
+            expect(definitionGenerator.openAPI.info).to.not.have.property('otherField')
+        });
     });
 
     describe('createTags', () => {
