@@ -68,6 +68,7 @@ Options:
 | info.license.url          | custom.documentation.license.url  if provided                           |
 | externalDocs.description | custom.documentation.externalDocumentation.description                             |
 | externalDocs.url         | custom.documentation.externalDocumentation.url                                     |
+| security                        | custom.documentation.overallSecurityRequirement                 |
 | servers[].description      | custom.documentation.servers.description                                         |
 | servers[].url              | custom.documentation.servers.url                                                 |
 | servers[].variables              | custom.documentation.servers.variables                                     |
@@ -89,6 +90,7 @@ Options:
 | path[path].[operation].externalDocs.url         | functions.functions.[http OR httpApi].documentation.externalDocumentation.url  |
 | path[path].[operation].servers[].description      | functions.functions.[http OR httpApi].documentation.servers.description      |
 | path[path].[operation].servers[].url              | functions.functions.[http OR httpApi].documentation.servers.url              |
+| path[path].[operation].security              | functions.functions.[http OR httpApi].documentation.security              |
 | path[path].[operation].deprecated         | functions.functions.[http OR httpApi].documentation.deprecated                       |
 | path[path].[operation].parameters         | functions.functions.[http OR httpApi].documentation.[path/query/cookie/header]Params |
 | path[path].[operation].parameters.name         | functions.functions.[http OR httpApi].documentation.[path/query/cookie/header]Params.name |
@@ -251,7 +253,7 @@ custom:
       - my_api_key: []
 ```
 
-This will apply the requirement of each operation requiring your `my_api_key` security scheme.
+This will apply the requirement of each operation requiring your `my_api_key` security scheme, [you can override this](#security).
 
 #### Models
 
@@ -517,7 +519,7 @@ headerParams:
 
 #### `security`
 
-The `security` property allows you to specify the [Security Scheme](#securityschemes) to apply to the HTTP Request.  If you have applied an `overallSecurityRequirement` ([see](#security-on-each-operation)) then you can either leave this field off, or to override it with a different scheme you can write it like:
+The `security` property allows you to specify the [Security Scheme](#securityschemes) to apply to the HTTP Request.  If you have applied an `overallSecurityRequirement` ([see Security on each operation](#security-on-each-operation)) then you can either leave this field off, or to override it with a different scheme you can write it like:
 
 ```yml
 security:
@@ -526,10 +528,11 @@ security:
     - read:pets
 ```
 
-If you have specified an `overallSecurityRequirement`, but this HTTP Request should not apply any security schemes, you should set security to false:
+If you have specified an `overallSecurityRequirement`, but this HTTP Request should not apply any security schemes, you should set security to be an array with an empty object:
 
 ```yml
-security: false
+security:
+  - {}
 ```
 
 #### `requestModels`
