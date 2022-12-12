@@ -44,7 +44,7 @@ class DefinitionGenerator {
             this.createSecuritySchemes(this.serverless.service.custom.documentation.securitySchemes)
 
             if (this.serverless.service.custom.documentation.overallSecurityRequirement) {
-                this.securityRequirement = this.serverless.service.custom.documentation.overallSecurityRequirement
+                this.openAPI.security = this.serverless.service.custom.documentation.overallSecurityRequirement
             }
         }
 
@@ -274,9 +274,8 @@ class DefinitionGenerator {
             obj.externalDocs = documentation.externalDocumentation
         }
 
-        if (Object.keys(documentation).includes('security') || this.securityRequirement) {
-            if (documentation.security !== false)
-                obj.security = documentation.security || this.securityRequirement
+        if (Object.keys(documentation).includes('security')) {
+            obj.security = documentation.security
         }
 
         if (Object.keys(documentation).includes('deprecated'))
