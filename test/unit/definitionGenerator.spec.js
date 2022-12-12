@@ -414,6 +414,14 @@ describe('DefinitionGenerator', () => {
                 expect(definitionGenerator.openAPI.components).to.have.property('securitySchemes')
                 expect(definitionGenerator.openAPI.components.securitySchemes).to.be.an('object')
                 expect(definitionGenerator.openAPI.components.securitySchemes).to.have.property('oAuth2_key')
+                expect(definitionGenerator.openAPI.components.securitySchemes.oAuth2_key).to.be.an('object')
+                expect(definitionGenerator.openAPI.components.securitySchemes.oAuth2_key).to.have.property('type')
+                expect(definitionGenerator.openAPI.components.securitySchemes.oAuth2_key).to.have.property('flows')
+                expect(definitionGenerator.openAPI.components.securitySchemes.oAuth2_key.flows).to.be.an('object')
+                expect(definitionGenerator.openAPI.components.securitySchemes.oAuth2_key.flows).to.have.property('implicit')
+                expect(definitionGenerator.openAPI.components.securitySchemes.oAuth2_key.flows.implicit).to.be.an('object')
+                expect(definitionGenerator.openAPI.components.securitySchemes.oAuth2_key.flows.implicit).to.have.property('scopes')
+                expect(definitionGenerator.openAPI.components.securitySchemes.oAuth2_key.flows.implicit.scopes).to.be.an('object')
             });
 
             it('should throw an error when flows is missing from an oauth2 scheme', function() {
@@ -634,7 +642,6 @@ describe('DefinitionGenerator', () => {
 
                 const definitionGenerator = new DefinitionGenerator(mockServerless)
                 definitionGenerator.createSecuritySchemes(mockServerless.service.custom.documentation.securitySchemes)
-                console.log(definitionGenerator.openAPI.components.securitySchemes)
                 expect(definitionGenerator.openAPI).to.be.an('object')
                 expect(definitionGenerator.openAPI.components).to.be.an('object')
                 expect(definitionGenerator.openAPI.components).to.have.property('securitySchemes')
