@@ -43,8 +43,8 @@ class DefinitionGenerator {
         if (this.serverless.service.custom.documentation.securitySchemes) {
             this.createSecuritySchemes(this.serverless.service.custom.documentation.securitySchemes)
 
-            if (this.serverless.service.custom.documentation.overallSecurityRequirement) {
-                this.openAPI.security = this.serverless.service.custom.documentation.overallSecurityRequirement
+            if (this.serverless.service.custom.documentation.security) {
+                this.openAPI.security = this.serverless.service.custom.documentation.security
             }
         }
 
