@@ -248,7 +248,7 @@ custom:
         name: api_key
         in: header
     overallSecurityRequirement:
-      my_api_key: []
+      - my_api_key: []
 ```
 
 This will apply the requirement of each operation requiring your `my_api_key` security scheme.
@@ -521,7 +521,7 @@ The `security` property allows you to specify the [Security Scheme](#securitysch
 
 ```yml
 security:
-  petstore_auth:
+  - petstore_auth:
     - write:pets
     - read:pets
 ```
