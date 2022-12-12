@@ -59,16 +59,16 @@ Options:
 | info.title               | custom.documentation.title  OR  service                                            |
 | info.description         | custom.documentation.description  OR  blank string                                 |
 | info.version             | custom.documentation.version  OR  random v4 uuid if not provided                   |
-| info.termsOfService      | custom.documentation.termsOfService                   |
-| info.contact             | custom.documentation.contact                                                     |
-| info.contact.name         | custom.documentation.contact.name OR  blank string                                 |
-| info.contact.url          | custom.documentation.contact.url  if provided                           |
-| info.license             | custom.documentation.license                                                     |
-| info.license.name         | custom.documentation.license.name OR  blank string                                 |
-| info.license.url          | custom.documentation.license.url  if provided                           |
+| info.termsOfService      | custom.documentation.termsOfService                                                |
+| info.contact             | custom.documentation.contact                                                       |
+| info.contact.name         | custom.documentation.contact.name OR  blank string                                |
+| info.contact.url          | custom.documentation.contact.url  if provided                                     |
+| info.license             | custom.documentation.license                                                       |
+| info.license.name         | custom.documentation.license.name OR  blank string                                |
+| info.license.url          | custom.documentation.license.url  if provided                                     |
 | externalDocs.description | custom.documentation.externalDocumentation.description                             |
 | externalDocs.url         | custom.documentation.externalDocumentation.url                                     |
-| security                        | custom.documentation.overallSecurityRequirement                 |
+| security                        | custom.documentation.security                                               |
 | servers[].description      | custom.documentation.servers.description                                         |
 | servers[].url              | custom.documentation.servers.url                                                 |
 | servers[].variables              | custom.documentation.servers.variables                                     |
@@ -249,7 +249,7 @@ custom:
         type: apiKey
         name: api_key
         in: header
-    overallSecurityRequirement:
+    security:
       - my_api_key: []
 ```
 
@@ -519,20 +519,58 @@ headerParams:
 
 #### `security`
 
-The `security` property allows you to specify the [Security Scheme](#securityschemes) to apply to the HTTP Request.  If you have applied an `overallSecurityRequirement` ([see Security on each operation](#security-on-each-operation)) then you can either leave this field off, or to override it with a different scheme you can write it like:
+The `security` property allows you to specify the [Security Scheme](#securityschemes) to apply to the HTTP Request.  If you have applied an `security` ([see Security on each operation](#security-on-each-operation)) then you can either leave this field off, or to override it with a different scheme you can write it like:
 
 ```yml
-security:
-  - petstore_auth:
-    - write:pets
-    - read:pets
+custom:
+  documentation:
+    securitySchemes:
+      my_api_key:
+        type: apiKey
+        name: api_key
+        in: header
+      petstore_auth:
+        type: oauth2
+        flows:
+          implicit:
+            authorizationUrl: https://example.com/api/oauth/dialog
+            scopes:
+              write:pets: modify pets in your account
+              read:pets: read your pets
+    security:
+      - my_api_key: []
+
+functions:
+  getData:
+    events:
+      - http:
+          documentation:
+            security:
+              - petstore_auth:
+                - write:pets
+                - read:pets
 ```
 
-If you have specified an `overallSecurityRequirement`, but this HTTP Request should not apply any security schemes, you should set security to be an array with an empty object:
+If you have specified an `security` at the document root, but this HTTP Request should not apply any security schemes, you should set security to be an array with an empty object:
 
 ```yml
-security:
-  - {}
+custom:
+  documentation:
+    securitySchemes:
+      my_api_key:
+        type: apiKey
+        name: api_key
+        in: header
+    security:
+      - my_api_key: []
+
+functions:
+  getData:
+    events:
+      - http:
+          documentation:
+            security:
+              - {}
 ```
 
 #### `requestModels`
