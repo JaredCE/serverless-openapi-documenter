@@ -219,6 +219,40 @@ functions:
 
 For more info on `serverless.yml` syntax, see their docs.
 
+#### securitySchemes
+
+You can provide optional Security Schemes:
+
+```yml
+custom:
+  documentation:
+    securitySchemes:
+      my_api_key:
+        type: apiKey
+        name: api_key
+        in: header
+```
+
+It accepts all available Security Schemes and follows the specification: https://spec.openapis.org/oas/v3.0.3#security-scheme-object
+
+#### Security on each operation
+
+To apply an overall security scheme to all of your operations without having to add the documentation to each one, you can write it like:
+
+```yml
+custom:
+  documentation:
+    securitySchemes:
+      my_api_key:
+        type: apiKey
+        name: api_key
+        in: header
+    overallSecurityRequirement:
+      my_api_key: []
+```
+
+This will apply the requirement of each operation requiring your `my_api_key` security scheme.
+
 #### Models
 
 There are two ways to write the Models.  Models contain additional information that you can use to define schemas for endpoints.  You must define the *content type* for each schema that you provide in the models.
@@ -340,6 +374,7 @@ The `documentation` section of the event configuration can contain the following
 * `pathParams`: a list of path parameters (see [pathParams](#pathparams) below)
 * `cookieParams`: a list of cookie parameters (see [cookieParams](#cookieparams) below)
 * `headerParams`: a list of headers (see [headerParams](#headerparams---request-headers) below)
+* `security`: The security requirement to apply (see [security](#security) below)
 * `methodResponses`: an array of response models and applicable status codes
   * `statusCode`: applicable http status code (ie. 200/404/500 etc.)
   * `responseBody`: contains description of the response
@@ -478,6 +513,23 @@ headerParams:
     required: true
     schema:
       type: "string"
+```
+
+#### `security`
+
+The `security` property allows you to specify the [Security Scheme](#securityschemes) to apply to the HTTP Request.  If you have applied an `overallSecurityRequirement` ([see](#security-on-each-operation)) then you can either leave this field off, or to override it with a different scheme you can write it like:
+
+```yml
+security:
+  petstore_auth:
+    - write:pets
+    - read:pets
+```
+
+If you have specified an `overallSecurityRequirement`, but this HTTP Request should not apply any security schemes, you should set security to false:
+
+```yml
+security: false
 ```
 
 #### `requestModels`
