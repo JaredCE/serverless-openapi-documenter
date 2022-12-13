@@ -340,20 +340,20 @@ custom:
         content:
           application/json:
             schema: &ErrorItem
-            type: object
-            properties:
-              message:
-                type: string
-              code:
-                type: integer
+              type: object
+              properties:
+                message:
+                  type: string
+                code:
+                  type: integer
 
       - name: "PutDocumentResponse"
         description: "PUT Document response model (external reference example)"
         content:
           application/json:
             schema:
-            type: array
-            items: *ErrorItem
+              type: array
+              items: *ErrorItem
 ```
 
 `&ErrorItem` in the above example creates a node anchor (&ErrorItem) to the `ErrorResponse` schema which then can be used in the `PutDocumentResponse` schema via the reference (*ErrorItem).  The node anchor needs to be declared first before it can be used elsewhere via the reference, swapping the above example around would result in an error.
