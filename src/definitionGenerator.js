@@ -455,42 +455,13 @@ class DefinitionGenerator {
     }
 
     async dereferenceSchema(schema) {
-        return await $RefParser.dereference(schema, this.refParserOptions)
+        let deReferencedSchema = await $RefParser.dereference(schema, this.refParserOptions)
             .catch(err => {
                 console.error(err)
                 throw err
             })
-    }
 
-    async schemaCreator(schema, name) {
-        const addToComponents = (schema, name) => {
-            const schemaObj = {
-                [name]: schema
-            }
-
-            if (this.openAPI?.components) {
-                if (this.openAPI.components?.schemas) {
-                    Object.assign(this.openAPI.components.schemas, schemaObj)
-                } else {
-                    Object.assign(this.openAPI.components, {schemas: schemaObj})
-                }
-            } else {
-                const components = {
-                    components: {
-                        schemas: schemaObj
-                    }
-                }
-
-                Object.assign(this.openAPI, components)
-            }
-        }
-
-        let deReferencedSchema = await this.dereferenceSchema(schema)
-            .catch((err) => {
-                throw err
-            })
-
-        // deal with schemas that have been de-referenced poorly
+        // deal with schemas that have been de-referenced poorly: naive
         if (deReferencedSchema.$ref === '#') {
             const oldRef = schema.$ref
             const path = oldRef.split('/')
@@ -505,7 +476,17 @@ class DefinitionGenerator {
                 })
         }
 
+        return deReferencedSchema
+    }
+
+    async schemaCreator(schema, name) {
+        let deReferencedSchema = await this.dereferenceSchema(schema)
+            .catch((err) => {
+                throw err
+            })
+
         const convertedSchema = SchemaConvertor.convert(deReferencedSchema, name)
+
         let schemaName = name
         if (this.schemaIDs.includes(schemaName))
             schemaName = `${name}-${uuid()}`
@@ -516,24 +497,32 @@ class DefinitionGenerator {
             if (key === name || key.split('-')[0] === name) {
                 let ref = `#/components/schemas/`
 
-                if (this.openAPI?.components?.schemas?.[name]) {
-                    if (JSON.stringify(convertedSchema.schemas[key]) === JSON.stringify(this.openAPI.components.schemas[name])) {
+                if (this.existsInComponents(name)) {
+                    if (this.isTheSameSchema(convertedSchema.schemas[key], name)) {
                         return `${ref}${name}`
                     }
                 }
 
-                addToComponents(convertedSchema.schemas[key], schemaName)
+                this.addToComponents('schemas', convertedSchema.schemas[key], schemaName)
                 return `${ref}${schemaName}`
             } else {
-                if (this.openAPI?.components?.schemas?.[key]) {
-                    if (JSON.stringify(convertedSchema.schemas[key]) !== JSON.stringify(this.openAPI.components.schemas[key])) {
-                        addToComponents(convertedSchema.schemas[key], key)
+                if (this.existsInComponents(key)) {
+                    if (this.isTheSameSchema(convertedSchema.schemas[key], key)) {
+                        this.addToComponents('schemas', convertedSchema.schemas[key], key)
                     }
                 } else {
-                    addToComponents(convertedSchema.schemas[key], key)
+                    this.addToComponents('schemas', convertedSchema.schemas[key], key)
                 }
             }
         }
+    }
+
+    existsInComponents(name) {
+        return Boolean(this.openAPI?.components?.schemas?.[name])
+    }
+
+    isTheSameSchema(schema, otherSchemaName) {
+        return (JSON.stringify(schema) === JSON.stringify(this.openAPI.components.schemas[otherSchemaName]))
     }
 
     addToComponents(type, schema, name) {
