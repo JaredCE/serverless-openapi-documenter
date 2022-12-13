@@ -5,7 +5,8 @@ const path = require('path')
 const { v4: uuid } = require('uuid')
 const validator = require('oas-validator');
 const SchemaConvertor = require('json-schema-for-openapi')
-const $RefParser = require("@apidevtools/json-schema-ref-parser");
+const $RefParser = require("@apidevtools/json-schema-ref-parser")
+const isEqual = require('lodash.isequal')
 
 class DefinitionGenerator {
     constructor(serverless, options = {}) {
@@ -28,6 +29,11 @@ class DefinitionGenerator {
 
         this.operationIds = []
         this.schemaIDs = []
+
+        this.componentTypes = {
+            schemas: 'schemas',
+            securitySchemes: 'securitySchemes'
+        }
 
         try {
             this.refParserOptions = require(path.resolve('options', 'ref-parser.js'))
@@ -480,41 +486,32 @@ class DefinitionGenerator {
     }
 
     async schemaCreator(schema, name) {
-        let deReferencedSchema = await this.dereferenceSchema(schema)
-            .catch((err) => {
+        let schemaName = name
+        let finalName = schemaName
+        const dereferencedSchema = await this.dereferenceSchema(schema)
+            .catch(err => {
+                console.error(err)
                 throw err
             })
 
-        const convertedSchema = SchemaConvertor.convert(deReferencedSchema, name)
+        const convertedSchemas = SchemaConvertor.convert(dereferencedSchema, schemaName)
 
-        let schemaName = name
-        if (this.schemaIDs.includes(schemaName))
-            schemaName = `${name}-${uuid()}`
-
-        this.schemaIDs.push(schemaName)
-
-        for (const key of Object.keys(convertedSchema.schemas)) {
-            if (key === name || key.split('-')[0] === name) {
-                let ref = `#/components/schemas/`
-
-                if (this.existsInComponents(name)) {
-                    if (this.isTheSameSchema(convertedSchema.schemas[key], name)) {
-                        return `${ref}${name}`
-                    }
+        for (const convertedSchemaName of Object.keys(convertedSchemas.schemas)) {
+            const convertedSchema = convertedSchemas.schemas[convertedSchemaName]
+            if (this.existsInComponents(convertedSchemaName)) {
+                if (this.isTheSameSchema(convertedSchema, convertedSchemaName) === false) {
+                    if (convertedSchemaName === schemaName) {
+                        finalName = `${schemaName}-${uuid()}`
+                        this.addToComponents(this.componentTypes.schemas, convertedSchema, finalName)
+                    } else
+                        this.addToComponents(this.componentTypes.schemas, convertedSchema, convertedSchemaName)
                 }
-
-                this.addToComponents('schemas', convertedSchema.schemas[key], schemaName)
-                return `${ref}${schemaName}`
             } else {
-                if (this.existsInComponents(key)) {
-                    if (this.isTheSameSchema(convertedSchema.schemas[key], key)) {
-                        this.addToComponents('schemas', convertedSchema.schemas[key], key)
-                    }
-                } else {
-                    this.addToComponents('schemas', convertedSchema.schemas[key], key)
-                }
+                this.addToComponents(this.componentTypes.schemas, convertedSchema, convertedSchemaName)
             }
         }
+
+        return `#/components/schemas/${finalName}`
     }
 
     existsInComponents(name) {
@@ -522,7 +519,7 @@ class DefinitionGenerator {
     }
 
     isTheSameSchema(schema, otherSchemaName) {
-        return (JSON.stringify(schema) === JSON.stringify(this.openAPI.components.schemas[otherSchemaName]))
+        return isEqual(schema, this.openAPI.components.schemas[otherSchemaName])
     }
 
     addToComponents(type, schema, name) {
@@ -581,7 +578,7 @@ class DefinitionGenerator {
                 break;
             }
 
-            this.addToComponents('securitySchemes', schema, scheme)
+            this.addToComponents(this.componentTypes.securitySchemes, schema, scheme)
         }
     }
 
