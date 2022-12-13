@@ -39,6 +39,15 @@ class DefinitionGenerator {
 
     async parse() {
         this.createInfo()
+
+        if (this.serverless.service.custom.documentation.securitySchemes) {
+            this.createSecuritySchemes(this.serverless.service.custom.documentation.securitySchemes)
+
+            if (this.serverless.service.custom.documentation.security) {
+                this.openAPI.security = this.serverless.service.custom.documentation.security
+            }
+        }
+
         await this.createPaths()
             .catch(err => {
                 throw err
@@ -263,6 +272,10 @@ class DefinitionGenerator {
 
         if (documentation.externalDocumentation) {
             obj.externalDocs = documentation.externalDocumentation
+        }
+
+        if (Object.keys(documentation).includes('security')) {
+            obj.security = documentation.security
         }
 
         if (Object.keys(documentation).includes('deprecated'))
@@ -521,6 +534,146 @@ class DefinitionGenerator {
                 }
             }
         }
+    }
+
+    addToComponents(type, schema, name) {
+        const schemaObj = {
+            [name]: schema
+        }
+
+        if (this.openAPI?.components) {
+            if (this.openAPI.components[type]) {
+                Object.assign(this.openAPI.components[type], schemaObj)
+            } else {
+                Object.assign(this.openAPI.components, {[type]: schemaObj})
+            }
+        } else {
+            const components = {
+                components: {
+                    [type]: schemaObj
+                }
+            }
+
+            Object.assign(this.openAPI, components)
+        }
+    }
+
+    createSecuritySchemes(securitySchemes) {
+        for (const scheme of Object.keys(securitySchemes)) {
+            const securityScheme = securitySchemes[scheme]
+            const schema = {}
+
+            if (securityScheme.description)
+                schema.description = securityScheme.description
+
+            switch(securityScheme.type.toLowerCase()) {
+                case 'apikey':
+                    const apiKeyScheme = this.createAPIKeyScheme(securityScheme)
+                    schema.type = 'apiKey'
+                    Object.assign(schema, apiKeyScheme)
+                break;
+
+                case 'http':
+                    const HTTPScheme = this.createHTTPScheme(securityScheme)
+                    schema.type = 'http'
+                    Object.assign(schema, HTTPScheme)
+                break;
+
+                case 'openidconnect':
+                    const openIdConnectScheme = this.createOpenIDConnectScheme(securityScheme)
+                    schema.type = 'openIdConnect'
+                    Object.assign(schema, openIdConnectScheme)
+                break;
+
+                case 'oauth2':
+                    const oAuth2Scheme = this.createOAuth2Scheme(securityScheme)
+                    schema.type = 'oauth2'
+                    Object.assign(schema, oAuth2Scheme)
+                break;
+            }
+
+            this.addToComponents('securitySchemes', schema, scheme)
+        }
+    }
+
+    createAPIKeyScheme(securitySchema) {
+        const schema = {}
+        if (securitySchema.name)
+            schema.name = securitySchema.name
+        else
+            throw new Error('Security Scheme for "apiKey" requires the name of the header, query or cookie parameter to be used')
+
+        if (securitySchema.in)
+            schema.in = securitySchema.in
+        else
+            throw new Error('Security Scheme for "apiKey" requires the location of the API key: header, query or cookie parameter')
+
+        return schema
+    }
+
+    createHTTPScheme(securitySchema) {
+        const schema = {}
+
+        if (securitySchema.scheme)
+            schema.scheme = securitySchema.scheme
+        else
+            throw new Error('Security Scheme for "http" requires scheme')
+
+        if (securitySchema.bearerFormat)
+            schema.bearerFormat = securitySchema.bearerFormat
+
+        return schema
+    }
+
+    createOpenIDConnectScheme(securitySchema) {
+        const schema = {}
+        if (securitySchema.openIdConnectUrl)
+            schema.openIdConnectUrl = securitySchema.openIdConnectUrl
+        else
+            throw new Error('Security Scheme for "openIdConnect" requires openIdConnectUrl')
+
+        return schema
+    }
+
+    createOAuth2Scheme(securitySchema) {
+        const schema = {}
+        if (securitySchema.flows) {
+            const flows = this.createOAuthFlows(securitySchema.flows)
+            Object.assign(schema, {flows: flows})
+        } else
+            throw new Error('Security Scheme for "oauth2" requires flows')
+
+        return schema
+    }
+
+    createOAuthFlows(flows) {
+        const obj = {}
+        for (const flow of Object.keys(flows)) {
+            const schema = {}
+            if (["implicit", 'authorizationCode'].includes(flow))
+                if (flows[flow].authorizationUrl)
+                    schema.authorizationUrl = flows[flow].authorizationUrl
+                else
+                    throw new Error(`oAuth2 ${flow} flow requires an authorizationUrl`)
+
+            if (['password', 'clientCredentials', 'authorizationCode'].includes(flow)) {
+                if (flows[flow].tokenUrl)
+                    schema.tokenUrl = flows[flow].tokenUrl
+                else
+                    throw new Error(`oAuth2 ${flow} flow requires a tokenUrl`)
+            }
+
+            if (flows[flow].refreshUrl)
+                schema.refreshUrl = flows[flow].refreshUrl
+
+            if (flows[flow].scopes)
+                schema.scopes = flows[flow].scopes
+            else
+                throw new Error(`oAuth2 ${flow} flow requires scopes`)
+
+            Object.assign(obj, {[flow]: schema})
+        }
+        return obj
     }
 
     createExamples(examples) {

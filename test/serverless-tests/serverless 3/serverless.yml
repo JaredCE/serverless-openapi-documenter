@@ -26,6 +26,8 @@ functions:
               description: A user information object
             requestModels:
               application/json: PutDocumentRequest
+            security:
+              - {}
             pathParams:
               - name: username
                 description: The username for a user to create
@@ -61,6 +63,13 @@ custom:
   documentation:
     description: This is a description of what this does
     version: 1.0.0
+    securitySchemes:
+      my_api_key:
+        type: apiKey
+        name: api_key
+        in: header
+    overallSecurityRequirement:
+      - my_api_key: []
     models:
       - name: ErrorResponse
         description: This is an error

@@ -59,15 +59,16 @@ Options:
 | info.title               | custom.documentation.title  OR  service                                            |
 | info.description         | custom.documentation.description  OR  blank string                                 |
 | info.version             | custom.documentation.version  OR  random v4 uuid if not provided                   |
-| info.termsOfService      | custom.documentation.termsOfService                   |
-| info.contact             | custom.documentation.contact                                                     |
-| info.contact.name         | custom.documentation.contact.name OR  blank string                                 |
-| info.contact.url          | custom.documentation.contact.url  if provided                           |
-| info.license             | custom.documentation.license                                                     |
-| info.license.name         | custom.documentation.license.name OR  blank string                                 |
-| info.license.url          | custom.documentation.license.url  if provided                           |
+| info.termsOfService      | custom.documentation.termsOfService                                                |
+| info.contact             | custom.documentation.contact                                                       |
+| info.contact.name         | custom.documentation.contact.name OR  blank string                                |
+| info.contact.url          | custom.documentation.contact.url  if provided                                     |
+| info.license             | custom.documentation.license                                                       |
+| info.license.name         | custom.documentation.license.name OR  blank string                                |
+| info.license.url          | custom.documentation.license.url  if provided                                     |
 | externalDocs.description | custom.documentation.externalDocumentation.description                             |
 | externalDocs.url         | custom.documentation.externalDocumentation.url                                     |
+| security                        | custom.documentation.security                                               |
 | servers[].description      | custom.documentation.servers.description                                         |
 | servers[].url              | custom.documentation.servers.url                                                 |
 | servers[].variables              | custom.documentation.servers.variables                                     |
@@ -89,6 +90,7 @@ Options:
 | path[path].[operation].externalDocs.url         | functions.functions.[http OR httpApi].documentation.externalDocumentation.url  |
 | path[path].[operation].servers[].description      | functions.functions.[http OR httpApi].documentation.servers.description      |
 | path[path].[operation].servers[].url              | functions.functions.[http OR httpApi].documentation.servers.url              |
+| path[path].[operation].security              | functions.functions.[http OR httpApi].documentation.security              |
 | path[path].[operation].deprecated         | functions.functions.[http OR httpApi].documentation.deprecated                       |
 | path[path].[operation].parameters         | functions.functions.[http OR httpApi].documentation.[path/query/cookie/header]Params |
 | path[path].[operation].parameters.name         | functions.functions.[http OR httpApi].documentation.[path/query/cookie/header]Params.name |
@@ -219,6 +221,40 @@ functions:
 
 For more info on `serverless.yml` syntax, see their docs.
 
+#### securitySchemes
+
+You can provide optional Security Schemes:
+
+```yml
+custom:
+  documentation:
+    securitySchemes:
+      my_api_key:
+        type: apiKey
+        name: api_key
+        in: header
+```
+
+It accepts all available Security Schemes and follows the specification: https://spec.openapis.org/oas/v3.0.3#security-scheme-object
+
+#### Security on each operation
+
+To apply an overall security scheme to all of your operations without having to add the documentation to each one, you can write it like:
+
+```yml
+custom:
+  documentation:
+    securitySchemes:
+      my_api_key:
+        type: apiKey
+        name: api_key
+        in: header
+    security:
+      - my_api_key: []
+```
+
+This will apply the requirement of each operation requiring your `my_api_key` security scheme, [you can override this](#security).
+
 #### Models
 
 There are two ways to write the Models.  Models contain additional information that you can use to define schemas for endpoints.  You must define the *content type* for each schema that you provide in the models.
@@ -304,20 +340,20 @@ custom:
         content:
           application/json:
             schema: &ErrorItem
-            type: object
-            properties:
-              message:
-                type: string
-              code:
-                type: integer
+              type: object
+              properties:
+                message:
+                  type: string
+                code:
+                  type: integer
 
       - name: "PutDocumentResponse"
         description: "PUT Document response model (external reference example)"
         content:
           application/json:
             schema:
-            type: array
-            items: *ErrorItem
+              type: array
+              items: *ErrorItem
 ```
 
 `&ErrorItem` in the above example creates a node anchor (&ErrorItem) to the `ErrorResponse` schema which then can be used in the `PutDocumentResponse` schema via the reference (*ErrorItem).  The node anchor needs to be declared first before it can be used elsewhere via the reference, swapping the above example around would result in an error.
@@ -340,6 +376,7 @@ The `documentation` section of the event configuration can contain the following
 * `pathParams`: a list of path parameters (see [pathParams](#pathparams) below)
 * `cookieParams`: a list of cookie parameters (see [cookieParams](#cookieparams) below)
 * `headerParams`: a list of headers (see [headerParams](#headerparams---request-headers) below)
+* `security`: The security requirement to apply (see [security](#security) below)
 * `methodResponses`: an array of response models and applicable status codes
   * `statusCode`: applicable http status code (ie. 200/404/500 etc.)
   * `responseBody`: contains description of the response
@@ -478,6 +515,62 @@ headerParams:
     required: true
     schema:
       type: "string"
+```
+
+#### `security`
+
+The `security` property allows you to specify the [Security Scheme](#securityschemes) to apply to the HTTP Request.  If you have applied an `security` ([see Security on each operation](#security-on-each-operation)) then you can either leave this field off, or to override it with a different scheme you can write it like:
+
+```yml
+custom:
+  documentation:
+    securitySchemes:
+      my_api_key:
+        type: apiKey
+        name: api_key
+        in: header
+      petstore_auth:
+        type: oauth2
+        flows:
+          implicit:
+            authorizationUrl: https://example.com/api/oauth/dialog
+            scopes:
+              write:pets: modify pets in your account
+              read:pets: read your pets
+    security:
+      - my_api_key: []
+
+functions:
+  getData:
+    events:
+      - http:
+          documentation:
+            security:
+              - petstore_auth:
+                - write:pets
+                - read:pets
+```
+
+If you have specified an `security` at the document root, but this HTTP Request should not apply any security schemes, you should set security to be an array with an empty object:
+
+```yml
+custom:
+  documentation:
+    securitySchemes:
+      my_api_key:
+        type: apiKey
+        name: api_key
+        in: header
+    security:
+      - my_api_key: []
+
+functions:
+  getData:
+    events:
+      - http:
+          documentation:
+            security:
+              - {}
 ```
 
 #### `requestModels`
