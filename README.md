@@ -52,6 +52,16 @@ Options:
 --postmanCollection     -p  Will generate a postman collection (from the generated openAPI documentation), in json only, if passed in. Default postman.json
 ```
 
+### README Highlighted Reading
+
+#### Security Details
+* [Security](#securityschemes)
+* [Security on All Operations](#security-on-each-operation)
+* [Security Per Operation](#security)
+#### Model Details
+* [Models](#models)
+* [Notes on Schemas](#notes-on-schemas)
+
 ### OpenAPI Mapping
 
 | OpenAPI field            | Serverless field                                                                   |
@@ -184,6 +194,7 @@ custom:
 ```
 
 Name is required but `url` is optional and must be in the format of a url.
+
 #### Extended Fields
 
 You can also add extended fields to the documentation object:
