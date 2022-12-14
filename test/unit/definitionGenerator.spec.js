@@ -709,234 +709,165 @@ describe('DefinitionGenerator', () => {
                 expect(expected).to.equal('#/components/schemas/main')
             });
 
-            it('should add each definition of a complex schema to the components object', async function() {
+            it('should not overwrite a schema that has the same name and same schema as a pre-existing schema', async function() {
+                const definitionGenerator = new DefinitionGenerator(mockServerless)
+
+                const spy = sinon.spy(definitionGenerator, 'addToComponents')
+
                 const complexSchema = {
-                    "$schema": "http://json-schema.org/draft-04/schema#",
-                    "title": "JSON API Schema",
-                    "description": "This is a blah blah for responses in the JSON API format. For more, see http://jsonapi.org",
-                    "type": "object",
-                    "required": [
-                        "errors"
-                    ],
-                    "properties": {
-                        "errors": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/error"
-                            },
-                            "uniqueItems": true
-                        }
-                    },
-                    "definitions": {
-                        "error": {
-                            "type": "object",
-                            "properties": {
-                                "id": {
-                                    "description": "A unique identifier for this particular occurrence of the problem.",
-                                    "type": "string"
-                                }
-                            }
+                    type: 'object',
+                    properties: {
+                        error: {
+                            type: 'string'
                         }
                     }
                 }
-                const definitionGenerator = new DefinitionGenerator(mockServerless)
-                const expected = await definitionGenerator.schemaCreator(complexSchema, 'PutRequest')
+
+                let expected = await definitionGenerator.schemaCreator(complexSchema, 'main')
                     .catch((err) => {
                         console.error(err)
                     })
 
-                expect(definitionGenerator.openAPI.components.schemas).to.have.property('PutRequest')
-                expect(definitionGenerator.openAPI.components.schemas).to.not.have.property('error')
-                expect(expected).to.equal('#/components/schemas/PutRequest')
+                expect(definitionGenerator.openAPI.components.schemas).to.have.property('main')
+                expect(JSON.stringify(definitionGenerator.openAPI.components.schemas.main)).to.equal(JSON.stringify(complexSchema))
+                expect(expected).to.equal('#/components/schemas/main')
+
+                expected = await definitionGenerator.schemaCreator(complexSchema, 'main')
+                     .catch((err) => {
+                        console.error(err)
+                    })
+
+                expect(expected).to.equal('#/components/schemas/main')
+                expect(spy.callCount).to.be.equal(1)
+
+                spy.resetHistory()
             });
 
-            it(`should not overwrite an object that already exists in the components if they're the same`, async function() {
+            it('should not overwrite a schema that has the same name and same schema as a pre-existing schema but in a slightly different order', async function() {
+                const definitionGenerator = new DefinitionGenerator(mockServerless)
+
+                const spy = sinon.spy(definitionGenerator, 'addToComponents')
+
                 const complexSchema = {
-                    "$schema": "http://json-schema.org/draft-04/schema#",
-                    "title": "JSON API Schema",
-                    "description": "This is a blah blah for responses in the JSON API format. For more, see http://jsonapi.org",
-                    "type": "object",
-                    "required": [
-                        "errors"
-                    ],
-                    "properties": {
-                        "errors": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/error"
-                            },
-                            "uniqueItems": true
-                        }
-                    },
-                    "definitions": {
-                        "error": {
-                            "type": "object",
-                            "properties": {
-                                "id": {
-                                    "description": "A unique identifier for this particular occurrence of the problem.",
-                                    "type": "string"
-                                }
-                            }
+                    type: 'object',
+                    properties: {
+                        error: {
+                            type: 'string',
+                            format: 'uuid'
                         }
                     }
                 }
-                const definitionGenerator = new DefinitionGenerator(mockServerless)
-                let expected = await definitionGenerator.schemaCreator(complexSchema, 'PutRequest')
+
+                let expected = await definitionGenerator.schemaCreator(complexSchema, 'main')
                     .catch((err) => {
                         console.error(err)
                     })
 
-                expect(definitionGenerator.openAPI.components.schemas).to.have.property('PutRequest')
-                expect(definitionGenerator.openAPI.components.schemas).to.not.have.property('error')
-                expect(expected).to.equal('#/components/schemas/PutRequest')
+                expect(definitionGenerator.openAPI.components.schemas).to.have.property('main')
+                expect(JSON.stringify(definitionGenerator.openAPI.components.schemas.main)).to.equal(JSON.stringify(complexSchema))
+                expect(expected).to.equal('#/components/schemas/main')
 
-                expected = await definitionGenerator.schemaCreator(complexSchema, 'PutRequest')
-                    .catch((err) => {
-                        console.error(err)
-                    })
-
-                expect(definitionGenerator.openAPI.components.schemas).to.have.property('PutRequest')
-                expect(definitionGenerator.openAPI.components.schemas).to.not.have.property('error')
-                expect(expected).to.equal('#/components/schemas/PutRequest')
-            });
-
-            it(`should create a new object for a similarly named object but with different properties`, async function() {
-                const complexSchema = {
-                    "$schema": "http://json-schema.org/draft-04/schema#",
-                    "title": "JSON API Schema",
-                    "description": "This is a blah blah for responses in the JSON API format. For more, see http://jsonapi.org",
-                    "type": "object",
-                    "required": [
-                        "errors"
-                    ],
-                    "properties": {
-                        "errors": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/error"
-                            },
-                            "uniqueItems": true
-                        }
-                    },
-                    "definitions": {
-                        "error": {
-                            "type": "object",
-                            "properties": {
-                                "id": {
-                                    "description": "A unique identifier for this particular occurrence of the problem.",
-                                    "type": "string"
-                                }
-                            }
+                const complexSchema2 = {
+                    type: 'object',
+                    properties: {
+                        error: {
+                            format: 'uuid',
+                            type: 'string'
                         }
                     }
                 }
-                const definitionGenerator = new DefinitionGenerator(mockServerless)
-                let expected = await definitionGenerator.schemaCreator(complexSchema, 'PutRequest')
-                    .catch((err) => {
+
+                expected = await definitionGenerator.schemaCreator(complexSchema2, 'main')
+                     .catch((err) => {
                         console.error(err)
                     })
 
-                expect(definitionGenerator.openAPI.components.schemas).to.have.property('PutRequest')
-                expect(definitionGenerator.openAPI.components.schemas).to.not.have.property('error')
-                expect(expected).to.equal('#/components/schemas/PutRequest')
+                expect(expected).to.equal('#/components/schemas/main')
+                expect(spy.callCount).to.be.equal(1)
 
-                complexSchema.properties.cheese = {
-                    type: 'string'
-                }
-
-                expected = await definitionGenerator.schemaCreator(complexSchema, 'PutRequest')
-                    .catch((err) => {
-                        console.error(err)
-                    })
-
-                expect(definitionGenerator.openAPI.components.schemas).to.have.property('PutRequest')
-                expect(definitionGenerator.openAPI.components.schemas).to.not.have.property('error')
-
-                let newSchemaStr = expected.split('/')
-                expect(v4.test(newSchemaStr[newSchemaStr.length-1].split('PutRequest-')[1])).to.be.true
-                expect(definitionGenerator.openAPI.components.schemas).to.have.property(newSchemaStr[newSchemaStr.length-1])
-
-                // expected = await definitionGenerator.schemaCreator(complexSchema, 'PutRequest')
-                //     .catch((err) => {
-                //         console.error(err)
-                //     })
-
-                // expect(definitionGenerator.openAPI.components.schemas).to.have.property('PutRequest')
-                // expect(definitionGenerator.openAPI.components.schemas).to.have.property('error')
-                // console.log(expected)
-                // expect(expected)
-                // expect(expected).to.equal('#/components/schemas/PutRequest1')
-
-                complexSchema.properties.wine = {
-                    type: 'string'
-                }
-
-                expected = await definitionGenerator.schemaCreator(complexSchema, 'PutRequest')
-                    .catch((err) => {
-                        console.error(err)
-                    })
-
-                expect(definitionGenerator.openAPI.components.schemas).to.have.property('PutRequest')
-                expect(definitionGenerator.openAPI.components.schemas).to.not.have.property('error')
-                expect(definitionGenerator.openAPI.components.schemas).to.have.property(newSchemaStr[newSchemaStr.length-1])
-                newSchemaStr = expected.split('/')
-                expect(v4.test(newSchemaStr[newSchemaStr.length-1].split('PutRequest-')[1])).to.be.true
-                expect(definitionGenerator.openAPI.components.schemas).to.have.property(newSchemaStr[newSchemaStr.length-1])
+                spy.resetHistory()
             });
 
-            it(`should create a new object for a differently named object but with same properties`, async function() {
+            it('should add a schema to components when a name already exists but the schema is different', async function() {
+                const definitionGenerator = new DefinitionGenerator(mockServerless)
+
+                const spy = sinon.spy(definitionGenerator, 'addToComponents')
+
                 const complexSchema = {
-                    "$schema": "http://json-schema.org/draft-04/schema#",
-                    "title": "JSON API Schema",
-                    "description": "This is a blah blah for responses in the JSON API format. For more, see http://jsonapi.org",
-                    "type": "object",
-                    "required": [
-                        "errors"
-                    ],
-                    "properties": {
-                        "errors": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/error"
-                            },
-                            "uniqueItems": true
-                        }
-                    },
-                    "definitions": {
-                        "error": {
-                            "type": "object",
-                            "properties": {
-                                "id": {
-                                    "description": "A unique identifier for this particular occurrence of the problem.",
-                                    "type": "string"
-                                }
-                            }
+                    type: 'object',
+                    properties: {
+                        error: {
+                            type: 'string'
                         }
                     }
                 }
-                const definitionGenerator = new DefinitionGenerator(mockServerless)
-                let expected = await definitionGenerator.schemaCreator(complexSchema, 'PutRequest')
+
+                let expected = await definitionGenerator.schemaCreator(complexSchema, 'main')
                     .catch((err) => {
                         console.error(err)
                     })
 
-                expect(definitionGenerator.openAPI.components.schemas).to.have.property('PutRequest')
-                expect(definitionGenerator.openAPI.components.schemas).to.not.have.property('error')
-                expect(expected).to.equal('#/components/schemas/PutRequest')
+                expect(definitionGenerator.openAPI.components.schemas).to.have.property('main')
+                expect(JSON.stringify(definitionGenerator.openAPI.components.schemas.main)).to.equal(JSON.stringify(complexSchema))
+                expect(expected).to.equal('#/components/schemas/main')
 
-                expected = await definitionGenerator.schemaCreator(complexSchema, 'ContactPutRequest')
-                    .catch((err) => {
+                const complexSchema2 = JSON.parse(JSON.stringify(complexSchema))
+                complexSchema2.properties.error.format = 'uuid'
+
+                expected = await definitionGenerator.schemaCreator(complexSchema2, 'main')
+                     .catch((err) => {
                         console.error(err)
                     })
 
-                expect(definitionGenerator.openAPI.components.schemas).to.have.property('PutRequest')
-                expect(definitionGenerator.openAPI.components.schemas).to.not.have.property('error')
-                expect(definitionGenerator.openAPI.components.schemas).to.have.property('ContactPutRequest')
-                expect(expected).to.equal('#/components/schemas/ContactPutRequest')
+                const splitPath = expected.split('/')
+                expect(v4.test(splitPath[3].split('main-')[1])).to.be.true
+                expect(definitionGenerator.openAPI.components.schemas[splitPath[3]]).to.be.an('object')
+                expect(definitionGenerator.openAPI.components.schemas[splitPath[3]].properties.error).to.have.property('format')
+                expect(spy.callCount).to.be.equal(2)
+
+                spy.resetHistory()
             });
 
-            it('should handle a schema that has been improperly dereferenced', async function() {
-                const simpleSchema = {
+            it('should correctly dereference a schema with definitions and add to the components', async function() {
+                const definitionGenerator = new DefinitionGenerator(mockServerless)
+
+                const complexSchema = {
+                    type: 'object',
+                    properties: {
+                        error: {
+                            '$ref': '#/definitions/error'
+                        }
+                    },
+                    definitions: {
+                        error: {
+                            type: "string"
+                        }
+                    }
+                }
+
+                const spy = sinon.spy(definitionGenerator, 'dereferenceSchema')
+
+                const expected = await definitionGenerator.schemaCreator(complexSchema, 'main')
+                    .catch((err) => {
+                        console.error(err)
+                    })
+
+                expect(definitionGenerator.openAPI.components.schemas).to.have.property('main')
+                expect(definitionGenerator.openAPI.components.schemas.main.properties).to.have.property('error')
+                expect(definitionGenerator.openAPI.components.schemas.main.properties.error).to.have.property('type')
+                expect(definitionGenerator.openAPI.components.schemas.main.properties.error.type).to.be.equal('string')
+                expect(definitionGenerator.openAPI.components.schemas.main).to.not.have.property('definitions')
+                expect(expected).to.equal('#/components/schemas/main')
+
+                expect(spy.callCount).to.be.equal(1)
+
+                spy.resetHistory()
+            });
+
+            it('should handle a schema that has been incorrectly dereferenced', async function() {
+                const definitionGenerator = new DefinitionGenerator(mockServerless)
+
+                const complexSchema = {
                     $schema: 'http://json-schema.org/draft-04/schema#',
                     title: 'JSON API Schema',
                     $ref: '#/definitions/Error',
@@ -946,22 +877,72 @@ describe('DefinitionGenerator', () => {
                         }
                     }
                 }
-                const definitionGenerator = new DefinitionGenerator(mockServerless)
-                const expected = await definitionGenerator.schemaCreator(simpleSchema, 'simpleSchema')
+
+                const spy = sinon.spy(definitionGenerator, 'dereferenceSchema')
+
+                const expected = await definitionGenerator.schemaCreator(complexSchema, 'main')
                     .catch((err) => {
                         console.error(err)
                     })
 
-                expect(definitionGenerator.openAPI.components.schemas).to.have.property('simpleSchema')
-                expect(definitionGenerator.openAPI.components.schemas.simpleSchema).to.deep.equal({
-                    title: 'JSON API Schema',
-                    properties: {
-                        Error: {
-                            type: 'string'
+                expect(definitionGenerator.openAPI.components.schemas).to.have.property('main')
+                expect(definitionGenerator.openAPI.components.schemas.main.properties).to.have.property('Error')
+                expect(definitionGenerator.openAPI.components.schemas.main.properties.Error).to.have.property('type')
+                expect(definitionGenerator.openAPI.components.schemas.main.properties.Error.type).to.be.equal('string')
+                expect(definitionGenerator.openAPI.components.schemas.main).to.not.have.property('$schema')
+                expect(definitionGenerator.openAPI.components.schemas.main).to.not.have.property('$definitions')
+                expect(expected).to.equal('#/components/schemas/main')
+
+                expect(spy.callCount).to.be.equal(2)
+
+                spy.resetHistory()
+            });
+
+            it('should add all schemas from a conversion to the components', async function() {
+                const complexSchema = {
+                    "$schema": "http://json-schema.org/draft-04/schema#",
+                    "title": "JSON API Schema",
+                    "description": "This is a blah blah for responses in the JSON API format. For more, see http://jsonapi.org",
+                    "type": "object",
+                    "properties": {
+                        "street_address": {
+                            "type": "string"
+                        },
+                        "country": {
+                            "type": "string",
+                            "default": "United States of America",
+                            "enum": [
+                                "United States of America",
+                                "Canada"
+                            ]
+                        }
+                    },
+                    "if": {
+                        "properties": {
+                            "country": {
+                                "const": "United States of America"
+                            }
+                        }
+                    },
+                    "then": {
+                        "properties": {
+                            "postal_code": {
+                                "pattern": "[0-9]{5}(-[0-9]{4})?"
+                            }
                         }
                     }
-                })
-                expect(expected).to.equal('#/components/schemas/simpleSchema')
+                }
+
+                const definitionGenerator = new DefinitionGenerator(mockServerless)
+                let expected = await definitionGenerator.schemaCreator(complexSchema, 'main')
+                    .catch((err) => {
+                        console.error(err)
+                    })
+
+                expect(expected).to.equal('#/components/schemas/main')
+                expect(definitionGenerator.openAPI.components.schemas).to.have.property('main')
+                expect(Object.keys(definitionGenerator.openAPI.components.schemas).length).to.be.equal(2)
+
             });
         });
 
