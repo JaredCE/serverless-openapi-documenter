@@ -14,7 +14,7 @@
 
 
 
-This will generate an OpenAPI V3 (up to v3.0.3) file for you from your serverless file.  It can optionally generate a Postman Collection V2 from the OpenAPI file for you too.
+This will generate an OpenAPI V3 (up to v3.0.3) file for you from your serverless file.  It can optionally generate a [Postman Collection V2](https://github.com/postmanlabs/openapi-to-postman) from the OpenAPI file for you too.
 
 Originally based off of: https://github.com/temando/serverless-openapi-documentation
 
