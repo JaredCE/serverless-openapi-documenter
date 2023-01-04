@@ -461,15 +461,21 @@ class DefinitionGenerator {
     }
 
     async dereferenceSchema(schema) {
-        let deReferencedSchema = await $RefParser.dereference(schema, this.refParserOptions)
+        let originalSchema = await $RefParser.bundle(schema, this.refParserOptions)
+            .catch(err => {
+                console.error(err)
+                throw err
+            })
+
+        let deReferencedSchema = await $RefParser.dereference(originalSchema, this.refParserOptions)
             .catch(err => {
                 console.error(err)
                 throw err
             })
 
         // deal with schemas that have been de-referenced poorly: naive
-        if (deReferencedSchema.$ref === '#') {
-            const oldRef = schema.$ref
+        if (deReferencedSchema?.$ref === '#') {
+            const oldRef = originalSchema.$ref
             const path = oldRef.split('/')
 
             const pathTitle = path[path.length-1]
