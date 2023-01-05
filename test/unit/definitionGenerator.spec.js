@@ -4,6 +4,7 @@ const fs = require('fs').promises
 const path = require('path')
 const sinon = require('sinon')
 const $RefParser = require("@apidevtools/json-schema-ref-parser")
+const nock = require('nock')
 const expect = require('chai').expect
 
 const serverlessMock = require('../helpers/serverless')
@@ -948,10 +949,13 @@ describe('DefinitionGenerator', () => {
 
         describe('schemas that are urls', () => {
             it('should attempt to download a schema and convert it', async function() {
-                const simpleSchema = 'https:///google.com/build/LicensedMember.json'
+                const simpleSchema = 'https://google.com/build/LicensedMember.json'
                 const LicensedMemberJSON = require('../json/complex.json')
 
-                const stub = sinon.stub($RefParser, 'dereference').resolves(LicensedMemberJSON)
+                const scope = nock('https://google.com')
+                    .get('/build/LicensedMember.json')
+                    .reply(200, LicensedMemberJSON)
+
                 const definitionGenerator = new DefinitionGenerator(mockServerless)
                 const expected = await definitionGenerator.schemaCreator(simpleSchema, 'LicensedMember')
                     .catch((err) => {
@@ -963,28 +967,16 @@ describe('DefinitionGenerator', () => {
                 expect(definitionGenerator.openAPI.components.schemas.LicensedMember.properties).to.have.property('template')
                 expect(definitionGenerator.openAPI.components.schemas.LicensedMember.properties).to.have.property('database')
                 expect(expected).to.equal('#/components/schemas/LicensedMember')
-
-                stub.restore()
             });
 
             it('should take a mix of schemas', async function() {
-                const complexSchema = 'https:///google.com/build/LicensedMember.json'
+                const complexSchema = 'https://google.com/build/LicensedMember.json'
                 const LicensedMemberJSON = require('../json/complex.json')
 
-                // const stub = sinon.stub($RefParser, 'dereference').resolves(LicensedMemberJSON)
-                const stub = sinon.stub($RefParser, 'dereference')
-                    .onFirstCall().resolves(LicensedMemberJSON)
-                    .onSecondCall().resolves({
-                        type: "object",
-                        properties: {
-                            UUID: {
-                                $ref: "#/definitions/log"
-                            },
-                            name: {
-                                type: "string"
-                            }
-                        }
-                    })
+                const scope = nock('https://google.com')
+                    .get('/build/LicensedMember.json')
+                    .reply(200, LicensedMemberJSON)
+
                 const definitionGenerator = new DefinitionGenerator(mockServerless)
                 let expected = await definitionGenerator.schemaCreator(complexSchema, 'LicensedMember')
                     .catch((err) => {
@@ -1007,35 +999,65 @@ describe('DefinitionGenerator', () => {
 
                 expected = await definitionGenerator.schemaCreator(simpleSchema, 'simpleSchema')
                     .catch((err) => {
+                        expect(err).to.be.an('error')
                         console.error(err)
                     })
 
+                expect(expected).to.be.undefined
                 expect(definitionGenerator.openAPI.components.schemas).to.have.property('LicensedMember')
                 expect(definitionGenerator.openAPI.components.schemas.LicensedMember.properties).to.have.property('log')
                 expect(definitionGenerator.openAPI.components.schemas.LicensedMember.properties).to.have.property('template')
                 expect(definitionGenerator.openAPI.components.schemas.LicensedMember.properties).to.have.property('database')
-                expect(definitionGenerator.openAPI.components.schemas).to.have.property('simpleSchema')
-                expect(definitionGenerator.openAPI.components.schemas.simpleSchema.properties).to.have.property('UUID')
-                expect(definitionGenerator.openAPI.components.schemas.simpleSchema.properties).to.have.property('name')
-                expect(expected).to.equal('#/components/schemas/simpleSchema')
-
-                stub.restore()
             });
 
             it('should throw an error when a url can not be resolved', async function() {
-                const simpleSchema = 'https:///google.com/build/LicensedMember.json'
+                const simpleSchema = 'https://google.com/build/LicensedMember.json'
 
-                const stub = sinon.stub($RefParser, 'dereference').rejects(new Error())
+                const scope = nock('https://google.com')
+                    .get('/build/LicensedMember.json')
+                    .reply(404)
+
                 const definitionGenerator = new DefinitionGenerator(mockServerless)
                 const expected = await definitionGenerator.schemaCreator(simpleSchema, 'simpleSchema')
                     .catch((err) => {
-                        console.error(err)
                         expect(err).to.be.an('error')
                     })
 
                 expect(expected).to.be.undefined
+            });
 
-                stub.restore()
+            it('should handle a poorly dereferenced schema', async function() {
+                const simpleSchema = 'https://google.com/build/LicensedMember.json'
+
+                const externalSchema = {
+                    $schema: 'http://json-schema.org/draft-04/schema#',
+                    title: 'JSON API Schema',
+                    $ref: '#/definitions/Error',
+                    definitions: {
+                        Error: {
+                            type: 'string'
+                        }
+                    }
+                }
+
+                const scope = nock('https://google.com')
+                    .get('/build/LicensedMember.json')
+                    .reply(200, externalSchema)
+
+
+                const definitionGenerator = new DefinitionGenerator(mockServerless)
+                const expected = await definitionGenerator.schemaCreator(simpleSchema, 'LicensedMember')
+                    .catch((err) => {
+                        console.error(err)
+                    })
+
+                expect(definitionGenerator.openAPI.components.schemas).to.have.property('LicensedMember')
+                expect(definitionGenerator.openAPI.components.schemas.LicensedMember.properties).to.have.property('Error')
+                expect(definitionGenerator.openAPI.components.schemas.LicensedMember.properties.Error).to.have.property('type')
+                expect(definitionGenerator.openAPI.components.schemas.LicensedMember.properties.Error.type).to.be.equal('string')
+                expect(definitionGenerator.openAPI.components.schemas.LicensedMember).to.not.have.property('$schema')
+                expect(definitionGenerator.openAPI.components.schemas.LicensedMember).to.not.have.property('$definitions')
+                expect(expected).to.equal('#/components/schemas/LicensedMember')
             });
         });
     });
