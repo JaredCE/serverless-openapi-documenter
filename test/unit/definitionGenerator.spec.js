@@ -952,7 +952,6 @@ describe('DefinitionGenerator', () => {
                 const simpleSchema = 'https://google.com/build/LicensedMember.json'
                 const LicensedMemberJSON = require('../json/complex.json')
 
-                // const stub = sinon.stub($RefParser, 'dereference').resolves(LicensedMemberJSON)
                 const scope = nock('https://google.com')
                     .get('/build/LicensedMember.json')
                     .reply(200, LicensedMemberJSON)
@@ -1012,7 +1011,7 @@ describe('DefinitionGenerator', () => {
             });
 
             it('should throw an error when a url can not be resolved', async function() {
-                const simpleSchema = 'https:///google.com/build/LicensedMember.json'
+                const simpleSchema = 'https://google.com/build/LicensedMember.json'
 
                 const scope = nock('https://google.com')
                     .get('/build/LicensedMember.json')
