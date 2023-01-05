@@ -7,11 +7,15 @@
     "serverless",
     "serverless2",
     "serverless3",
+    "serverless framework",
+    "serverless framework plugin",
+    "serverless plugin",
     "openAPI",
     "openAPIv3",
     "openAPI3",
     "PostmanCollections",
-    "Postman-Collections"
+    "Postman-Collections",
+    "Postman Collections"
   ],
   "scripts": {
     "test": "mocha --config './test/.mocharc.js'"
