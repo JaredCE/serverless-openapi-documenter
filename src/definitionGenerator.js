@@ -479,8 +479,10 @@ class DefinitionGenerator {
             const path = oldRef.split('/')
 
             const pathTitle = path[path.length-1]
-            const property = deReferencedSchema.definitions[path[path.length-1]]
-            Object.assign(deReferencedSchema, {properties: {[pathTitle]: property}})
+            const referencedProperties = deReferencedSchema.definitions[pathTitle]
+
+            Object.assign(deReferencedSchema, {...referencedProperties})
+
             delete deReferencedSchema.$ref
             deReferencedSchema = await this.dereferenceSchema(deReferencedSchema)
                 .catch((err) => {

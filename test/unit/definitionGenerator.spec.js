@@ -887,9 +887,52 @@ describe('DefinitionGenerator', () => {
                     })
 
                 expect(definitionGenerator.openAPI.components.schemas).to.have.property('main')
-                expect(definitionGenerator.openAPI.components.schemas.main.properties).to.have.property('Error')
-                expect(definitionGenerator.openAPI.components.schemas.main.properties.Error).to.have.property('type')
-                expect(definitionGenerator.openAPI.components.schemas.main.properties.Error.type).to.be.equal('string')
+                expect(definitionGenerator.openAPI.components.schemas.main).to.have.property('type')
+                expect(definitionGenerator.openAPI.components.schemas.main.type).to.be.equal('string')
+                expect(definitionGenerator.openAPI.components.schemas.main).to.not.have.property('$schema')
+                expect(definitionGenerator.openAPI.components.schemas.main).to.not.have.property('$definitions')
+                expect(expected).to.equal('#/components/schemas/main')
+
+                expect(spy.callCount).to.be.equal(2)
+
+                spy.resetHistory()
+            });
+
+            it('should handle a complex schema that has been incorrectly dereferenced', async function() {
+                const definitionGenerator = new DefinitionGenerator(mockServerless)
+
+                const complexSchema = {
+                    $schema: 'http://json-schema.org/draft-04/schema#',
+                    title: 'JSON API Schema',
+                    $ref: '#/definitions/Person',
+                    definitions: {
+                        Person: {
+                            type: 'object',
+                            properties: {
+                                name: {
+                                    type: 'string'
+                                },
+                                age: {
+                                    type: 'number'
+                                }
+                            }
+                        }
+                    }
+                }
+
+                const spy = sinon.spy(definitionGenerator, 'dereferenceSchema')
+
+                const expected = await definitionGenerator.schemaCreator(complexSchema, 'main')
+                    .catch((err) => {
+                        console.error(err)
+                    })
+
+                expect(definitionGenerator.openAPI.components.schemas).to.have.property('main')
+                expect(definitionGenerator.openAPI.components.schemas.main).to.have.property('type')
+                expect(definitionGenerator.openAPI.components.schemas.main.type).to.be.equal('object')
+                expect(definitionGenerator.openAPI.components.schemas.main).to.have.property('properties')
+                expect(definitionGenerator.openAPI.components.schemas.main.properties).to.have.property('name')
+                expect(definitionGenerator.openAPI.components.schemas.main.properties).to.have.property('age')
                 expect(definitionGenerator.openAPI.components.schemas.main).to.not.have.property('$schema')
                 expect(definitionGenerator.openAPI.components.schemas.main).to.not.have.property('$definitions')
                 expect(expected).to.equal('#/components/schemas/main')
@@ -1052,9 +1095,8 @@ describe('DefinitionGenerator', () => {
                     })
 
                 expect(definitionGenerator.openAPI.components.schemas).to.have.property('LicensedMember')
-                expect(definitionGenerator.openAPI.components.schemas.LicensedMember.properties).to.have.property('Error')
-                expect(definitionGenerator.openAPI.components.schemas.LicensedMember.properties.Error).to.have.property('type')
-                expect(definitionGenerator.openAPI.components.schemas.LicensedMember.properties.Error.type).to.be.equal('string')
+                expect(definitionGenerator.openAPI.components.schemas.LicensedMember).to.have.property('type')
+                expect(definitionGenerator.openAPI.components.schemas.LicensedMember.type).to.be.equal('string')
                 expect(definitionGenerator.openAPI.components.schemas.LicensedMember).to.not.have.property('$schema')
                 expect(definitionGenerator.openAPI.components.schemas.LicensedMember).to.not.have.property('$definitions')
                 expect(expected).to.equal('#/components/schemas/LicensedMember')
