@@ -151,10 +151,10 @@ class DefinitionGenerator {
                         path.servers = servers
                     }
 
-                    let slashPath = event?.http?.path || event.httpApi?.path
+                    let slashPath = (event?.http?.path || event.httpApi?.path) ?? '/'
                     const pathStart = new RegExp(/^\//, 'g')
                     if (pathStart.test(slashPath) === false) {
-                        slashPath = `/${event?.http?.path||event.httpApi?.path}`
+                        slashPath = `/${(event?.http?.path||event.httpApi?.path)?? ''}`
                     }
 
                     if (paths[slashPath]) {
