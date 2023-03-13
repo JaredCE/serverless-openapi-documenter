@@ -1,6 +1,6 @@
 {
   "name": "serverless-openapi-documenter",
-  "version": "0.0.47",
+  "version": "0.0.48",
   "description": "Generate OpenAPI v3 documentation and Postman Collections from your Serverless Config",
   "main": "index.js",
   "keywords": [
@@ -49,6 +49,6 @@
     "chai": "^4.3.7",
     "mocha": "^10.2.0",
     "nock": "^13.3.0",
-    "sinon": "^15.0.1"
+    "sinon": "^15.0.2"
   }
 }
