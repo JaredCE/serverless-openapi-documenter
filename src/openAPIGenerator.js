@@ -12,7 +12,18 @@ class OpenAPIGenerator {
         this.logOutput = log;
         this.serverless = serverless
         this.options = options
-        this.defaultLog = 'notice';
+        this.logTypes = {
+          error: 'error',
+          warning: 'warning',
+          notice: 'notice',
+          info: 'info',
+          debug: 'debug',
+          verbose: 'verbose',
+          success: 'success',
+        }
+
+        this.defaultLog = this.logTypes.notice
+
         this.commands = {
           openapi: {
             commands: {
@@ -129,9 +140,9 @@ class OpenAPIGenerator {
         }
         try {
           fs.writeFileSync(this.config.file, output);
-          this.log('OpenAPI v3 Documentation Successfully Written', 'success')
+          this.log('OpenAPI v3 Documentation Successfully Written', this.logTypes.success)
         } catch (err) {
-          this.log(`ERROR: An error was thrown whilst writing the openAPI Documentation`, 'error')
+          this.log(`ERROR: An error was thrown whilst writing the openAPI Documentation`, this.logTypes.error)
           throw new this.serverless.classes.Error(err)
         }
     }
@@ -141,19 +152,19 @@ class OpenAPIGenerator {
 
       await generator.parse()
         .catch(err => {
-          this.log(`ERROR: An error was thrown generating the OpenAPI v3 documentation`, 'error')
+          this.log(`ERROR: An error was thrown generating the OpenAPI v3 documentation`, this.logTypes.error)
           throw new this.serverless.classes.Error(err)
         })
 
       await generator.validate()
         .catch(err => {
-          this.log(`ERROR: An error was thrown validating the OpenAPI v3 documentation`, 'error')
+          this.log(`ERROR: An error was thrown validating the OpenAPI v3 documentation`, this.logTypes.error)
           this.validationErrorDetails(err)
           throw new this.serverless.classes.Error(err)
         })
 
 
-      this.log('OpenAPI v3 Documentation Successfully Generated', 'success')
+      this.log('OpenAPI v3 Documentation Successfully Generated', this.logTypes.success)
 
       return generator.openAPI
     }
@@ -161,16 +172,16 @@ class OpenAPIGenerator {
     createPostman(openAPI) {
       const postmanGeneration = (err, result) => {
         if (err) {
-          this.log(`ERROR: An error was thrown when generating the postman collection`, 'error')
+          this.log(`ERROR: An error was thrown when generating the postman collection`, this.logTypes.error)
           throw new this.serverless.classes.Error(err)
         }
 
-        this.log('postman collection v2 Documentation Successfully Generated', 'success')
+        this.log('postman collection v2 Documentation Successfully Generated', this.logTypes.success)
         try {
           fs.writeFileSync(this.config.postmanCollection, JSON.stringify(result.output[0].data))
-          this.log('postman collection v2 Documentation Successfully Written', 'success')
+          this.log('postman collection v2 Documentation Successfully Written', this.logTypes.success)
         } catch (err) {
-          this.log(`ERROR: An error was thrown whilst writing the postman collection`, 'error')
+          this.log(`ERROR: An error was thrown whilst writing the postman collection`, this.logTypes.error)
           throw new this.serverless.classes.Error(err)
         }
       }
@@ -216,9 +227,9 @@ class OpenAPIGenerator {
     }
 
     validationErrorDetails(validationError) {
-      this.log(`${chalk.bold.yellow('[VALIDATION]')} Failed to validate OpenAPI document: \n`, 'error');
-      this.log(`${chalk.bold.yellow('Context:')} ${JSON.stringify(validationError.options.context[validationError.options.context.length-1], null, 2)}\n`, 'error');
-      this.log(`${chalk.bold.yellow('Error Message:')} ${JSON.stringify(validationError.message, null, 2)}\n`, 'error');
+      this.log(`${chalk.bold.yellow('[VALIDATION]')} Failed to validate OpenAPI document: \n`, this.logTypes.error);
+      this.log(`${chalk.bold.yellow('Context:')} ${JSON.stringify(validationError.options.context[validationError.options.context.length-1], null, 2)}\n`, this.logTypes.error);
+      this.log(`${chalk.bold.yellow('Error Message:')} ${JSON.stringify(validationError.message, null, 2)}\n`, this.logTypes.error);
     }
 }
 
