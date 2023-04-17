@@ -13,6 +13,9 @@ class DefinitionGenerator {
         this.version = serverless?.processedInput?.options?.openApiVersion || '3.0.0'
 
         this.serverless = serverless
+        this.documentation = this.serverless.service.custom.documentation
+        this.functions = []
+
         this.httpKeys = {
             http: 'http',
             httpAPI: 'httpApi',
@@ -46,11 +49,11 @@ class DefinitionGenerator {
     async parse() {
         this.createInfo()
 
-        if (this.serverless.service.custom.documentation.securitySchemes) {
-            this.createSecuritySchemes(this.serverless.service.custom.documentation.securitySchemes)
+        if (this.documentation.securitySchemes) {
+            this.createSecuritySchemes(this.documentation.securitySchemes)
 
-            if (this.serverless.service.custom.documentation.security) {
-                this.openAPI.security = this.serverless.service.custom.documentation.security
+            if (this.documentation.security) {
+                this.openAPI.security = this.documentation.security
             }
         }
 
@@ -59,24 +62,24 @@ class DefinitionGenerator {
                 throw err
             })
 
-        if (this.serverless.service.custom.documentation.servers) {
-            const servers = this.createServers(this.serverless.service.custom.documentation.servers)
+        if (this.documentation.servers) {
+            const servers = this.createServers(this.documentation.servers)
             Object.assign(this.openAPI, {servers: servers})
         }
 
-        if (this.serverless.service.custom.documentation.tags) {
+        if (this.documentation.tags) {
             this.createTags()
         }
 
-        if (this.serverless.service.custom.documentation.externalDocumentation) {
-            const extDoc = this.createExternalDocumentation(this.serverless.service.custom.documentation.externalDocumentation)
+        if (this.documentation.externalDocumentation) {
+            const extDoc = this.createExternalDocumentation(this.documentation.externalDocumentation)
             Object.assign(this.openAPI, {externalDocs: extDoc})
         }
     }
 
     createInfo() {
         const service = this.serverless.service
-        const documentation = this.serverless.service.custom.documentation;
+        const documentation = this.documentation;
 
         const info = {
             title: documentation?.title || service.service,
@@ -119,8 +122,8 @@ class DefinitionGenerator {
 
     async createPaths() {
         const paths = {}
-        const httpFunctions = this.getHTTPFunctions()
-        for (const httpFunction of httpFunctions) {
+        this.getHTTPFunctions()
+        for (const httpFunction of this.functions) {
             for (const event of httpFunction.event) {
                 if (event?.http?.documentation || event?.httpApi?.documentation) {
                     const documentation = event?.http?.documentation || event?.httpApi?.documentation
@@ -209,7 +212,7 @@ class DefinitionGenerator {
 
     createExternalDocumentation(docs) {
         return {...docs}
-        // const documentation = this.serverless.service.custom.documentation
+        // const documentation = this.documentation
         // if (documentation.externalDocumentation) {
         //     // Object.assign(this.openAPI, {externalDocs: {...documentation.externalDocumentation}})
         //     return
@@ -218,7 +221,7 @@ class DefinitionGenerator {
 
     createTags() {
         const tags = []
-        for (const tag of this.serverless.service.custom.documentation.tags) {
+        for (const tag of this.documentation.tags) {
             const obj = {
                 name: tag.name,
             }
@@ -372,7 +375,7 @@ class DefinitionGenerator {
 
     async createMediaTypeObject(models, type) {
         const mediaTypeObj = {}
-        for (const mediaTypeDocumentation of this.serverless.service.custom.documentation.models) {
+        for (const mediaTypeDocumentation of this.documentation.models) {
             if (models === undefined || models === null) {
                 throw new Error(`${this.currentFunctionName} is missing a Response Model for statusCode ${this.currentStatusCode}`)
             }
@@ -688,7 +691,7 @@ class DefinitionGenerator {
         }
         const functionNames = this.serverless.service.getAllFunctions()
 
-        return functionNames.map(functionName => {
+        this.functions = functionNames.map(functionName => {
             return this.serverless.service.getFunction(functionName)
         })
             .filter(functionType => {

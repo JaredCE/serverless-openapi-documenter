@@ -57,6 +57,11 @@ class OpenAPIGenerator {
                     usage: 'Output a postman collection and attach to openApi external documents [default: postman.json if passed]',
                     shortcut: 'p',
                     type: 'string'
+                  },
+                  debug: {
+                    usage: 'Output debug information: attempted generation of openAPI, serverless documentation, relevant serverless functions',
+                    shortcut: 'd',
+                    type: 'string',
                   }
                 },
               },
@@ -153,6 +158,9 @@ class OpenAPIGenerator {
       await generator.parse()
         .catch(err => {
           this.log(`ERROR: An error was thrown generating the OpenAPI v3 documentation`, this.logTypes.error)
+          this.debug('openAPI', JSON.stringify(generator.openAPI))
+          this.debug('documentation', JSON.stringify(generator.documentation))
+          this.debug('functions', generator.functions)
           throw new this.serverless.classes.Error(err)
         })
 
@@ -160,6 +168,9 @@ class OpenAPIGenerator {
         .catch(err => {
           this.log(`ERROR: An error was thrown validating the OpenAPI v3 documentation`, this.logTypes.error)
           this.validationErrorDetails(err)
+          this.debug('openAPI', JSON.stringify(generator.openAPI))
+          this.debug('documentation', JSON.stringify(generator.documentation))
+          this.debug('functions', generator.functions)
           throw new this.serverless.classes.Error(err)
         })
 
@@ -199,16 +210,18 @@ class OpenAPIGenerator {
         file: 'openapi.json',
         indent: 2,
         openApiVersion: '3.0.0',
-        postmanCollection: 'postman.json'
+        postmanCollection: 'postman.json',
+        debug: false,
       };
 
       config.indent = this.serverless.processedInput.options.indent || 2;
       config.format = this.serverless.processedInput.options.format || 'json';
       config.openApiVersion = this.serverless.processedInput.options.openApiVersion || '3.0.0';
-      config.postmanCollection = this.serverless.processedInput.options.postmanCollection || null
+      config.postmanCollection = this.serverless.processedInput.options.postmanCollection || null;
+      config.debug = this.serverless.processedInput.options.debug || false;
 
       if (['yaml', 'json'].indexOf(config.format.toLowerCase()) < 0) {
-        throw new this.serverless.classes.Error('Invalid Output Format Specified - must be one of "yaml" or "json"')
+        throw new this.serverless.classes.Error('Invalid Output Format Specified - must be one of "yaml" or "json"');
       }
 
       config.file = this.serverless.processedInput.options.output ||
@@ -220,6 +233,7 @@ class OpenAPIGenerator {
   format: "${chalk.bold.green(config.format)}"
   output file: "${chalk.bold.green(config.file)}"
   indentation: "${chalk.bold.green(String(config.indent))}"
+  debug: "${chalk.bold.green(String(config.debug))}"
   ${config.postmanCollection ? `postman collection: ${chalk.bold.green(config.postmanCollection)}`: `\n\n`}`
       )
 
@@ -230,6 +244,13 @@ class OpenAPIGenerator {
       this.log(`${chalk.bold.yellow('[VALIDATION]')} Failed to validate OpenAPI document: \n`, this.logTypes.error);
       this.log(`${chalk.bold.yellow('Context:')} ${JSON.stringify(validationError.options.context[validationError.options.context.length-1], null, 2)}\n`, this.logTypes.error);
       this.log(`${chalk.bold.yellow('Error Message:')} ${JSON.stringify(validationError.message, null, 2)}\n`, this.logTypes.error);
+    }
+
+    debug(key, value) {
+      if (this.config.debug) {
+        this.log(`${key}:`, this.logTypes.debug)
+        this.log(value, this.logTypes.debug)
+      }
     }
 }
 
