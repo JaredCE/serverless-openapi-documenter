@@ -12,7 +12,19 @@ class OpenAPIGenerator {
         this.logOutput = log;
         this.serverless = serverless
         this.options = options
-        this.defaultLog = 'notice';
+
+        this.logTypes = {
+          NOTICE: 'notice',
+          DEBUG: 'debug',
+          ERROR: 'error',
+          WARNING: 'warning',
+          INFO: 'info',
+          VERBOSE: 'verbose',
+          SUCCESS: 'success',
+        }
+
+        this.defaultLog = this.logTypes.NOTICE;
+
         this.commands = {
           openapi: {
             commands: {
@@ -81,7 +93,7 @@ class OpenAPIGenerator {
         })
     }
 
-    log(type = this.defaultLog, str) {
+    log(str, type = this.defaultLog) {
         switch(this.serverless.version[0]) {
           case '2':
             let colouredString = str
@@ -105,7 +117,7 @@ class OpenAPIGenerator {
     }
 
     async generate() {
-        this.log(this.defaultLog, chalk.bold.underline('OpenAPI v3 Document Generation'))
+        this.log(chalk.bold.underline('OpenAPI v3 Document Generation'))
         this.processCliInput()
 
         const validOpenAPI = await this.generationAndValidation()
@@ -129,9 +141,9 @@ class OpenAPIGenerator {
         }
         try {
           fs.writeFileSync(this.config.file, output);
-          this.log('success', 'OpenAPI v3 Documentation Successfully Written')
+          this.log('OpenAPI v3 Documentation Successfully Written', this.logTypes.SUCCESS)
         } catch (err) {
-          this.log('error', `ERROR: An error was thrown whilst writing the openAPI Documentation`)
+          this.log(`ERROR: An error was thrown whilst writing the openAPI Documentation`, this.logTypes.ERROR)
           throw new this.serverless.classes.Error(err)
         }
     }
@@ -141,19 +153,19 @@ class OpenAPIGenerator {
 
       await generator.parse()
         .catch(err => {
-          this.log('error', `ERROR: An error was thrown generating the OpenAPI v3 documentation`)
+          this.log(`ERROR: An error was thrown generating the OpenAPI v3 documentation`, this.logTypes.ERROR)
           throw new this.serverless.classes.Error(err)
         })
 
       await generator.validate()
         .catch(err => {
-          this.log('error', `ERROR: An error was thrown validating the OpenAPI v3 documentation`)
+          this.log(`ERROR: An error was thrown validating the OpenAPI v3 documentation`, this.logTypes.ERROR)
           this.validationErrorDetails(err)
           throw new this.serverless.classes.Error(err)
         })
 
 
-      this.log('success', 'OpenAPI v3 Documentation Successfully Generated')
+      this.log('OpenAPI v3 Documentation Successfully Generated', this.logTypes.SUCCESS)
 
       return generator.openAPI
     }
@@ -161,16 +173,16 @@ class OpenAPIGenerator {
     createPostman(openAPI) {
       const postmanGeneration = (err, result) => {
         if (err) {
-          this.log('error', `ERROR: An error was thrown when generating the postman collection`)
+          this.log(`ERROR: An error was thrown when generating the postman collection`, this.logTypes.ERROR)
           throw new this.serverless.classes.Error(err)
         }
 
-        this.log('success', 'postman collection v2 Documentation Successfully Generated')
+        this.log('postman collection v2 Documentation Successfully Generated', this.logTypes.SUCCESS)
         try {
           fs.writeFileSync(this.config.postmanCollection, JSON.stringify(result.output[0].data))
-          this.log('success', 'postman collection v2 Documentation Successfully Written')
+          this.log('postman collection v2 Documentation Successfully Written', this.logTypes.SUCCESS)
         } catch (err) {
-          this.log('error', `ERROR: An error was thrown whilst writing the postman collection`)
+          this.log(`ERROR: An error was thrown whilst writing the postman collection`, this.logTypes.ERROR)
           throw new this.serverless.classes.Error(err)
         }
       }
@@ -204,7 +216,6 @@ class OpenAPIGenerator {
         ((config.format === 'yaml') ? 'openapi.yml' : 'openapi.json');
 
       this.log(
-        this.defaultLog,
         `${chalk.bold.green('[OPTIONS]')}
   openApiVersion: "${chalk.bold.green(String(config.openApiVersion))}"
   format: "${chalk.bold.green(config.format)}"
@@ -217,9 +228,9 @@ class OpenAPIGenerator {
     }
 
     validationErrorDetails(validationError) {
-      this.log('error', `${chalk.bold.yellow('[VALIDATION]')} Failed to validate OpenAPI document: \n`);
-      this.log('error', `${chalk.bold.yellow('Context:')} ${JSON.stringify(validationError.options.context[validationError.options.context.length-1], null, 2)}\n`);
-      this.log('error', `${chalk.bold.yellow('Error Message:')} ${JSON.stringify(validationError.message, null, 2)}\n`);
+      this.log(`${chalk.bold.yellow('[VALIDATION]')} Failed to validate OpenAPI document: \n`, this.logTypes.ERROR);
+      this.log(`${chalk.bold.yellow('Context:')} ${JSON.stringify(validationError.options.context[validationError.options.context.length-1], null, 2)}\n`, this.logTypes.ERROR);
+      this.log(`${chalk.bold.yellow('Error Message:')} ${JSON.stringify(validationError.message, null, 2)}\n`, this.logTypes.ERROR);
     }
 }
 
