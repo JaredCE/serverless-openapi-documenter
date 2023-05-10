@@ -403,6 +403,7 @@ functions:
       - http:
         path: create
         method: post
+        cors: true
         summary:
         documentation:
           summary: "Create User"
@@ -644,6 +645,12 @@ responseHeaders:
     schema:
       type: integer
 ```
+
+###### CORS
+
+You can automatically generate CORS response headers by setting `cors` at the function level.  Serverless allows you to modify how CORS is setup, so you can have the default options with `cors: true`, or you can modify the settings as shown in the [serverless documentation for CORS](https://www.serverless.com/framework/docs/providers/aws/events/apigateway#enabling-cors).
+
+The generator will interpret your settings for CORS and automatically add the response headers.  If for whatever reason you wish to override these, you can set them via the above `responseHeaders` setting and it'll apply your overrides.
 
 ## Example configuration
 

@@ -35,6 +35,24 @@ class DefinitionGenerator {
             securitySchemes: 'securitySchemes'
         }
 
+        this.DEFAULT_CORS_HEADERS = {
+            'Access-Control-Allow-Origin': {
+                description: 'The Access-Control-Allow-Origin response header indicates whether the response can be shared with requesting code from the given origin.',
+                schema: {
+                    type: 'string',
+                    default: '*',
+                    example: 'https://developer.mozilla.org'
+                }
+            },
+            'Access-Control-Allow-Credentials': {
+                description: `The Access-Control-Allow-Credentials response header tells browsers whether to expose the response to the frontend JavaScript code when the request's credentials mode (Request.credentials) is include`,
+                schema: {
+                    type: 'boolean',
+                    default: true
+                }
+            }
+        }
+
         try {
             this.refParserOptions = require(path.resolve('options', 'ref-parser.js'))
         } catch (err) {
@@ -123,6 +141,7 @@ class DefinitionGenerator {
         for (const httpFunction of httpFunctions) {
             for (const event of httpFunction.event) {
                 if (event?.http?.documentation || event?.httpApi?.documentation) {
+                    this.currentEvent = event?.http || event?.httpApi
                     const documentation = event?.http?.documentation || event?.httpApi?.documentation
 
                     this.currentFunctionName = httpFunction.functionInfo.name
@@ -328,14 +347,68 @@ class DefinitionGenerator {
                     })
             }
 
+
+            const corsHeaders = await this.corsHeaders()
+                .catch(err => {
+                    throw err;
+                })
+
+            if (obj.headers) {
+                for (const key in corsHeaders) {
+                    if (!(key in obj.headers) && (obj.headers[key] = {})) {
+                        obj.headers[key] = corsHeaders[key]
+                    }
+                }
+            } else {
+                obj.headers = corsHeaders
+            }
+
             Object.assign(responses,{[response.statusCode]: obj})
         }
 
         return responses
     }
 
+    async corsHeaders() {
+        let headers = {}
+        if (this.currentEvent?.cors === true) {
+            headers = await this.createResponseHeaders(this.DEFAULT_CORS_HEADERS)
+                .catch(err => {
+                    throw err;
+                })
+        } else if (this.currentEvent.cors) {
+            const newHeaders = {}
+            for (const key of Object.keys(this.DEFAULT_CORS_HEADERS)) {
+                if (key === 'Access-Control-Allow-Credentials' &&
+                    this.currentEvent.cors.allowCredentials === undefined || this.currentEvent.cors?.allowCredentials === false) {
+                    continue
+                }
+
+                const obj = JSON.parse(JSON.stringify(this.DEFAULT_CORS_HEADERS[key]))
+
+                if (key === 'Access-Control-Allow-Origin') {
+                    if (this.currentEvent.cors?.origins || this.currentEvent.cors?.origin) {
+                        obj.schema.example = this.currentEvent.cors?.origins?.toString() || this.currentEvent.cors?.origin?.toString()
+                    } else if (this.currentEvent.cors?.allowedOrigins) {
+                        obj.schema.example = this.currentEvent.cors.allowedOrigins.toString()
+                    }
+                }
+
+                Object.assign(newHeaders, {[key]: obj})
+            }
+
+            headers = await this.createResponseHeaders(newHeaders)
+                .catch(err => {
+                    throw err;
+                })
+        }
+
+        return headers;
+    }
+
     async createResponseHeaders(headers) {
         const obj = {}
+
         for (const header of Object.keys(headers)) {
             const newHeader = {}
             newHeader.description = headers[header].description || ''
