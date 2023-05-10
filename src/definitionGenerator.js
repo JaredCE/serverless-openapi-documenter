@@ -354,12 +354,14 @@ class DefinitionGenerator {
                 })
 
             if (obj.headers) {
-                Object.assign(obj.headers, ...corsHeaders)
+                for (const key in corsHeaders) {
+                    if (!(key in obj.headers) && (obj.headers[key] = {})) {
+                        obj.headers[key] = corsHeaders[key]
+                    }
+                }
             } else {
                 obj.headers = corsHeaders
             }
-
-
 
             Object.assign(responses,{[response.statusCode]: obj})
         }
@@ -406,6 +408,7 @@ class DefinitionGenerator {
 
     async createResponseHeaders(headers) {
         const obj = {}
+
         for (const header of Object.keys(headers)) {
             const newHeader = {}
             newHeader.description = headers[header].description || ''
