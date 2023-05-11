@@ -458,16 +458,22 @@ class DefinitionGenerator {
                 }
                 const obj = {}
 
-                if (mediaTypeDocumentation.example)
-                    obj.example = mediaTypeDocumentation.example
-
-                if (mediaTypeDocumentation.examples)
-                    obj.examples = this.createExamples(mediaTypeDocumentation.examples)
-
                 let schema
                 if (mediaTypeDocumentation?.content) {
+                    if (mediaTypeDocumentation.content[contentKey]?.example)
+                        obj.example = mediaTypeDocumentation.content[contentKey].example
+
+                    if (mediaTypeDocumentation.content[contentKey]?.examples)
+                        obj.examples = this.createExamples(mediaTypeDocumentation.content[contentKey].examples)
+
                     schema = mediaTypeDocumentation.content[contentKey].schema
                 } else if (mediaTypeDocumentation?.contentType && mediaTypeDocumentation.schema) {
+                    if (mediaTypeDocumentation?.example)
+                        obj.example = mediaTypeDocumentation.example
+
+                    if (mediaTypeDocumentation?.examples)
+                        obj.examples = this.createExamples(mediaTypeDocumentation.examples)
+
                     schema = mediaTypeDocumentation.schema
                 }
 
@@ -748,6 +754,7 @@ class DefinitionGenerator {
 
         for(const example of examples) {
             Object.assign(examplesObj, {[example.name]: example})
+            delete examplesObj[example.name].name
         }
 
         return examplesObj;
