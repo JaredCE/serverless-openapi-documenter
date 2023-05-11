@@ -295,12 +295,22 @@ custom:
         contentType: "application/json"
         schema:
           $schema: "http://json-schema.org/draft-04/schema#"
+          type: object
           properties:
             SomeObject:
               type: "object"
               properties:
                 SomeAttribute:
                   type: "string"
+        examples:
+          - name: someObjectInlineExample
+            summary: an example of a request
+            description: a longer string than the summary
+            value: {SomeObject: {SomeAttribute: 'attribute'}}
+          - name: someObjectExternalExample
+            summary: an example of a request external
+            description: a longer string than the summary
+            externalValue: https://example.com/external.json
 ```
 
 The Second way of writing the models:
@@ -329,12 +339,22 @@ custom:
           application/json:
             schema:
               $schema: "http://json-schema.org/draft-04/schema#"
+              type: object
               properties:
                 SomeObject:
                   type: "object"
                   properties:
                     SomeAttribute:
                       type: "string"
+            examples:
+              - name: someObjectInlineExample
+                summary: an example of a request
+                description: a longer string than the summary
+                value: {SomeObject: {SomeAttribute: 'attribute'}}
+              - name: someObjectExternalExample
+                summary: an example of a request external
+                description: a longer string than the summary
+                externalValue: https://example.com/external.json
 ```
 
 ##### Model re-use
