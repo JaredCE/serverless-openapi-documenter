@@ -79,7 +79,7 @@ class DefinitionGenerator {
 
         if (this.serverless.service.custom.documentation.servers) {
             const servers = this.createServers(this.serverless.service.custom.documentation.servers)
-            Object.assign(this.openAPI, {servers: servers})
+            Object.assign(this.openAPI, { servers: servers })
         }
 
         if (this.serverless.service.custom.documentation.tags) {
@@ -88,7 +88,7 @@ class DefinitionGenerator {
 
         if (this.serverless.service.custom.documentation.externalDocumentation) {
             const extDoc = this.createExternalDocumentation(this.serverless.service.custom.documentation.externalDocumentation)
-            Object.assign(this.openAPI, {externalDocs: extDoc})
+            Object.assign(this.openAPI, { externalDocs: extDoc })
         }
     }
 
@@ -113,7 +113,7 @@ class DefinitionGenerator {
                 contactObj.url = documentation.contact.url
 
             contactObj.email = documentation.contact.email || ''
-            Object.assign(info, {contact: contactObj})
+            Object.assign(info, { contact: contactObj })
         }
 
         if (documentation.license && documentation.license.name) {
@@ -123,16 +123,16 @@ class DefinitionGenerator {
             if (documentation.license.url)
                 licenseObj.url = documentation.license.url || ''
 
-            Object.assign(info, {license: licenseObj})
+            Object.assign(info, { license: licenseObj })
         }
 
         for (const key of Object.keys(documentation)) {
             if (/^[x\-]/i.test(key)) {
-                Object.assign(info, {[key]: documentation[key]})
+                Object.assign(info, { [key]: documentation[key] })
             }
         }
 
-        Object.assign(this.openAPI, {info})
+        Object.assign(this.openAPI, { info })
     }
 
     async createPaths() {
@@ -173,18 +173,18 @@ class DefinitionGenerator {
                     let slashPath = (event?.http?.path || event.httpApi?.path) ?? '/'
                     const pathStart = new RegExp(/^\//, 'g')
                     if (pathStart.test(slashPath) === false) {
-                        slashPath = `/${(event?.http?.path||event.httpApi?.path)?? ''}`
+                        slashPath = `/${(event?.http?.path || event.httpApi?.path) ?? ''}`
                     }
 
                     if (paths[slashPath]) {
                         Object.assign(paths[slashPath], path);
                     } else {
-                        Object.assign(paths, {[slashPath]: path});
+                        Object.assign(paths, { [slashPath]: path });
                     }
                 }
             }
         }
-        Object.assign(this.openAPI, {paths})
+        Object.assign(this.openAPI, { paths })
     }
 
     createServers(servers) {
@@ -227,7 +227,7 @@ class DefinitionGenerator {
     }
 
     createExternalDocumentation(docs) {
-        return {...docs}
+        return { ...docs }
         // const documentation = this.serverless.service.custom.documentation
         // if (documentation.externalDocumentation) {
         //     // Object.assign(this.openAPI, {externalDocs: {...documentation.externalDocumentation}})
@@ -251,7 +251,7 @@ class DefinitionGenerator {
             }
             tags.push(obj)
         }
-        Object.assign(this.openAPI, {tags: tags})
+        Object.assign(this.openAPI, { tags: tags })
     }
 
     async createOperationObject(method, documentation, name = uuid()) {
@@ -323,7 +323,7 @@ class DefinitionGenerator {
             obj.servers = servers
         }
 
-        return {[method.toLowerCase()]: obj}
+        return { [method.toLowerCase()]: obj }
     }
 
     async createResponses(documentation) {
@@ -363,7 +363,7 @@ class DefinitionGenerator {
                 obj.headers = corsHeaders
             }
 
-            Object.assign(responses,{[response.statusCode]: obj})
+            Object.assign(responses, { [response.statusCode]: obj })
         }
 
         return responses
@@ -380,7 +380,7 @@ class DefinitionGenerator {
             const newHeaders = {}
             for (const key of Object.keys(this.DEFAULT_CORS_HEADERS)) {
                 if (key === 'Access-Control-Allow-Credentials' &&
-                    this.currentEvent.cors.allowCredentials === undefined || this.currentEvent.cors?.allowCredentials === false) {
+                    (this.currentEvent.cors.allowCredentials === undefined || this.currentEvent.cors?.allowCredentials === false)) {
                     continue
                 }
 
@@ -394,7 +394,7 @@ class DefinitionGenerator {
                     }
                 }
 
-                Object.assign(newHeaders, {[key]: obj})
+                Object.assign(newHeaders, { [key]: obj })
             }
 
             headers = await this.createResponseHeaders(newHeaders)
@@ -423,7 +423,7 @@ class DefinitionGenerator {
                 }
             }
 
-            Object.assign(obj, {[header]: newHeader})
+            Object.assign(obj, { [header]: newHeader })
         }
 
         return obj
@@ -485,7 +485,7 @@ class DefinitionGenerator {
                     $ref: schemaRef
                 }
 
-                Object.assign(mediaTypeObj, {[contentKey]: obj})
+                Object.assign(mediaTypeObj, { [contentKey]: obj })
             }
         }
         return mediaTypeObj
@@ -557,10 +557,10 @@ class DefinitionGenerator {
             const oldRef = originalSchema.$ref
             const path = oldRef.split('/')
 
-            const pathTitle = path[path.length-1]
+            const pathTitle = path[path.length - 1]
             const referencedProperties = deReferencedSchema.definitions[pathTitle]
 
-            Object.assign(deReferencedSchema, {...referencedProperties})
+            Object.assign(deReferencedSchema, { ...referencedProperties })
 
             delete deReferencedSchema.$ref
             deReferencedSchema = await this.dereferenceSchema(deReferencedSchema)
@@ -618,7 +618,7 @@ class DefinitionGenerator {
             if (this.openAPI.components[type]) {
                 Object.assign(this.openAPI.components[type], schemaObj)
             } else {
-                Object.assign(this.openAPI.components, {[type]: schemaObj})
+                Object.assign(this.openAPI.components, { [type]: schemaObj })
             }
         } else {
             const components = {
@@ -639,30 +639,30 @@ class DefinitionGenerator {
             if (securityScheme.description)
                 schema.description = securityScheme.description
 
-            switch(securityScheme.type.toLowerCase()) {
+            switch (securityScheme.type.toLowerCase()) {
                 case 'apikey':
                     const apiKeyScheme = this.createAPIKeyScheme(securityScheme)
                     schema.type = 'apiKey'
                     Object.assign(schema, apiKeyScheme)
-                break;
+                    break;
 
                 case 'http':
                     const HTTPScheme = this.createHTTPScheme(securityScheme)
                     schema.type = 'http'
                     Object.assign(schema, HTTPScheme)
-                break;
+                    break;
 
                 case 'openidconnect':
                     const openIdConnectScheme = this.createOpenIDConnectScheme(securityScheme)
                     schema.type = 'openIdConnect'
                     Object.assign(schema, openIdConnectScheme)
-                break;
+                    break;
 
                 case 'oauth2':
                     const oAuth2Scheme = this.createOAuth2Scheme(securityScheme)
                     schema.type = 'oauth2'
                     Object.assign(schema, oAuth2Scheme)
-                break;
+                    break;
             }
 
             this.addToComponents(this.componentTypes.securitySchemes, schema, scheme)
@@ -712,7 +712,7 @@ class DefinitionGenerator {
         const schema = {}
         if (securitySchema.flows) {
             const flows = this.createOAuthFlows(securitySchema.flows)
-            Object.assign(schema, {flows: flows})
+            Object.assign(schema, { flows: flows })
         } else
             throw new Error('Security Scheme for "oauth2" requires flows')
 
@@ -744,7 +744,7 @@ class DefinitionGenerator {
             else
                 throw new Error(`oAuth2 ${flow} flow requires scopes`)
 
-            Object.assign(obj, {[flow]: schema})
+            Object.assign(obj, { [flow]: schema })
         }
         return obj
     }
@@ -752,8 +752,8 @@ class DefinitionGenerator {
     createExamples(examples) {
         const examplesObj = {}
 
-        for(const example of examples) {
-            Object.assign(examplesObj, {[example.name]: example})
+        for (const example of examples) {
+            Object.assign(examplesObj, { [example.name]: example })
             delete examplesObj[example.name].name
         }
 
