@@ -1,0 +1,17 @@
+{
+  "models": [
+    {
+      "name": "ErrorResponse",
+      "description": "The Error Response",
+      "contentType": "application/json",
+      "schema": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  ]
+}
