@@ -71,30 +71,38 @@ class OpenAPIGenerator {
 
         this.customVars = this.serverless.variables.service.custom;
 
-        this.serverless.configSchemaHandler.defineFunctionEventProperties('aws', 'http', {
-          properties: {
-            documentation: { type: 'object' },
-          },
-          required: ['documentation'],
-        });
+        if (this.getServerlessVersion() > 1) {
+          this.serverless.configSchemaHandler.defineFunctionEventProperties('aws', 'http', {
+            properties: {
+              documentation: { type: 'object' },
+            },
+            required: ['documentation'],
+          });
 
-        this.serverless.configSchemaHandler.defineFunctionEventProperties('aws', 'httpApi', {
-          properties: {
-            documentation: { type: 'object' },
-          },
-          required: ['documentation'],
-        });
 
-        this.serverless.configSchemaHandler.defineFunctionProperties('aws', {
-          properties: {
-            summary: {type: 'string'},
-            servers: {anyOf: [{type:'object'}, {type:'array'}]},
-          }
-        })
+          this.serverless.configSchemaHandler.defineFunctionEventProperties('aws', 'httpApi', {
+            properties: {
+              documentation: { type: 'object' },
+            },
+            required: ['documentation'],
+          });
+
+
+          this.serverless.configSchemaHandler.defineFunctionProperties('aws', {
+            properties: {
+              summary: {type: 'string'},
+              servers: {anyOf: [{type:'object'}, {type:'array'}]},
+            }
+          })
+        }
+    }
+
+    getServerlessVersion() {
+      return this.serverless.version[0];
     }
 
     log(str, type = this.defaultLog) {
-        switch(this.serverless.version[0]) {
+        switch(this.getServerlessVersion()) {
           case '2':
             let colouredString = str
             if (type === 'error') {
@@ -111,7 +119,7 @@ class OpenAPIGenerator {
             break
 
           default:
-            process.stdout.write(str.join(' '))
+            process.stdout.write(str)
             break
         }
     }
