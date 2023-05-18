@@ -8,6 +8,8 @@ const SchemaConvertor = require('json-schema-for-openapi')
 const $RefParser = require("@apidevtools/json-schema-ref-parser")
 const isEqual = require('lodash.isequal')
 
+const SchemaHandler = require('./schemaHandler')
+
 class DefinitionGenerator {
     constructor(serverless, options = {}) {
         this.version = serverless?.processedInput?.options?.openApiVersion || '3.0.0'
@@ -25,7 +27,12 @@ class DefinitionGenerator {
 
         this.openAPI = {
             openapi: this.version,
+            components: {
+                schemas: {}
+            }
         }
+
+        this.schemaHandler = new SchemaHandler(serverless, this.openAPI)
 
         this.operationIds = []
         this.schemaIDs = []
@@ -445,7 +452,7 @@ class DefinitionGenerator {
 
     async createMediaTypeObject(models, type) {
         const mediaTypeObj = {}
-        for (const mediaTypeDocumentation of this.serverless.service.custom.documentation.models) {
+        for (const mediaTypeDocumentation of this.schemaHandler.models) {
             if (models === undefined || models === null) {
                 throw new Error(`${this.currentFunctionName} is missing a Response Model for statusCode ${this.currentStatusCode}`)
             }
