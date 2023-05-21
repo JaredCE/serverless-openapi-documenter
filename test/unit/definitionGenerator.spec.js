@@ -77,40 +77,6 @@ describe('DefinitionGenerator', () => {
             expected = new DefinitionGenerator(serverlessWithOpenAPIVersion, {})
             expect(expected.version).to.be.equal('3.0.1')
         });
-
-        xit('should correctly resolve the RefParserOptions', async function() {
-            let expected = new DefinitionGenerator({}, {})
-            expect(expected.refParserOptions).to.be.an('object')
-            expect(expected.refParserOptions).to.be.empty
-
-            await fs.mkdir(path.resolve('options'))
-                .catch(err => {
-                    console.error(err)
-                    throw err
-                })
-
-            await fs.copyFile(path.resolve('test/helpers/ref-parser.js'), path.resolve('options/ref-parser.js'))
-                .catch(err => {
-                    console.error(err)
-                    throw err
-                })
-
-            expected = new DefinitionGenerator({}, {})
-            expect(expected.refParserOptions).to.be.an('object')
-            expect(expected.refParserOptions).to.have.property('continueOnError')
-
-            await fs.rm(path.resolve('options/ref-parser.js'))
-                .catch(err => {
-                    console.error(err)
-                    throw err
-                })
-
-            await fs.rmdir(path.resolve('options'))
-                .catch(err => {
-                    console.error(err)
-                    throw err
-                })
-        });
     });
 
     describe('createInfo', () => {
