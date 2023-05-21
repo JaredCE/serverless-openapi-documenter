@@ -2,9 +2,6 @@
 
 const fs = require('fs').promises
 const path = require('path')
-const sinon = require('sinon')
-const $RefParser = require("@apidevtools/json-schema-ref-parser")
-const nock = require('nock')
 const expect = require('chai').expect
 
 const serverlessMock = require('../helpers/serverless')
