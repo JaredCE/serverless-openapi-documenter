@@ -1,0 +1,9 @@
+---
+- name: "Agency"
+  description: "This is a Agency"
+  contentType: "application/json"
+  schema: "${file(resources/models/Agency.json)}"
+- name: "AgencyList"
+  description: "This is a AgencyList"
+  contentType: "application/json"
+  schema: "${file(resources/models/AgencyList.json)}"

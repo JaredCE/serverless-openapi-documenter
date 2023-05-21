@@ -1,0 +1,9 @@
+{
+    "title": "Child",
+    "type": "object",
+    "properties": {
+      "child_property": {
+        "type": "string"
+      }
+    }
+  }
