@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "generate": "npx serverless openapi generate -o openapi.json -f json -a 3.0.3"
   },
   "author": "",
   "license": "ISC",

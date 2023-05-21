@@ -1,0 +1,12 @@
+{
+    "title": "Parent",
+    "type": "object",
+    "properties": {
+      "parent_property": {
+        "type": "string"
+      },
+      "child_reference": {
+        "$ref": "./resources/schemas/Child.json"
+      }
+    }
+  }

@@ -1,5 +1,5 @@
 {
-  "name": "serverless-2",
+  "name": "schemas",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -10,6 +10,6 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "serverless": "^2.72.3"
+    "serverless": "^3.30.1"
   }
 }
