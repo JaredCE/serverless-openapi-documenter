@@ -19,12 +19,14 @@ describe(`SchemaHandler`, function () {
     let mockServerless
     let openAPI
     let modelsDocument, modelsAltDocument, modelsListDocument, modelsListAltDocument
+    const v4 = new RegExp(/^[0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}$/i)
     const openAPISchema = {
         version: '3.0.3',
         components: {
             schemas: {}
         }
     }
+
     beforeEach(function() {
         mockServerless = JSON.parse(JSON.stringify(serverlessMock))
         modelsDocument = JSON.parse(JSON.stringify(modelsDocumentOG))
@@ -499,7 +501,200 @@ describe(`SchemaHandler`, function () {
                     expect(schemaHandler.openAPI.components.schemas.SuccessResponse.oneOf.length).to.be.equal(2)
                     expect(Object.keys(schemaHandler.openAPI.components.schemas).length).to.be.equal(3)
                 });
+
+                it(`should throw when a webUrl returns a 404`, async function() {
+                    Object.assign(mockServerless.service.custom.documentation, modelsDocument)
+                    mockServerless.service.custom.documentation.models.push(
+                        {
+                            name: 'SuccessResponse',
+                            contentType: 'application/json',
+                            schema: 'https://google.com/build/LicensedMember.json'
+                        }
+                    )
+
+                    nock('https://google.com')
+                        .get('/build/LicensedMember.json')
+                        .reply(404, {body: 'Bad Request'})
+
+                    const schemaHandler = new SchemaHandler(mockServerless, openAPI)
+
+                    await schemaHandler.addModelsToOpenAPI()
+                        .catch(err => {
+                            expect(err).to.not.be.undefined
+                        })
+                });
             });
+        });
+    });
+
+    describe(`createSchema`, function () {
+        it(`returns a reference to the schema when the schema already exists in components and we don't pass through a schema`, async function() {
+            Object.assign(mockServerless.service.custom.documentation, modelsDocument)
+            const schemaHandler = new SchemaHandler(mockServerless, openAPI)
+
+            await schemaHandler.addModelsToOpenAPI()
+
+            const expected = await schemaHandler.createSchema('ErrorResponse')
+
+            expect(expected).to.be.equal('#/components/schemas/ErrorResponse')
+        });
+
+        it(`throws an error when the name of the schema does not exist in components and we don't pass through a schema`, async function() {
+            Object.assign(mockServerless.service.custom.documentation, modelsDocument)
+            const schemaHandler = new SchemaHandler(mockServerless, openAPI)
+
+            await schemaHandler.addModelsToOpenAPI()
+
+            const expected = await schemaHandler.createSchema('PUTRequest')
+                .catch(err => {
+                    expect(err).to.not.be.undefined
+                    expect(err.message).to.be.equal('Expected a file path, URL, or object. Got undefined')
+                })
+
+            expect(expected).to.be.undefined
+        });
+
+        it(`returns a reference to a schema when the schema does not exist in components already`, async function() {
+            Object.assign(mockServerless.service.custom.documentation, modelsDocument)
+            const schemaHandler = new SchemaHandler(mockServerless, openAPI)
+
+            await schemaHandler.addModelsToOpenAPI()
+            const schema = {
+                type: 'object',
+                properties: {
+                    createdAt: {
+                        type: 'number'
+                    }
+                }
+            }
+            const expected = await schemaHandler.createSchema('PUTRequest', schema)
+                .catch(err => {
+                    expect(err).to.be.undefined
+                })
+
+            expect(expected).to.be.equal('#/components/schemas/PUTRequest')
+            expect(schemaHandler.openAPI.components.schemas.PUTRequest).to.be.eql(schema)
+        });
+
+        it(`returns a reference to a schema when the schema exists in components already and the same schema is being passed through`, async function() {
+            Object.assign(mockServerless.service.custom.documentation, modelsDocument)
+            const schemaHandler = new SchemaHandler(mockServerless, openAPI)
+
+            await schemaHandler.addModelsToOpenAPI()
+            const schema = {
+                type: 'object',
+                properties: {
+                    createdAt: {
+                        type: 'number'
+                    }
+                }
+            }
+            let expected = await schemaHandler.createSchema('PUTRequest', schema)
+                .catch(err => {
+                    expect(err).to.be.undefined
+                })
+
+            expect(expected).to.be.equal('#/components/schemas/PUTRequest')
+            expect(schemaHandler.openAPI.components.schemas.PUTRequest).to.be.eql(schema)
+
+            expected = await schemaHandler.createSchema('PUTRequest', schema)
+                .catch(err => {
+                    expect(err).to.be.undefined
+                })
+
+            expect(expected).to.be.equal('#/components/schemas/PUTRequest')
+            expect(schemaHandler.openAPI.components.schemas.PUTRequest).to.be.eql(schema)
+        });
+
+        it(`returns a reference to a new schema when the schema exists in components already and a different schema is being passed through`, async function() {
+            Object.assign(mockServerless.service.custom.documentation, modelsDocument)
+            const schemaHandler = new SchemaHandler(mockServerless, openAPI)
+
+            await schemaHandler.addModelsToOpenAPI()
+            const schema = {
+                type: 'object',
+                properties: {
+                    createdAt: {
+                        type: 'number'
+                    }
+                }
+            }
+            let expected = await schemaHandler.createSchema('PUTRequest', schema)
+                .catch(err => {
+                    expect(err).to.be.undefined
+                })
+
+            expect(expected).to.be.equal('#/components/schemas/PUTRequest')
+            expect(schemaHandler.openAPI.components.schemas.PUTRequest).to.be.eql(schema)
+
+            const differentSchema = {
+                type: 'object',
+                properties: {
+                    updatedAt: {
+                        type: 'number'
+                    }
+                }
+            }
+
+            expected = await schemaHandler.createSchema('PUTRequest', differentSchema)
+                .catch(err => {
+                    expect(err).to.be.undefined
+                })
+
+            const splitPath = expected.split('/')
+            expect(v4.test(splitPath[3].split('PUTRequest-')[1])).to.be.true
+            expect(expected).to.be.equal(`#/components/schemas/${splitPath[3]}`)
+            expect(schemaHandler.openAPI.components.schemas[splitPath[3]]).to.be.eql(differentSchema)
+        });
+
+        it(`returns a reference to a new schema when the schema passed through is a URL`, async function() {
+            Object.assign(mockServerless.service.custom.documentation, modelsDocument)
+            const schemaHandler = new SchemaHandler(mockServerless, openAPI)
+
+            await schemaHandler.addModelsToOpenAPI()
+            const schema = 'https://google.com/build/LicensedMember.json'
+            const schemaObj = {
+                type: 'object',
+                properties: {
+                    name: {
+                        type: 'string'
+                    },
+                    address: {
+                        type: 'string'
+                    }
+                }
+            }
+
+            nock('https://google.com')
+                .get('/build/LicensedMember.json')
+                .reply(200, schemaObj)
+
+            let expected = await schemaHandler.createSchema('PUTRequest', schema)
+                .catch(err => {
+                    expect(err).to.be.undefined
+                })
+
+            expect(expected).to.be.equal('#/components/schemas/PUTRequest')
+            expect(schemaHandler.openAPI.components.schemas.PUTRequest).to.be.eql(schemaObj)
+        });
+
+        it(`should throw an error when a schema as a URL can not be resolved correctly`, async function() {
+            Object.assign(mockServerless.service.custom.documentation, modelsDocument)
+            const schemaHandler = new SchemaHandler(mockServerless, openAPI)
+
+            await schemaHandler.addModelsToOpenAPI()
+            const schema = 'https://google.com/build/LicensedMember.json'
+
+            nock('https://google.com')
+                .get('/build/LicensedMember.json')
+                .reply(404)
+
+            let expected = await schemaHandler.createSchema('PUTRequest', schema)
+                .catch(err => {
+                    expect(err).to.not.undefined
+                })
+
+            expect(expected).to.be.undefined
         });
     });
 });
