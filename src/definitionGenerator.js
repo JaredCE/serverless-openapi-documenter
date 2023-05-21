@@ -71,6 +71,13 @@ class DefinitionGenerator {
     async parse() {
         this.createInfo()
 
+        await this.schemaHandler.addModelsToOpenAPI()
+            .catch(err => {
+                console.log('got here')
+                console.log(this.openAPI)
+                throw err
+            })
+
         if (this.serverless.service.custom.documentation.securitySchemes) {
             this.createSecuritySchemes(this.serverless.service.custom.documentation.securitySchemes)
 
@@ -367,7 +374,8 @@ class DefinitionGenerator {
                     }
                 }
             } else {
-                obj.headers = corsHeaders
+                if (Object.keys(corsHeaders).length)
+                    obj.headers = corsHeaders
             }
 
             Object.assign(responses, { [response.statusCode]: obj })
@@ -421,7 +429,7 @@ class DefinitionGenerator {
             newHeader.description = headers[header].description || ''
 
             if (headers[header].schema) {
-                const schemaRef = await this.schemaCreator(headers[header].schema, header)
+                const schemaRef = await this.schemaHandler.createSchema(header, headers[header].schema)
                     .catch(err => {
                         throw err
                     })
@@ -484,10 +492,11 @@ class DefinitionGenerator {
                     schema = mediaTypeDocumentation.schema
                 }
 
-                const schemaRef = await this.schemaCreator(schema, mediaTypeDocumentation.name)
+                const schemaRef = await this.schemaHandler.createSchema(mediaTypeDocumentation.name)
                     .catch(err => {
                         throw err
                     })
+
                 obj.schema = {
                     $ref: schemaRef
                 }
@@ -532,7 +541,7 @@ class DefinitionGenerator {
                 obj.examples = this.createExamples(param.examples)
 
             if (param.schema) {
-                const schemaRef = await this.schemaCreator(param.schema, param.name)
+                const schemaRef = await this.schemaHandler.createSchema(param.name, param.schema)
                     .catch(err => {
                         throw err
                     })
