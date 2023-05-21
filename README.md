@@ -389,6 +389,23 @@ custom:
 
 `&ErrorItem` in the above example creates a node anchor (&ErrorItem) to the `ErrorResponse` schema which then can be used in the `PutDocumentResponse` schema via the reference (*ErrorItem).  The node anchor needs to be declared first before it can be used elsewhere via the reference, swapping the above example around would result in an error.
 
+##### ModelsList - Backwards compatibility
+
+It was brought to my attention that an older plugin version allowed the use of `modelsList`.  As of 0.0.60, you can continue to use `modelsList` as well as using `models`, however `modelsList` now has to be nested within the `documentation` section.  You can write `modelsList` the same way as any of the two styles for [Models](#Models).
+
+```
+custom:
+  documentation:
+    ...
+    modelsList:
+      - name: "ErrorResponse"
+        description: "This is an error"
+        content:
+          application/json:
+            schema:
+              type: string
+```
+
 
 #### Functions
 
