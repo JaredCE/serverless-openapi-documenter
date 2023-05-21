@@ -4,9 +4,6 @@ const path = require('path')
 
 const { v4: uuid } = require('uuid')
 const validator = require('oas-validator');
-const SchemaConvertor = require('json-schema-for-openapi')
-const $RefParser = require("@apidevtools/json-schema-ref-parser")
-const isEqual = require('lodash.isequal')
 
 const SchemaHandler = require('./schemaHandler')
 
@@ -73,8 +70,6 @@ class DefinitionGenerator {
 
         await this.schemaHandler.addModelsToOpenAPI()
             .catch(err => {
-                console.log('got here')
-                console.log(this.openAPI)
                 throw err
             })
 
@@ -553,76 +548,6 @@ class DefinitionGenerator {
             params.push(obj)
         }
         return params;
-    }
-
-    async dereferenceSchema(schema) {
-        let originalSchema = await $RefParser.bundle(schema, this.refParserOptions)
-            .catch(err => {
-                console.error(err)
-                throw err
-            })
-
-        let deReferencedSchema = await $RefParser.dereference(originalSchema, this.refParserOptions)
-            .catch(err => {
-                console.error(err)
-                throw err
-            })
-
-        // deal with schemas that have been de-referenced poorly: naive
-        if (deReferencedSchema?.$ref === '#') {
-            const oldRef = originalSchema.$ref
-            const path = oldRef.split('/')
-
-            const pathTitle = path[path.length - 1]
-            const referencedProperties = deReferencedSchema.definitions[pathTitle]
-
-            Object.assign(deReferencedSchema, { ...referencedProperties })
-
-            delete deReferencedSchema.$ref
-            deReferencedSchema = await this.dereferenceSchema(deReferencedSchema)
-                .catch((err) => {
-                    throw err
-                })
-        }
-
-        return deReferencedSchema
-    }
-
-    async schemaCreator(schema, name) {
-        let schemaName = name
-        let finalName = schemaName
-        const dereferencedSchema = await this.dereferenceSchema(schema)
-            .catch(err => {
-                console.error(err)
-                throw err
-            })
-
-        const convertedSchemas = SchemaConvertor.convert(dereferencedSchema, schemaName)
-
-        for (const convertedSchemaName of Object.keys(convertedSchemas.schemas)) {
-            const convertedSchema = convertedSchemas.schemas[convertedSchemaName]
-            if (this.existsInComponents(convertedSchemaName)) {
-                if (this.isTheSameSchema(convertedSchema, convertedSchemaName) === false) {
-                    if (convertedSchemaName === schemaName) {
-                        finalName = `${schemaName}-${uuid()}`
-                        this.addToComponents(this.componentTypes.schemas, convertedSchema, finalName)
-                    } else
-                        this.addToComponents(this.componentTypes.schemas, convertedSchema, convertedSchemaName)
-                }
-            } else {
-                this.addToComponents(this.componentTypes.schemas, convertedSchema, convertedSchemaName)
-            }
-        }
-
-        return `#/components/schemas/${finalName}`
-    }
-
-    existsInComponents(name) {
-        return Boolean(this.openAPI?.components?.schemas?.[name])
-    }
-
-    isTheSameSchema(schema, otherSchemaName) {
-        return isEqual(schema, this.openAPI.components.schemas[otherSchemaName])
     }
 
     addToComponents(type, schema, name) {
