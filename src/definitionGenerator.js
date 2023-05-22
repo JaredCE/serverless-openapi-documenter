@@ -312,6 +312,29 @@ class DefinitionGenerator {
             obj.security = documentation.security
         }
 
+        if (this.currentEvent?.private && this.currentEvent.private === true) {
+            let apiKeyName = 'x-api-key'
+            let hasXAPIKey = false
+            if (this.openAPI?.components?.[this.componentTypes.securitySchemes]) {
+                for (const [schemeName, schemeValue] of Object.entries(this.openAPI.components[this.componentTypes.securitySchemes])) {
+                    if (schemeValue.type === 'apiKey' && schemeValue.name === 'x-api-key') {
+                        apiKeyName = schemeName
+                        hasXAPIKey = true
+                    }
+                }
+            }
+
+            if (hasXAPIKey === false) {
+                this.createSecuritySchemes({[apiKeyName]: {type: 'apiKey', name: apiKeyName, in: 'header'}})
+            }
+
+            if (obj.security) {
+                obj.security.push({[apiKeyName]: []})
+            } else {
+                obj.security = [{[apiKeyName]: []}]
+            }
+        }
+
         if (Object.keys(documentation).includes('deprecated'))
             obj.deprecated = documentation.deprecated
 
