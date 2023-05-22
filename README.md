@@ -622,6 +622,46 @@ functions:
               - {}
 ```
 
+##### private
+
+If you use the [private](https://www.serverless.com/framework/docs/providers/aws/events/apigateway#setting-api-keys-for-your-rest-api) property on your event:
+
+```yml
+functions:
+  getData:
+    events:
+      - http:
+          path: /
+          method: get
+          private: true
+```
+
+It will automatically setup an apiKey security scheme of `x-api-key` attached to that method.  You don't need to add this to the [Security Scheme](#securityschemes) in the main documentation.  If you have already added a Security Scheme of an `apiKey` with a name of `x-api-key`, it will associate with that key.
+
+```yml
+custom:
+  documentation:
+    securitySchemes:
+      my_api_key:
+        type: apiKey
+        name: x-api-key
+        in: header
+    security:
+      - my_api_key: []
+
+functions:
+  getData:
+    events:
+      - http:
+          path: /
+          method: get
+          private: true
+          documentation:
+            ...
+```
+
+Will set the Security Scheme to `my_api_key` for that operation.
+
 #### `requestModels`
 
 The `requestModels` property allows you to define models for the HTTP Request of the function event. You can define a different model for each different `Content-Type`. You can define a reference to the relevant request model named in the `models` section of your configuration (see [Defining Models](#models) section).
