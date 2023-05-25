@@ -9,6 +9,7 @@ const { v4: uuid } = require('uuid')
 
 class SchemaHandler {
     constructor(serverless, openAPI) {
+        this.apiGatewayModels = serverless.service?.provider?.apiGateway?.request?.schemas || {}
         this.documentation = serverless.service.custom.documentation
         this.openAPI = openAPI
 
@@ -42,7 +43,13 @@ class SchemaHandler {
         const standardisedModels = this.documentation?.models?.map(standardModel) || []
         const standardisedModelsList = this.documentation?.modelsList?.map(standardModel) || []
 
-        this.models = standardisedModels.length ? standardisedModels.concat(standardisedModelsList) : standardisedModelsList
+        const standardisedGatewayModels = Object.keys(this.apiGatewayModels).flatMap(key => {
+            const gatewayModel  = this.apiGatewayModels[key]
+            return standardModel(gatewayModel)
+        }) || []
+
+        this.models = standardisedModels.concat(standardisedModelsList, standardisedGatewayModels)
+        console.log(this.models)
     }
 
     async addModelsToOpenAPI() {
