@@ -3,6 +3,13 @@ frameworkVersion: ">=3.0.0 < 4.0.0"
 provider:
   name: aws
   runtime: nodejs14.x
+  apiGateway:
+    request:
+      schemas:
+        post-model:
+          name: PostModel
+          description: The POST Model
+          schema: https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/schemas/json/BizTalkServerApplicationSchema.json
 
 plugins:
   - ../../../index.js
@@ -16,7 +23,7 @@ custom:
       - name: DeleteResponse
         description: The Delete response
         contentType: application/json
-        schema: https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/schemas/json/BizTalkServerApplicationSchema.json
+        schema: https://raw.githubusercontent.com/JaredCE/serverless-openapi-documenter/main/test/json/complex.json
       - name: GetResponse
         description: The Get Response
         contentType: application/json
@@ -138,3 +145,13 @@ functions:
                   description: The response from the delete endpoint
                 responseModels:
                   application/json: GetResponse
+
+  getUserAtOrg:
+    handler: handler.getUserAtOrg
+    events:
+      - http:
+          path: getUserAtOrg/
+          method: get
+          request:
+            schemas:
+              application/json: post-model
