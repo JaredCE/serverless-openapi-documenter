@@ -61,6 +61,9 @@ Options:
 #### Model Details
 * [Models](#models)
 * [Notes on Schemas](#notes-on-schemas)
+#### Response Headers
+* [CORS](#cors)
+* [OWASP Secure Headers](#owasp)
 
 ### OpenAPI Mapping
 
@@ -728,6 +731,80 @@ responseHeaders:
 You can automatically generate CORS response headers by setting `cors` at the function level.  Serverless allows you to modify how CORS is setup, so you can have the default options with `cors: true`, or you can modify the settings as shown in the [serverless documentation for CORS](https://www.serverless.com/framework/docs/providers/aws/events/apigateway#enabling-cors).
 
 The generator will interpret your settings for CORS and automatically add the response headers.  If for whatever reason you wish to override these, you can set them via the above `responseHeaders` setting and it'll apply your overrides.
+
+##### OWASP
+
+You can make use of the [OWASP Secure Headers](https://owasp.org/www-project-secure-headers/#x-permitted-cross-domain-policies) to generate response headers.  These are a selection of response headers with default values that OWASP recommends returning with your response to help secure your application.
+
+The OWASP Secure Headers Project contains a set of recommended headers to return with recommended values, when generating the documentation, the generator will attempt to get the latest version of this document and apply the latest recommendations.  If you do not allow outside connections, it will default to a version of recommendations from **2023-05-26 12:22:30 UTC**.
+
+Like CORS, if you have already set any of the OWASP Secure headers via `responseHeaders`, it will not overwrite them.
+
+To make use of OWASP Secure Headers, you can use the following:
+
+###### All OWASP Secure Headers
+
+```yml
+methodResponse:
+  - statusCode: 200
+    responseBody:
+      description: Success
+    responseModels:
+      application/json: "CreateResponse"
+    owasp: true
+```
+
+This will use the full set of OWASP Secure Headers and their recommended values.  Some of these might not be appropriate for your application.
+
+###### Subset of OWASP Secure Headers
+
+```yml
+methodResponse:
+  - statusCode: 200
+    responseBody:
+      description: Success
+    responseModels:
+      application/json: "CreateResponse"
+    owasp:
+      cacheControl: true
+      referrerPolicy: true
+```
+
+This will set only the `cacheControl` and `referrerPolicy` response header with the default recommendations.
+
+The full list of OWASP Secure Headers you can set are:
+
+* cacheControl - Cache-Control,
+* clearSiteData - Clear-Site-Data,
+* contentSecurityPolicy - Content-Security-Policy,
+* crossOriginEmbedderPolicy - Cross-Origin-Embedder-Policy,
+* crossOriginOpenerPolicy - Cross-Origin-Opener-Policy,
+* crossOriginResourcePolicy - Cross-Origin-Resource-Policy,
+* permissionsPolicy - Permissions-Policy,
+* pragma - Pragma,
+* referrerPolicy - Referrer-Policy,
+* strictTransportSecurity - Strict-Transport-Security,
+* xContentTypeOptions - X-Content-Type-Options,
+* xFrameOptions - X-Frame-Options,
+* xPermittedCrossDomainPolicies - X-Permitted-Cross-Domain-Policies
+
+###### Subset of OWASP Secure Headers with user defined values
+
+If you wish to override the OWASP Secure Headers, you can write your `methodResponse` like:
+
+```yml
+methodResponse:
+  - statusCode: 200
+    responseBody:
+      description: Success
+    responseModels:
+      application/json: "CreateResponse"
+    owasp:
+      cacheControl:
+        value: no-store
+```
+
+This will set the `Cache-Control` Response Header to have a value of "no-store" rather than any value the OWASP Secure Headers Project recommends.
 
 ## Example configuration
 

@@ -69,6 +69,7 @@ functions:
                   description: A user object along with generated API Keys
                 responseModels:
                   application/json: AgencyList
+                owasp: true
 
   deleteUser:
     handler: handler.delete
@@ -90,6 +91,10 @@ functions:
                   description: The response from the delete endpoint
                 responseModels:
                   application/json: DeleteResponse
+                owasp:
+                  cacheControl:
+                    value: '*'
+                  referrerPolicy: true
 
   getUser:
     handler: handler.get
