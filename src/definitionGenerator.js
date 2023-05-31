@@ -6,6 +6,7 @@ const { v4: uuid } = require('uuid')
 const validator = require('oas-validator');
 
 const SchemaHandler = require('./schemaHandler')
+const oWASP = require('./owasp')
 
 class DefinitionGenerator {
     constructor(serverless, options = {}) {
@@ -41,7 +42,7 @@ class DefinitionGenerator {
 
         this.DEFAULT_CORS_HEADERS = {
             'Access-Control-Allow-Origin': {
-                description: 'The Access-Control-Allow-Origin response header indicates whether the response can be shared with requesting code from the given origin.',
+                description: 'The Access-Control-Allow-Origin response header indicates whether the response can be shared with requesting code from the given [origin](https://developer.mozilla.org/en-US/docs/Glossary/Origin). - [MDN Link](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Origin)',
                 schema: {
                     type: 'string',
                     default: '*',
@@ -49,7 +50,7 @@ class DefinitionGenerator {
                 }
             },
             'Access-Control-Allow-Credentials': {
-                description: `The Access-Control-Allow-Credentials response header tells browsers whether to expose the response to the frontend JavaScript code when the request's credentials mode (Request.credentials) is include`,
+                description: `The Access-Control-Allow-Credentials response header tells browsers whether to expose the response to the frontend JavaScript code when the request's credentials mode ([Request.credentials](https://developer.mozilla.org/en-US/docs/Web/API/Request/credentials)) is include. - [MDN Link](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Credentials)`,
                 schema: {
                     type: 'boolean',
                     default: true
@@ -67,6 +68,8 @@ class DefinitionGenerator {
 
     async parse() {
         this.createInfo()
+
+        await oWASP.getLatest()
 
         await this.schemaHandler.addModelsToOpenAPI()
             .catch(err => {
@@ -379,21 +382,44 @@ class DefinitionGenerator {
                     })
             }
 
+            let owaspHeaders = {}
+            if (response.owasp) {
+                if (typeof response.owasp === 'boolean') {
+                    owaspHeaders = await this.createResponseHeaders(oWASP.DEFAULT_OWASP_HEADERS)
+                        .catch(err => {
+                            throw err
+                        })
+                } else {
+                    owaspHeaders = await this.createResponseHeaders(oWASP.getHeaders(response.owasp))
+                        .catch(err => {
+                            throw err
+                        })
+                }
+            }
 
             const corsHeaders = await this.corsHeaders()
                 .catch(err => {
                     throw err;
                 })
 
-            if (obj.headers) {
-                for (const key in corsHeaders) {
+            const addHeaders = (headers) => {
+                for (const key in headers) {
                     if (!(key in obj.headers) && (obj.headers[key] = {})) {
-                        obj.headers[key] = corsHeaders[key]
+                        obj.headers[key] = headers[key]
                     }
                 }
+            }
+
+            if (obj.headers) {
+                addHeaders(corsHeaders)
+                addHeaders(owaspHeaders)
             } else {
-                if (Object.keys(corsHeaders).length)
+                if (Object.keys(corsHeaders).length) {
                     obj.headers = corsHeaders
+                    addHeaders(owaspHeaders)
+                } else {
+                    obj.headers = owaspHeaders
+                }
             }
 
             Object.assign(responses, { [response.statusCode]: obj })
