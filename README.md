@@ -61,6 +61,7 @@ Options:
 #### Model Details
 * [Models](#models)
 * [Notes on Schemas](#notes-on-schemas)
+* [Request Schema Validators](#serverless-request-schema-validators)
 #### Response Headers
 * [CORS](#cors)
 * [OWASP Secure Headers](#owasp)
@@ -409,6 +410,76 @@ custom:
               type: string
 ```
 
+##### Serverless Request Schema Validators
+
+As of 0.0.64, you can now make use of [Request Schema Validators](https://www.serverless.com/framework/docs/providers/aws/events/apigateway#request-schema-validators).  This allows you to define Request models via the `apiGateway` settings:
+
+```yml
+provider:
+  ...
+  apiGateway:
+    request:
+      schemas:
+        post-create-model:
+          name: PostCreateModel
+          schema: ${file(api_schema/post_add_schema.json)}
+          description: "A Model validation for adding posts"
+```
+
+which are then used like:
+
+```yml
+functions:
+  create:
+    handler: posts.create
+    events:
+      - http:
+          path: posts/create
+          method: post
+          request:
+            schemas:
+              application/json: post-create-model
+          documentation:
+            ...
+```
+
+The generator will match to the model within the `apiGateway` settings model list.  If you are using the `apiGateway` to define models, please do not re-use any names that you might define in the [`models`](#models) list.
+
+You can also skip writing a `requestBody` and `requestModels` if you have defined a `request` property in your event.
+
+If you're not using `apiGateway`, you can still make use of `request` by writing in the other styles that serverless accepts for Request Schema Validators:
+
+```yml
+functions:
+  create:
+    handler: posts.create
+    events:
+      - http:
+          path: posts/create
+          method: post
+          request:
+            schemas:
+              application/json:
+                schema: ${file(create_request.json)}
+                name: PostCreateModel
+                description: 'Validation model for Creating Posts'
+
+```
+
+or
+
+```yml
+functions:
+  create:
+    handler: posts.create
+    events:
+      - http:
+          path: posts/create
+          method: post
+          request:
+            schemas:
+              application/json: ${file(create_request.json)}
+```
 
 #### Functions
 

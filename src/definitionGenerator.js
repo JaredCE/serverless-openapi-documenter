@@ -341,11 +341,31 @@ class DefinitionGenerator {
         if (Object.keys(documentation).includes('deprecated'))
             obj.deprecated = documentation.deprecated
 
-        if (documentation.requestBody)
-            obj.requestBody = await this.createRequestBody(documentation)
+        if (documentation.requestBody || this.currentEvent?.request?.schemas) {
+            const requestModel = {}
+            if (documentation.requestBody) {
+                Object.assign(
+                    requestModel,
+                    {
+                        description: documentation.requestBody.description,
+                        models: documentation.requestModels
+                    }
+                )
+            } else {
+                Object.assign(
+                    requestModel,
+                    {
+                        description: '',
+                        models: this.currentEvent?.request?.schemas
+                    }
+                )
+            }
+
+            obj.requestBody = await this.createRequestBody(requestModel)
                 .catch(err => {
                     throw err
                 })
+        }
 
         if (documentation.methodResponses)
             obj.responses = await this.createResponses(documentation)
@@ -488,13 +508,13 @@ class DefinitionGenerator {
         return obj
     }
 
-    async createRequestBody(documentation) {
+    async createRequestBody(requestBodyDetails) {
         const obj = {
-            description: documentation.requestBody.description,
-            required: documentation.requestBody.required || false,
+            description: requestBodyDetails.description,
+            required: false
         }
 
-        obj.content = await this.createMediaTypeObject(documentation.requestModels, 'requestBody')
+        obj.content = await this.createMediaTypeObject(requestBodyDetails.models)
             .catch(err => {
                 throw err
             })
@@ -548,6 +568,25 @@ class DefinitionGenerator {
                 Object.assign(mediaTypeObj, { [contentKey]: obj })
             }
         }
+
+        if (Object.keys(mediaTypeObj).length === 0) {
+            for (const contentKey of Object.keys(models)) {
+                const obj = {}
+                const schema = (models[contentKey]?.schema) ? models[contentKey].schema : models[contentKey]
+                const name = (models[contentKey]?.name) ? models[contentKey].name : uuid()
+                const schemaRef = await this.schemaHandler.createSchema(name, schema)
+                    .catch(err => {
+                        throw err
+                    })
+
+                obj.schema = {
+                    $ref: schemaRef
+                }
+
+                Object.assign(mediaTypeObj, { [contentKey]: obj })
+            }
+        }
+
         return mediaTypeObj
     }
 
