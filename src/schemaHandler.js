@@ -49,7 +49,6 @@ class SchemaHandler {
         }) || []
 
         this.models = standardisedModels.concat(standardisedModelsList, standardisedGatewayModels)
-        console.log(this.models)
     }
 
     async addModelsToOpenAPI() {
