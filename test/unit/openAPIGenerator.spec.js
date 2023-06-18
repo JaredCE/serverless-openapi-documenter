@@ -31,7 +31,8 @@ describe('OpenAPIGenerator', () => {
             },
             configSchemaHandler: {
                 defineFunctionEventProperties: () => {},
-                defineFunctionProperties: () => {}
+                defineFunctionProperties: () => {},
+                defineCustomProperties: () => {},
             },
             classes: {
                 Error: class ServerlessError {constructor(err) {return new Error(err)}}

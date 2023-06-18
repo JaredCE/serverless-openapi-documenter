@@ -14,7 +14,7 @@
 
 
 
-This will generate an OpenAPI V3 (up to v3.0.3) file for you from your serverless file.  It can optionally generate a [Postman Collection V2](https://github.com/postmanlabs/openapi-to-postman) from the OpenAPI file for you too.
+This will generate an OpenAPI V3 (up to v3.0.3) file for you from your serverless file.  It can optionally generate a [Postman Collection V2](https://github.com/postmanlabs/openapi-to-postman) from the OpenAPI file for you too.  This currently works for `http` and `httpApi` configurations.
 
 Originally based off of: https://github.com/temando/serverless-openapi-documentation
 
@@ -131,7 +131,7 @@ Options:
 
 ### Configuration
 
-To configure this plugin to generate valid OpenAPI documentation there are two places you'll need to modify in your `serverless.yml` file, the `custom` variables section and the `http` event section for each given function in your service.
+To configure this plugin to generate valid OpenAPI documentation there are two places you'll need to modify in your `serverless.yml` file, the `custom` variables section and the `http/httpApi` event section for each given function in your service.
 
 The `custom` section of your `serverless.yml` can be configured as below:
 
@@ -164,7 +164,7 @@ custom:
     models: {}
 ```
 
-Mostly everything here is optional.  A version from a UUID will be generated for you if you don't specify one, title will be the name of your service if you don't specify one.
+Mostly everything here is optional.  A version from a UUID will be generated for you if you don't specify one, title will be the name of your service if you don't specify one.  You will need to specify the `documentation` top object.
 
 #### termsOfService
 
@@ -483,7 +483,7 @@ functions:
 
 #### Functions
 
-To define the documentation for a given function event, you need to create a `documentation` attribute for your http event in your `serverless.yml` file.
+To define the documentation for a given function event, you need to create a `documentation` attribute for your `http` or `httpApi` event in your `serverless.yml` file.
 
 The `documentation` section of the event configuration can contain the following attributes:
 
@@ -505,6 +505,8 @@ The `documentation` section of the event configuration can contain the following
     * `description`: a description of the body response
   * `responseHeaders`: a list of response headers (see [responseHeaders](#responseheaders) below)
   * `responseModels`: a list of models to describe the request bodies (see [responseModels](#responsemodels) below) for each `Content-Type`
+
+If you don't want a `http` or `httpApi` event to be documented, you can leave off the `documentation` object.  The configuration schema will only check that you have specified a `methodResponses` on the `documentation` event, previously the plugin would cause serverless to warn or error (depending on your `configValidationMode`) if you had not supplied a `documentation` on an event.
 
 ```yml
 functions:

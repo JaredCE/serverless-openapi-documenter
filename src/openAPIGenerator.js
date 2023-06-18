@@ -71,19 +71,33 @@ class OpenAPIGenerator {
 
         this.customVars = this.serverless.variables.service.custom;
 
-        this.serverless.configSchemaHandler.defineFunctionEventProperties('aws', 'http', {
+        const functionEventDocumentationSchema = {
           properties: {
-            documentation: { type: 'object' },
+            documentation: {
+              type: 'object',
+              properties: {
+                methodResponses: {
+                  type: 'array'
+                },
+              },
+              required: ['methodResponses']
+            },
           },
-          required: ['documentation'],
-        });
+        }
 
-        this.serverless.configSchemaHandler.defineFunctionEventProperties('aws', 'httpApi', {
+        this.serverless.configSchemaHandler.defineCustomProperties({
+          type: 'object',
           properties: {
-            documentation: { type: 'object' },
+            documentation: {
+              type: 'object'
+            }
           },
-          required: ['documentation'],
-        });
+          required: ['documentation']
+        })
+
+        this.serverless.configSchemaHandler.defineFunctionEventProperties('aws', 'http', functionEventDocumentationSchema);
+
+        this.serverless.configSchemaHandler.defineFunctionEventProperties('aws', 'httpApi', functionEventDocumentationSchema);
 
         this.serverless.configSchemaHandler.defineFunctionProperties('aws', {
           properties: {
