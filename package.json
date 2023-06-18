@@ -6,7 +6,9 @@
   "keywords": [
     "serverless",
     "serverless2",
+    "Serverless 2",
     "serverless3",
+    "Serverless 3",
     "serverless framework",
     "serverless framework plugin",
     "serverless plugin",
@@ -15,7 +17,10 @@
     "openAPI3",
     "PostmanCollections",
     "Postman-Collections",
-    "Postman Collections"
+    "Postman Collections",
+    "AWS",
+    "AWS APIGateway",
+    "Api Gateway"
   ],
   "scripts": {
     "test": "mocha --config './test/.mocharc.js'"
