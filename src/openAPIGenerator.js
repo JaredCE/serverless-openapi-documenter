@@ -3,9 +3,10 @@
 const fs = require('fs')
 const yaml = require('js-yaml');
 const chalk = require('chalk')
+const PostmanGenerator = require('openapi-to-postmanv2')
+const OpenAPIDecorator = require('openapi-aws-decorator')
 
 const DefinitionGenerator = require('./definitionGenerator')
-const PostmanGenerator = require('openapi-to-postmanv2')
 
 class OpenAPIGenerator {
     constructor(serverless, options, {log = {}} = {}) {
@@ -67,6 +68,7 @@ class OpenAPIGenerator {
 
         this.hooks = {
           'openapi:generate:serverless': this.generate.bind(this),
+          'after:deploy:deploy': this.afterDeploy.bind(this)
         };
 
         this.customVars = this.serverless.variables.service.custom;
@@ -180,7 +182,7 @@ class OpenAPIGenerator {
 
 
       this.log('OpenAPI v3 Documentation Successfully Generated', this.logTypes.SUCCESS)
-
+      this.openAPI = generator.openAPI;
       return generator.openAPI
     }
 
@@ -245,6 +247,14 @@ class OpenAPIGenerator {
       this.log(`${chalk.bold.yellow('[VALIDATION]')} Failed to validate OpenAPI document: \n`, this.logTypes.ERROR);
       this.log(`${chalk.bold.yellow('Context:')} ${JSON.stringify(validationError.options.context[validationError.options.context.length-1], null, 2)}\n`, this.logTypes.ERROR);
       this.log(`${chalk.bold.yellow('Error Message:')} ${JSON.stringify(validationError.message, null, 2)}\n`, this.logTypes.ERROR);
+    }
+
+    afterDeploy() {
+      // const openAPIDecorator = new OpenAPIDecorator(this.openAPI)
+      // openAPIDecorator.decorate()
+
+      const stackName = this.serverless.providers.aws.naming.getStackName(this.options.stage);
+      this.log(stackName)
     }
 }
 
