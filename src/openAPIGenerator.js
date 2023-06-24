@@ -59,7 +59,7 @@ class OpenAPIGenerator {
                     usage: 'Output a postman collection and attach to openApi external documents [default: postman.json if passed]',
                     shortcut: 'p',
                     type: 'string'
-                  }
+                  },
                 },
               },
             },
@@ -68,8 +68,16 @@ class OpenAPIGenerator {
 
         this.hooks = {
           'openapi:generate:serverless': this.generate.bind(this),
-          'after:deploy:deploy': this.afterDeploy.bind(this)
         };
+
+        if ('deploy' in this.serverless.service.custom.documentation) {
+          Object.assign(this.hooks,
+            {
+              'before:deploy:deploy': this.generateForDeploy.bind(this),
+              'after:deploy:deploy': this.afterDeploy.bind(this)
+            }
+          )
+        }
 
         this.customVars = this.serverless.variables.service.custom;
 
@@ -164,6 +172,13 @@ class OpenAPIGenerator {
         }
     }
 
+    async generateForDeploy() {
+      await this.generationAndValidation()
+        .catch(err => {
+          throw new this.serverless.classes.Error(err)
+        })
+    }
+
     async generationAndValidation() {
       const generator = new DefinitionGenerator(this.serverless);
 
@@ -249,12 +264,44 @@ class OpenAPIGenerator {
       this.log(`${chalk.bold.yellow('Error Message:')} ${JSON.stringify(validationError.message, null, 2)}\n`, this.logTypes.ERROR);
     }
 
-    afterDeploy() {
-      // const openAPIDecorator = new OpenAPIDecorator(this.openAPI)
-      // openAPIDecorator.decorate()
+    async afterDeploy() {
+      const openAPIDecorator = new OpenAPIDecorator(this.openAPI)
+      openAPIDecorator.decorate()
 
       const stackName = this.serverless.providers.aws.naming.getStackName(this.options.stage);
       this.log(stackName)
+
+      const stackResources = await this.serverless.providers.aws.request('CloudFormation', 'describeStackResources', { StackName: stackName },
+        this.options.stage,
+        this.options.region
+      )
+        .catch(err => {
+          throw new this.serverless.classes.Error(err)
+        })
+
+      const APIGatewayResource = stackResources.StackResources.filter((resource) => {
+        if (resource.LogicalResourceId === 'ApiGatewayRestApi') {
+          return resource
+        }
+      })
+
+      const restAPIID = APIGatewayResource[0].PhysicalResourceId;
+
+      const newParts = this.openAPI['x-amazon-apigateway-documentation'].documentationParts.filter(part => {
+        if (part.location.type === 'API') {
+          return part
+        }
+      })
+
+      const importedDocumentationParts = await this.serverless.providers.aws.request('APIGateway', 'importDocumentationParts', { restApiId: restAPIID, body: JSON.stringify(this.openAPI) },
+        this.options.stage,
+        this.options.region
+      )
+        .catch(err => {
+          throw new this.serverless.classes.Error(err)
+        })
+
+      this.log(importedDocumentationParts)
     }
 }
 
