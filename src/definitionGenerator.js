@@ -348,7 +348,8 @@ class DefinitionGenerator {
                     requestModel,
                     {
                         description: documentation.requestBody.description,
-                        models: documentation.requestModels
+                        models: documentation.requestModels,
+                        required: documentation.requestBody.required
                     }
                 )
             } else {
@@ -511,7 +512,7 @@ class DefinitionGenerator {
     async createRequestBody(requestBodyDetails) {
         const obj = {
             description: requestBodyDetails.description,
-            required: false
+            required: requestBodyDetails.required || false
         }
 
         obj.content = await this.createMediaTypeObject(requestBodyDetails.models)
