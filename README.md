@@ -114,7 +114,7 @@ Options:
 | path[path].[operation].parameters.name                    | functions.functions.[http OR httpApi].documentation.[path/query/cookie/header]Params.name                                                             |
 | path[path].[operation].parameters.in                      | functions.functions.[http OR httpApi].documentation.[path/query/cookie/header]Params                                                                  |
 | path[path].[operation].parameters.description             | functions.functions.[http OR httpApi].documentation.[path/query/cookie/header]Params.description                                                      |
-| path[path].[operation].parameters.required                | functions.functions.[http OR httpApi].documentation.[path/query/cookie/header]Params.required                                                         |
+| path[path].[operation].parameters.required                | functions.functions.[http OR httpApi].documentation.[query/cookie/header]Params.required                                                              |
 | path[path].[operation].parameters.deprecated              | functions.functions.[http OR httpApi].documentation.[path/query/cookie/header]Params.deprecated                                                       |
 | path[path].[operation].parameters.allowEmptyValue         | functions.functions.[http OR httpApi].documentation.[path/query/cookie/header]Params.allowEmptyValue                                                  |
 | path[path].[operation].parameters.style                   | functions.functions.[http OR httpApi].documentation.[path/query/cookie/header]Params.style                                                            |
