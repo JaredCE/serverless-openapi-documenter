@@ -34,6 +34,9 @@ class DefinitionGenerator {
 
     this.schemaHandler = new SchemaHandler(serverless, this.openAPI);
 
+    this.operationIdMap = {};
+    this.functionMap = {};
+
     this.operationIds = [];
     this.schemaIDs = [];
 
@@ -91,6 +94,8 @@ class DefinitionGenerator {
     await this.createPaths().catch((err) => {
       throw err;
     });
+
+    this.cleanupLinks();
 
     if (this.serverless.service.custom.documentation.servers) {
       const servers = this.createServers(
@@ -156,6 +161,7 @@ class DefinitionGenerator {
   async createPaths() {
     const paths = {};
     const httpFunctions = this.getHTTPFunctions();
+
     for (const httpFunction of httpFunctions) {
       for (const event of httpFunction.event) {
         if (event?.http?.documentation || event?.httpApi?.documentation) {
@@ -164,21 +170,11 @@ class DefinitionGenerator {
             event?.http?.documentation || event?.httpApi?.documentation;
 
           this.currentFunctionName = httpFunction.functionInfo.name;
-
-          let opId;
-          if (
-            this.operationIds.includes(httpFunction.functionInfo.name) === false
-          ) {
-            opId = httpFunction.functionInfo.name;
-            this.operationIds.push(opId);
-          } else {
-            opId = `${httpFunction.functionInfo.name}-${uuid()}`;
-          }
+          this.operationName = httpFunction.operationName;
 
           const path = await this.createOperationObject(
             event?.http?.method || event?.httpApi?.method,
-            documentation,
-            opId
+            documentation
           ).catch((err) => {
             throw err;
           });
@@ -282,11 +278,25 @@ class DefinitionGenerator {
     Object.assign(this.openAPI, { tags: tags });
   }
 
-  async createOperationObject(method, documentation, name = uuid()) {
+  async createOperationObject(method, documentation) {
+    let operationId = documentation?.operationId || this.operationName;
+    if (this.operationIds.includes(operationId)) {
+      operationId += `-${uuid()}`;
+    }
+
+    const arr = this.functionMap[this.operationName];
+    arr.push(operationId);
+    this.functionMap[this.operationName] = arr;
+
+    this.operationIds.push(operationId);
+    Object.assign(this.operationIdMap, {
+      [operationId]: this.operationName,
+    });
+
     const obj = {
       summary: documentation.summary || "",
       description: documentation.description || "",
-      operationId: documentation.operationId || name,
+      operationId: operationId,
       parameters: [],
       tags: documentation.tags || [],
     };
@@ -470,6 +480,10 @@ class DefinitionGenerator {
         } else {
           obj.headers = owaspHeaders;
         }
+      }
+
+      if (response.links) {
+        obj.links = this.createLinks(response.links);
       }
 
       Object.assign(responses, { [response.statusCode]: obj });
@@ -691,6 +705,36 @@ class DefinitionGenerator {
     return params;
   }
 
+  createLinks(links) {
+    const linksObj = {};
+    for (const link in links) {
+      const linkObj = links[link];
+      const obj = {};
+
+      obj.operationId = linkObj.operation;
+
+      if (linkObj.description) {
+        obj.description = linkObj.description;
+      }
+
+      if (linkObj.server) {
+        obj.server = this.createServers(linkObj.server);
+      }
+
+      if (linkObj.parameters) {
+        obj.parameters = linkObj.parameters;
+      }
+
+      if (linkObj.requestBody) {
+        obj.requestBody = linkObj.requestBody;
+      }
+
+      Object.assign(linksObj, { [link]: obj });
+    }
+
+    return linksObj;
+  }
+
   addToComponents(type, schema, name) {
     const schemaObj = {
       [name]: schema,
@@ -863,6 +907,27 @@ class DefinitionGenerator {
     return examplesObj;
   }
 
+  cleanupLinks() {
+    for (const path of Object.keys(this.openAPI.paths)) {
+      for (const [name, value] of Object.entries(this.openAPI.paths[path])) {
+        for (const [statusCode, responseObj] of Object.entries(
+          value.responses
+        )) {
+          if (responseObj.links) {
+            for (const [linkName, linkObj] of Object.entries(
+              responseObj.links
+            )) {
+              const opId = linkObj.operationId;
+              if (this.functionMap[opId]) {
+                linkObj.operationId = this.functionMap[opId][0];
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
   getHTTPFunctions() {
     const isHttpFunction = (funcType) => {
       const keys = Object.keys(funcType);
@@ -883,7 +948,18 @@ class DefinitionGenerator {
       })
       .map((functionType) => {
         const event = functionType.events.filter(isHttpFunction);
+        const name = functionType.name
+          .split(
+            `${this.serverless.service.service}-${this.serverless.service.provider.stage}-`
+          )
+          .at(-1);
+
+        Object.assign(this.functionMap, {
+          [name]: [],
+        });
+
         return {
+          operationName: name,
           functionInfo: functionType,
           handler: functionType.handler,
           name: functionType.name,
