@@ -48,6 +48,17 @@ custom:
               - name: content
                 description: The content to create or update
                 value: { content: "my name is" }
+      - name: ContentCreatedResponse
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                contentId:
+                  type: string
+                  format: uuid
+                createdAt:
+                  type: number
       - name: FilterContentBody
         content:
           application/json:
@@ -166,7 +177,13 @@ functions:
                 responseBody:
                   description: The content requested
                 responseModels:
-                  application/json: SuccessResponse
+                  application/json: ContentCreatedResponse
+                links:
+                  MapContentLink:
+                    operation: mapContent
+                    description: The contentId created here can be used to map content
+                    parameters:
+                      contentId: $response.body#/contentId
               - statusCode: 404
                 responseBody:
                   description: An error occured
