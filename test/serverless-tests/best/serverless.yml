@@ -113,6 +113,38 @@ functions:
                 responseModels:
                   application/json: ErrorResponse
                 owasp: true
+      - http:
+          path: /{contentId}/{path}
+          method: GET
+          documentation:
+            description: A method to bring back content from OpenSearch
+            summary: get content from OpenSearch
+            operationId: getContentByPath
+            pathParams:
+              - name: contentId
+                description: The id of the piece of content to get
+                schema:
+                  type: string
+                  format: uuid
+              - name: path
+                description: The path the content lives at
+                schema:
+                  type: string
+            tags:
+              - OpenSearch
+            methodResponses:
+              - statusCode: 200
+                responseBody:
+                  description: The content requested
+                responseModels:
+                  application/json: SuccessResponse
+                owasp: true
+              - statusCode: 404
+                responseBody:
+                  description: An error occured
+                responseModels:
+                  application/json: ErrorResponse
+                owasp: true
 
   createContent:
     handler: handler.createContent
