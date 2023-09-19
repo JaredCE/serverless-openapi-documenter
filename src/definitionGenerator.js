@@ -948,11 +948,9 @@ class DefinitionGenerator {
       })
       .map((functionType) => {
         const event = functionType.events.filter(isHttpFunction);
-        const name = functionType.name
-          .split(
-            `${this.serverless.service.service}-${this.serverless.service.provider.stage}-`
-          )
-          .at(-1);
+        const name = functionType.name.split(
+          `${this.serverless.service.service}-${this.serverless.service.provider.stage}-`
+        )[1];
 
         Object.assign(this.functionMap, {
           [name]: [],
