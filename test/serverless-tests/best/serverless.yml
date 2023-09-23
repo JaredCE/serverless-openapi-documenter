@@ -1,0 +1,286 @@
+service: serverless-openapi-doc-demo
+frameworkVersion: "3"
+provider:
+  name: aws
+  runtime: nodejs18.x
+
+plugins:
+  - ../../../index.js
+
+custom:
+  defaultStage: uat
+  documentation:
+    description: Description for my OpenAPI File
+    version: 1.0.0
+    tags:
+      - name: DynamoDB
+        description: Functions that operate with DynamoDB
+        externalDocumentation:
+          url: https://aws.amazon.com/dynamodb/
+          description: How to use DynamoDB
+      - name: OpenSearch
+        description: Functions that operate with ElasticSearch/OpenSearch
+        externalDocumentation:
+          url: https://aws.amazon.com/opensearch-service/
+          description: How to use Elasticsearch
+    servers:
+      - url: "{url}/content"
+        description: The endpoint
+        variables:
+          url:
+            default: https://uat.example.com
+            description: the API URL
+    securitySchemes:
+      Authorization:
+        type: apiKey
+        name: Authorization
+        in: header
+    models:
+      - name: CreateContentBody
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                content:
+                  type: string
+            examples:
+              - name: content
+                description: The content to create or update
+                value: { content: "my name is" }
+      - name: ContentCreatedResponse
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                contentId:
+                  type: string
+                  format: uuid
+                createdAt:
+                  type: number
+      - name: FilterContentBody
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                size:
+                  type: number
+                keyword:
+                  type: string
+            examples:
+              - name: content
+                description: Filters to use
+                value: { size: 10, keyword: "John" }
+      - name: ErrorResponse
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: string
+                errors:
+                  type: object
+                  nullable: true
+      - name: SuccessResponse
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: string
+
+functions:
+  getContent:
+    handler: handler.getContent
+    events:
+      - httpApi:
+          path: /{contentId}
+          method: GET
+          documentation:
+            description: A method to bring back content from OpenSearch
+            summary: get content from OpenSearch
+            pathParams:
+              - name: contentId
+                description: The id of the piece of content to get
+                schema:
+                  type: string
+                  format: uuid
+            tags:
+              - OpenSearch
+            methodResponses:
+              - statusCode: 200
+                responseBody:
+                  description: The content requested
+                responseModels:
+                  application/json: SuccessResponse
+                owasp: true
+              - statusCode: 404
+                responseBody:
+                  description: An error occured
+                responseModels:
+                  application/json: ErrorResponse
+                owasp: true
+      - http:
+          path: /{contentId}/{path}
+          method: GET
+          documentation:
+            description: A method to bring back content from OpenSearch
+            summary: get content from OpenSearch
+            operationId: getContentByPath
+            pathParams:
+              - name: contentId
+                description: The id of the piece of content to get
+                schema:
+                  type: string
+                  format: uuid
+              - name: path
+                description: The path the content lives at
+                schema:
+                  type: string
+            tags:
+              - OpenSearch
+            methodResponses:
+              - statusCode: 200
+                responseBody:
+                  description: The content requested
+                responseModels:
+                  application/json: SuccessResponse
+                owasp: true
+              - statusCode: 404
+                responseBody:
+                  description: An error occured
+                responseModels:
+                  application/json: ErrorResponse
+                owasp: true
+
+  createContent:
+    handler: handler.createContent
+    events:
+      - http:
+          path: /
+          method: POST
+          documentation:
+            description: A way to create content on OpenSearch
+            summary: Create content on OpenSearch
+            requestBody:
+              description: The content to store on OpenSearch
+            requestModels:
+              application/json: CreateContentBody
+            tags:
+              - OpenSearch
+            methodResponses:
+              - statusCode: 201
+                responseBody:
+                  description: The content requested
+                responseModels:
+                  application/json: ContentCreatedResponse
+                links:
+                  MapContentLink:
+                    operation: mapContent
+                    description: The contentId created here can be used to map content
+                    parameters:
+                      contentId: $response.body#/contentId
+              - statusCode: 404
+                responseBody:
+                  description: An error occured
+                responseModels:
+                  application/json: ErrorResponse
+            security:
+              - Authorization: []
+
+  filterContent:
+    handler: handler.filterContent
+    events:
+      - http:
+          path: /search
+          method: POST
+          documentation:
+            description: A way to search for content on OpenSearch
+            summary: Search content on OpenSearch
+            requestBody:
+              description: Set of filters to be able to filter content on
+            requestModels:
+              application/json: FilterContentBody
+            tags:
+              - OpenSearch
+            methodResponses:
+              - statusCode: 200
+                responseBody:
+                  description: The content requested
+                responseModels:
+                  application/json: SuccessResponse
+              - statusCode: 404
+                responseBody:
+                  description: An error occured
+                responseModels:
+                  application/json: ErrorResponse
+
+  mapContent:
+    handler: handler.mapContent
+    events:
+      - http:
+          path: /{contentId}
+          method: POST
+          documentation:
+            description: Map a piece of content from OpenSearch to DynamoDB
+            summary: Map content to DynamoDB
+            pathParams:
+              - name: contentId
+                description: The id of the piece of content to get
+                schema:
+                  type: string
+                  format: uuid
+            tags:
+              - DynamoDB
+            methodResponses:
+              - statusCode: 201
+                responseBody:
+                  description: The content requested
+                responseModels:
+                  application/json: SuccessResponse
+              - statusCode: 404
+                responseBody:
+                  description: An error occured
+                responseModels:
+                  application/json: ErrorResponse
+            security:
+              - Authorization: []
+
+  updateContent:
+    handler: handler.updateContent
+    events:
+      - http:
+          path: /{contentId}
+          method: PUT
+          documentation:
+            description: A way to update content on OpenSearch
+            summary: Update content on OpenSearch
+            pathParams:
+              - name: contentId
+                description: The id of the piece of content to get
+                schema:
+                  type: string
+                  format: uuid
+            requestBody:
+              description: The content to update on OpenSearch
+            requestModels:
+              application/json: CreateContentBody
+            tags:
+              - OpenSearch
+            methodResponses:
+              - statusCode: 201
+                responseBody:
+                  description: The content requested
+                responseModels:
+                  application/json: SuccessResponse
+              - statusCode: 404
+                responseBody:
+                  description: An error occured
+                responseModels:
+                  application/json: ErrorResponse
+            security:
+              - Authorization: []
