@@ -68,17 +68,10 @@ class SchemaHandler {
       ).catch((err) => {
         if (err.errors) {
           for (const error of err?.errors) {
-            if (error.message.includes("HTTP ERROR")) {
-              //   throw err;
-              throw new Error(
-                `There was an error dereferencing ${
-                  model.name
-                } schema.  \n\n dereferencing message: ${
-                  error.message
-                } \n\n Model received: ${JSON.stringify(model)}`
-              );
-            }
+            this.__HTTPError(error);
           }
+        } else {
+          this.__HTTPError(err);
         }
         return modelSchema;
       });
@@ -108,7 +101,11 @@ class SchemaHandler {
         throw new Error(
           `There was an error converting the ${
             model.name
-          } schema. Model received looks like: \n\n${JSON.stringify(model)}`
+          } schema. Model received looks like: \n\n${JSON.stringify(
+            model
+          )}.  The convereted schema looks like \n\n${JSON.stringify(
+            convertedSchemas
+          )}`
         );
       }
     }
@@ -228,6 +225,19 @@ class SchemaHandler {
       };
 
       Object.assign(this.openAPI, components);
+    }
+  }
+
+  __HTTPError(error) {
+    if (error.message.includes("HTTP ERROR")) {
+      //   throw err;
+      throw new Error(
+        `There was an error dereferencing ${
+          model.name
+        } schema.  \n\n dereferencing message: ${
+          error.message
+        } \n\n Model received: ${JSON.stringify(model)}`
+      );
     }
   }
 }
