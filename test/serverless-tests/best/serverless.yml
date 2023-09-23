@@ -1,8 +1,8 @@
 service: serverless-openapi-doc-demo
-frameworkVersion: ">=3.0.0 < 4.0.0"
+frameworkVersion: "3"
 provider:
   name: aws
-  runtime: nodejs14.x
+  runtime: nodejs18.x
 
 plugins:
   - ../../../index.js
