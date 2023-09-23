@@ -751,6 +751,8 @@ requestModels:
 
 #### `methodResponses`
 
+`methodResponses` is a mandatory property and should include the `responseBody` and `description` properties.
+
 You can define the response schemas by defining properties for your function event.
 
 For an example of a `methodResponses` configuration for an event see below:
@@ -763,6 +765,12 @@ methodResponse:
     responseModels:
       application/json: "CreateResponse"
       application/xml: "CreateResponseXML"
+    links:
+      getDataLink:
+        operation: getData
+        description: The id created here can be used to get Data
+        parameters:
+          contentId: $response.body#/id
     responseHeaders:
       X-Rate-Limit-Limit:
         description: The number of allowed requests in the current period
@@ -787,6 +795,53 @@ responseModels:
   application/json: "CreateResponse"
   application/xml: "CreateResponseXML"
 ```
+
+##### `links`
+
+The `links` property allows you to define how operations are linked to each other:
+
+```yml
+links:
+  linkName:
+    operation: getContent
+    description: The contentId created here can be used to get content
+    parameters:
+      contentId: $response.body#/contentId
+```
+
+Where we are specifying operation, this should map to the function name:
+
+```yml
+functions:
+  createContent:
+    events:
+      - httpApi:
+          path: /
+          method: POST
+          documentation: ...
+  getContent:
+    events:
+      - http:
+          path: /{contentId}
+          method: POST
+          documentation: ...
+```
+
+If our example link was attached to the **createContent** function, and we wanted the `contentId` that was created to be used on the **getContent** function in the `contentId` parameter, we'd specify the `operation` property as **getContent**. If however, you had specified an operationId in the documentation to override the automatically created one:
+
+```yml
+getContent:
+  events:
+    - http:
+        path: /{contentId}
+        method: POST
+        documentation:
+          operationId: getMyContent
+```
+
+You can refer to the `operationId` that you created.
+
+You can read more about [links](https://swagger.io/docs/specification/links/) on the swagger.io site and in the [OpenAPI](https://spec.openapis.org/oas/v3.0.3#link-object) specification. They don't seem widely supported just yet, but perhaps they'll improve your documentation.
 
 ##### `responseHeaders`
 
@@ -882,7 +937,7 @@ This will set the `Cache-Control` Response Header to have a value of "no-store" 
 
 ## Example configuration
 
-Please view the example [serverless.yml](test/serverless-tests/serverless%202/serverless.yml).
+Please view the example [serverless.yml](test/serverless-tests/best/serverless.yml).
 
 ## Notes on schemas
 
