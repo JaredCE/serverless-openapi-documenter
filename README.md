@@ -49,6 +49,7 @@ Options:
 --indent                -i  File indentation in spaces. Default: 2
 --openApiVersion        -a  OpenAPI version to generate for. Default: 3.0.0
 --postmanCollection     -p  Will generate a postman collection (from the generated openAPI documentation), in json only, if passed in. Default postman.json
+--validationWarn        -w  Warn about validation errors only.  Will write the OpenAPI file if generation is successful.  Default: false
 ```
 
 ### README Highlighted Reading
