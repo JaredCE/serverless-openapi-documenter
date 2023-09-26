@@ -179,11 +179,11 @@ class DefinitionGenerator {
             throw err;
           });
 
-          if (httpFunction.functionInfo?.summary)
-            path.summary = httpFunction.functionInfo.summary;
+          // if (httpFunction.functionInfo?.summary)
+          //   path.summary = httpFunction.functionInfo.summary;
 
-          if (httpFunction.functionInfo?.description)
-            path.description = httpFunction.functionInfo.description;
+          // if (httpFunction.functionInfo?.description)
+          //   path.description = httpFunction.functionInfo.description;
 
           if (httpFunction.functionInfo?.servers) {
             const servers = this.createServers(
