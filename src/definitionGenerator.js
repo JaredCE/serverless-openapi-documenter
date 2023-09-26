@@ -910,16 +910,20 @@ class DefinitionGenerator {
   cleanupLinks() {
     for (const path of Object.keys(this.openAPI.paths)) {
       for (const [name, value] of Object.entries(this.openAPI.paths[path])) {
-        for (const [statusCode, responseObj] of Object.entries(
-          value.responses
-        )) {
-          if (responseObj.links) {
-            for (const [linkName, linkObj] of Object.entries(
-              responseObj.links
-            )) {
-              const opId = linkObj.operationId;
-              if (this.functionMap[opId]) {
-                linkObj.operationId = this.functionMap[opId][0];
+        if (
+          RegExp(/(get|put|post|delete|options|head|patch|trace)/i).test(name)
+        ) {
+          for (const [statusCode, responseObj] of Object.entries(
+            value?.responses
+          )) {
+            if (responseObj.links) {
+              for (const [linkName, linkObj] of Object.entries(
+                responseObj.links
+              )) {
+                const opId = linkObj.operationId;
+                if (this.functionMap[opId]) {
+                  linkObj.operationId = this.functionMap[opId][0];
+                }
               }
             }
           }
