@@ -96,8 +96,6 @@ Options:
 | tags[].externalDocs.url                                   | custom.documentation.tags.externalDocumentation.url                                                                                                   |
 | tags[].externalDocs.description                           | custom.documentation.tags.externalDocumentation.description                                                                                           |
 | path[path]                                                | functions.functions.events.[http OR httpApi].path                                                                                                     |
-| path[path].summary                                        | functions.functions.summary                                                                                                                           |
-| path[path].description                                    | functions.functions.description                                                                                                                       |
 | path[path].servers[].description                          | functions.functions.servers.description                                                                                                               |
 | path[path].servers[].url                                  | functions.functions.servers.url                                                                                                                       |
 | path[path].[operation]                                    | functions.functions.[http OR httpApi].method                                                                                                          |
