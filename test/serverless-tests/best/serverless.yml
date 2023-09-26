@@ -96,6 +96,8 @@ custom:
 functions:
   getContent:
     handler: handler.getContent
+    description: this is the overarching paths description for the following paths
+    summary: overarching paths for getContent
     events:
       - httpApi:
           path: /{contentId}
