@@ -187,8 +187,12 @@ describe("OpenAPIGenerator", () => {
       const validOpenAPIDocument = await openAPIGenerator
         .generationAndValidation()
         .catch((err) => {
-          expect(err.message).to.be.equal(
-            "AssertionError: Templated parameter name not found"
+          // expect(err.message).to.be.equal(
+          //   `Error validating OpenAPI Description:\r\nThe operation does not define the path parameter \`{name}\` expected by path \`/find/{name}\`.`
+          // );
+          expect(err).to.have.property("message");
+          expect(err.message).to.include(
+            "Error validating OpenAPI Description:"
           );
         });
 

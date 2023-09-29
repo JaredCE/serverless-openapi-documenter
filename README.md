@@ -44,11 +44,11 @@ To Run: `serverless openapi generate -o openapi.json -f json -a 3.0.3 -p postman
 Options:
 
 ```
---output                -o  What filename the OpenAPI documentation should output under. Default: openapi.json
---format                -f  Whether to output the OpenAPI documentation as json or yaml. Default: json
+--output                -o  What filename the OpenAPI Description should output under. Default: openapi.json
+--format                -f  Whether to output the OpenAPI Description as json or yaml. Default: json
 --indent                -i  File indentation in spaces. Default: 2
 --openApiVersion        -a  OpenAPI version to generate for. Default: 3.0.0
---postmanCollection     -p  Will generate a postman collection (from the generated openAPI documentation), in json only, if passed in. Default postman.json
+--postmanCollection     -p  Will generate a postman collection (from the generated OpenAPI Description), in json only, if passed in. Default postman.json
 --validationWarn        -w  Warn about validation errors only.  Will write the OpenAPI file if generation is successful.  Default: false
 ```
 
@@ -70,6 +70,10 @@ Options:
 
 - [CORS](#cors)
 - [OWASP Secure Headers](#owasp)
+
+#### Validation
+
+- [Validation](#validator)
 
 ### OpenAPI Mapping
 
@@ -133,7 +137,7 @@ Options:
 
 ### Configuration
 
-To configure this plugin to generate valid OpenAPI documentation there are two places you'll need to modify in your `serverless.yml` file, the `custom` variables section and the `http/httpApi` event section for each given function in your service.
+To configure this plugin to generate a valid OpenAPI Description, there are two places you'll need to modify in your `serverless.yml` file, the `custom` variables section and the `http/httpApi` event section for each given function in your service.
 
 The `custom` section of your `serverless.yml` can be configured as below:
 
@@ -934,6 +938,12 @@ methodResponse:
 
 This will set the `Cache-Control` Response Header to have a value of "no-store" rather than any value the OWASP Secure Headers Project recommends.
 
+## Validator
+
+Validation for the OpenAPI Description is now (as of 0.0.90) done by [Redocly](https://redocly.com/). This is a slightly less opinionated validator for an OpenAPI Description, it should result in less errors around "YAML Anchors". It's also a maintained library, and has support for OpenAPI 3.1.0 which I hope to be able to support very soon.
+
+I am making use of https://www.npmjs.com/package/@redocly/openapi-core, which I have been warned is likely to change. If you notice anything going wrong with validation of your OpenAPI Description, feel free to open an issue here. I make active use of this library, so will hopefully come across those issues too.
+
 ## Example configuration
 
 Please view the example [serverless.yml](test/serverless-tests/best/serverless.yml).
@@ -975,7 +985,7 @@ We use the plugin [JSON Schema $Ref Parser](https://apitools.dev/json-schema-ref
 }
 ```
 
-Where the definition "link" refers to a schema held in a directory that the resolver does not know about, we will not be able to fully resolve the schema which will likely cause errors in validation of the openAPI 3.0.X specification.
+Where the definition "link" refers to a schema held in a directory that the resolver does not know about, we will not be able to fully resolve the schema which will likely cause errors in validation of the OpenAPI 3.0.X Description.
 
 Because of the dependency we use to parse externally linked schemas, we can supply our own options to resolve schemas that are more difficult than a straight forward example.
 

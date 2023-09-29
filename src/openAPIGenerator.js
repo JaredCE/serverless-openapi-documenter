@@ -30,7 +30,7 @@ class OpenAPIGenerator {
         commands: {
           generate: {
             lifecycleEvents: ["serverless"],
-            usage: "Generate OpenAPI v3 Documentation",
+            usage: "Generate OpenAPI v3 Description",
             options: {
               output: {
                 usage: "Output file location [default: openapi.json|yml]",
@@ -60,7 +60,7 @@ class OpenAPIGenerator {
               },
               validationWarn: {
                 usage:
-                  "Only warn about validation errors of the OpenAPI document, write the file if parsing is successful [default: false]",
+                  "Only warn about validation errors of the OpenAPI Description, write the file if parsing is successful [default: false]",
                 shortcut: "w",
                 type: "boolean",
               },
@@ -144,7 +144,7 @@ class OpenAPIGenerator {
   }
 
   async generate() {
-    this.log(chalk.bold.underline("OpenAPI v3 Document Generation"));
+    this.log(chalk.bold.underline("OpenAPI v3 Description Generation"));
     this.processCliInput();
 
     const validOpenAPI = await this.generationAndValidation().catch((err) => {
@@ -168,12 +168,12 @@ class OpenAPIGenerator {
     try {
       fs.writeFileSync(this.config.file, output);
       this.log(
-        "OpenAPI v3 Documentation Successfully Written",
+        "OpenAPI v3 Description Successfully Written",
         this.logTypes.SUCCESS
       );
     } catch (err) {
       this.log(
-        `ERROR: An error was thrown whilst writing the openAPI Documentation`,
+        `ERROR: An error was thrown whilst writing the OpenAPI Description`,
         this.logTypes.ERROR
       );
       throw new this.serverless.classes.Error(err);
@@ -183,33 +183,37 @@ class OpenAPIGenerator {
   async generationAndValidation() {
     const generator = new DefinitionGenerator(this.serverless);
 
-    this.log(`Generating OpenAPI documentation`, this.logTypes.NOTICE);
+    this.log(`Generating OpenAPI Description`, this.logTypes.NOTICE);
     await generator.parse().catch((err) => {
       this.log(
-        `ERROR: An error was thrown generating the OpenAPI v3 documentation`,
+        `ERROR: An error was thrown generating the OpenAPI v3 Description`,
         this.logTypes.ERROR
       );
       throw new this.serverless.classes.Error(err);
     });
 
-    this.log(
-      `Validating generated OpenAPI documentation`,
-      this.logTypes.NOTICE
-    );
+    this.log(`Validating generated OpenAPI Description`, this.logTypes.NOTICE);
 
     await generator.validate().catch((err) => {
       this.log(
-        `ERROR: An error was thrown validating the OpenAPI v3 documentation`,
+        `ERROR: An error was thrown validating the OpenAPI v3 Description`,
         this.logTypes.ERROR
       );
+
       this.validationErrorDetails(err);
+
       if (this.config.validationWarn === false) {
-        throw new this.serverless.classes.Error(err);
+        let message = "Error validating OpenAPI Description:\r\n";
+        for (const errorMessage of err) {
+          message += `${errorMessage.message}\r\n`;
+        }
+
+        throw new this.serverless.classes.Error(message);
       }
     });
 
     this.log(
-      "OpenAPI v3 Documentation Successfully Generated",
+      "OpenAPI v3 Description Successfully Generated",
       this.logTypes.SUCCESS
     );
 
@@ -305,27 +309,22 @@ class OpenAPIGenerator {
     this.log(
       `${chalk.bold.yellow(
         "[VALIDATION]"
-      )} Failed to validate OpenAPI document: \n`,
+      )} Validation errors found in OpenAPI Description: \n`,
       this.logTypes.ERROR
     );
-    this.log(
-      `${chalk.bold.yellow("Context:")} ${JSON.stringify(
-        validationError.options.context[
-          validationError.options.context.length - 1
-        ],
-        null,
-        2
-      )}\n`,
-      this.logTypes.ERROR
-    );
-    this.log(
-      `${chalk.bold.yellow("Error Message:")} ${JSON.stringify(
-        validationError.message,
-        null,
-        2
-      )}\n`,
-      this.logTypes.ERROR
-    );
+
+    for (const error of validationError) {
+      this.log(
+        `${chalk.bold.yellow("Message:")} ${error.message}`,
+        this.logTypes.ERROR
+      );
+      for (const location of error.location) {
+        this.log(
+          `${chalk.bold.yellow("found at location:")} ${location.pointer}`,
+          this.logTypes.ERROR
+        );
+      }
+    }
   }
 }
 
