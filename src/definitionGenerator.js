@@ -2,8 +2,13 @@
 
 const path = require("path");
 
+const {
+  Config,
+  lintFromString,
+  stringifyYaml,
+  createConfig,
+} = require("@redocly/openapi-core");
 const isEqual = require("lodash.isequal");
-const validator = require("oas-validator");
 const { v4: uuid } = require("uuid");
 
 const SchemaHandler = require("./schemaHandler");
@@ -971,9 +976,35 @@ class DefinitionGenerator {
   }
 
   async validate() {
-    return await validator.validateInner(this.openAPI, {}).catch((err) => {
+    const config = await createConfig({
+      apis: {},
+      // styleguide: {
+      rules: {
+        spec: "error",
+        "path-parameters-defined": "error",
+        "operation-2xx-response": "error",
+        "operation-4xx-response": "error",
+        "operation-operationId-unique": "error",
+        "path-declaration-must-exist": "error",
+      },
+      // },
+    });
+
+    const apiDesc = stringifyYaml(this.openAPI);
+
+    const results = await lintFromString({
+      source: apiDesc,
+      config: config,
+    }).catch((err) => {
+      console.error(err);
       throw err;
     });
+
+    if (results.length) {
+      throw results;
+    }
+
+    return true;
   }
 }
 
