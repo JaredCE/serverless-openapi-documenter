@@ -1,35 +1,44 @@
 {
-    "createUser": {
-        "name": "createUser",
-        "handler": "handler.create",
-        "events": [
-            {
-                "http": {
-                    "path": "find/{name}",
-                    "method": "get",
-                    "documentation": {
-                        "pathParams": [
-                            {
-                                "name": "name",
-                                "schema": {
-                                    "type": "string"
-                                }
-                            }
-                        ],
-                        "methodResponses": [
-                            {
-                                "statusCode": 200,
-                                "responseBody": {
-                                    "description": "A user object along with generated API Keys"
-                                },
-                                "responseModels": {
-                                    "application/json": "SuccessResponse"
-                                }
-                            }
-                        ]
-                    }
+  "createUser": {
+    "name": "createUser",
+    "handler": "handler.create",
+    "events": [
+      {
+        "http": {
+          "path": "find/{name}",
+          "method": "get",
+          "documentation": {
+            "pathParams": [
+              {
+                "name": "name",
+                "schema": {
+                  "type": "string"
                 }
-            }
-        ]
-    }
+              }
+            ],
+            "methodResponses": [
+              {
+                "statusCode": 200,
+                "responseBody": {
+                  "description": "A user object along with generated API Keys"
+                },
+                "responseModels": {
+                  "application/json": "SuccessResponse"
+                }
+              },
+              {
+                "statusCode": 400,
+                "responseBody": {
+                  "description": "An Error"
+                },
+                "responseModels": {
+                  "application/json": "ErrorResponse"
+                }
+              }
+            ]
+          }
+        }
+      }
+    ]
+  }
 }
