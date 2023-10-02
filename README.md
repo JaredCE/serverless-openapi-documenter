@@ -942,6 +942,15 @@ This will set the `Cache-Control` Response Header to have a value of "no-store" 
 
 Validation for the OpenAPI Description is now (as of 0.0.90) done by [Redocly](https://redocly.com/). This is a slightly less opinionated validator for an OpenAPI Description, it should result in less errors around "YAML Anchors". It's also a maintained library, and has support for OpenAPI 3.1.0 which I hope to be able to support very soon.
 
+I have configured the validator to use these Rules:
+
+* [spec](https://redocly.com/docs/cli/rules/spec/)
+* [path-parameters-defined](https://redocly.com/docs/cli/rules/path-parameters-defined/)
+* [operation-2xx-response](https://redocly.com/docs/cli/rules/operation-2xx-response/)
+* [operation-4xx-response](https://redocly.com/docs/cli/rules/operation-4xx-response/)
+* [operation-operationId-unique](https://redocly.com/docs/cli/rules/operation-operationid-unique/)
+* [path-declaration-must-exist](https://redocly.com/docs/cli/rules/path-declaration-must-exist/)
+
 I am making use of https://www.npmjs.com/package/@redocly/openapi-core, which I have been warned is likely to change. If you notice anything going wrong with validation of your OpenAPI Description, feel free to open an issue here. I make active use of this library, so will hopefully come across those issues too.
 
 ## Example configuration
