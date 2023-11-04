@@ -116,6 +116,7 @@ class OpenAPIGenerator {
       properties: {
         summary: { type: "string" },
         servers: { anyOf: [{ type: "object" }, { type: "array" }] },
+        ['x-code-samples']: { type: "array" },
       },
     });
   }

@@ -102,6 +102,9 @@ Options:
 | path[path]                                                | functions.functions.events.[http OR httpApi].path                                                                                                     |
 | path[path].servers[].description                          | functions.functions.servers.description                                                                                                               |
 | path[path].servers[].url                                  | functions.functions.servers.url                                                                                                                       |
+| path[path].x-code-samples[].lang                          | functions.functions.x-code-samples.lang                                                                                              |
+| path[path].x-code-samples[].label                         | functions.functions.x-code-samples.label                                                                                             |
+| path[path].x-code-samples[].source                        | functions.functions.x-code-samples.source                                                                                            |
 | path[path].[operation]                                    | functions.functions.[http OR httpApi].method                                                                                                          |
 | path[path].[operation].summary                            | functions.functions.[http OR httpApi].documentation.summary                                                                                           |
 | path[path].[operation].description                        | functions.functions.[http OR httpApi].documentation.description                                                                                       |

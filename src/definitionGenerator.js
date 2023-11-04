@@ -253,6 +253,32 @@ class DefinitionGenerator {
     return newServers;
   }
 
+  createXCodeSamples(xCodeSamples) {
+    const newXCodeSamples = [];
+
+    for (const xCodeSample of xCodeSamples) {
+      const obj = {
+        name: xCodeSample.name,
+      };
+
+      if (xCodeSample.lang) {
+        obj.lang = xCodeSample.lang;
+      }
+
+      if (xCodeSample.label) {
+        obj.label = xCodeSample.label;
+      }
+
+      if (xCodeSample.source) {
+        obj.source = xCodeSample.source;
+      }
+
+      newXCodeSamples.push(obj);
+    }
+    
+    return newXCodeSamples;
+  }
+
   createExternalDocumentation(docs) {
     return { ...docs };
     // const documentation = this.serverless.service.custom.documentation
@@ -417,6 +443,11 @@ class DefinitionGenerator {
     if (documentation.servers) {
       const servers = this.createServers(documentation.servers);
       obj.servers = servers;
+    }
+
+    if (documentation['x-code-samples']) {
+      const xCodeSamples  = this.createXCodeSamples(documentation['x-code-samples']);
+      obj['x-code-samples'] = xCodeSamples;
     }
 
     return { [method.toLowerCase()]: obj };
