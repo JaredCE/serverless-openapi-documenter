@@ -20,7 +20,10 @@
     "Postman Collections",
     "AWS",
     "AWS APIGateway",
-    "Api Gateway"
+    "Api Gateway",
+    "APIGateway",
+    "AWSAPIGateway",
+    "Serverless OpenAPI"
   ],
   "scripts": {
     "test": "mocha --config './test/.mocharc.js'"
