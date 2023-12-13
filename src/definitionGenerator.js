@@ -154,10 +154,16 @@ class DefinitionGenerator {
       Object.assign(info, { license: licenseObj });
     }
 
-    for (const key of Object.keys(documentation)) {
-      if (/^[x\-]/i.test(key)) {
-        Object.assign(info, { [key]: documentation[key] });
-      }
+    // for (const key of Object.keys(documentation)) {
+    //   if (/^[x\-]/i.test(key)) {
+    //     Object.assign(info, { [key]: documentation[key] });
+    //   }
+    // }
+
+    const extendedSpec = this.extendSpecification(documentation);
+
+    if (Object.keys(extendedSpec).length) {
+      Object.assign(info, extendedSpec);
     }
 
     Object.assign(this.openAPI, { info });
@@ -417,6 +423,12 @@ class DefinitionGenerator {
     if (documentation.servers) {
       const servers = this.createServers(documentation.servers);
       obj.servers = servers;
+    }
+
+    const extendedSpec = this.extendSpecification(documentation);
+
+    if (Object.keys(extendedSpec).length) {
+      Object.assign(obj, extendedSpec);
     }
 
     return { [method.toLowerCase()]: obj };
@@ -935,6 +947,17 @@ class DefinitionGenerator {
         }
       }
     }
+  }
+
+  extendSpecification(spec) {
+    const obj = {};
+    for (const key of Object.keys(spec)) {
+      if (/^[x\-]/i.test(key)) {
+        Object.assign(obj, { [key]: spec[key] });
+      }
+    }
+
+    return obj;
   }
 
   getHTTPFunctions() {
