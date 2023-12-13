@@ -946,6 +946,7 @@ class DefinitionGenerator {
       )
         return true;
     };
+
     const functionNames = this.serverless.service.getAllFunctions();
 
     return functionNames
@@ -957,16 +958,14 @@ class DefinitionGenerator {
       })
       .map((functionType) => {
         const event = functionType.events.filter(isHttpFunction);
-        const name = functionType.name.split(
-          `${this.serverless.service.service}-${this.serverless.service.provider.stage}-`
-        )[1];
+        const operationName = functionType.name.split("-").slice(-1).pop();
 
         Object.assign(this.functionMap, {
-          [name]: [],
+          [operationName]: [],
         });
 
         return {
-          operationName: name,
+          operationName: operationName,
           functionInfo: functionType,
           handler: functionType.handler,
           name: functionType.name,
