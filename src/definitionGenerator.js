@@ -597,10 +597,13 @@ class DefinitionGenerator {
   async createMediaTypeObject(models, type) {
     const mediaTypeObj = {};
     for (const mediaTypeDocumentation of this.schemaHandler.models) {
-      if (models === undefined || models === null) {
-        throw new Error(
-          `${this.currentFunctionName} is missing a Response Model for statusCode ${this.currentStatusCode}`
-        );
+      // 204 responses do not have a response model
+      if (this.currentStatusCode != "204") {
+        if (models === undefined || models === null) {
+          throw new Error(
+            `${this.currentFunctionName} is missing a Response Model for statusCode ${this.currentStatusCode}`
+          );
+        }
       }
 
       if (Object.values(models).includes(mediaTypeDocumentation.name)) {
