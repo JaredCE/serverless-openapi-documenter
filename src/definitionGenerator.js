@@ -443,12 +443,14 @@ class DefinitionGenerator {
 
       this.currentStatusCode = response.statusCode;
 
-      obj.content = await this.createMediaTypeObject(
-        response.responseModels,
-        "responses"
-      ).catch((err) => {
-        throw err;
-      });
+      if (Object.keys(response.responseModels).length) {
+        obj.content = await this.createMediaTypeObject(
+          response.responseModels,
+          "responses"
+        ).catch((err) => {
+          throw err;
+        });
+      }
 
       if (response.responseHeaders) {
         obj.headers = await this.createResponseHeaders(
@@ -596,6 +598,7 @@ class DefinitionGenerator {
 
   async createMediaTypeObject(models, type) {
     const mediaTypeObj = {};
+
     for (const mediaTypeDocumentation of this.schemaHandler.models) {
       if (models === undefined || models === null) {
         throw new Error(
