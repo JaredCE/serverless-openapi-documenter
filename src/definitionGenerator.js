@@ -443,7 +443,7 @@ class DefinitionGenerator {
 
       this.currentStatusCode = response.statusCode;
 
-      if (Object.keys(response.responseModels).length) {
+      if (response?.responseModels) {
         obj.content = await this.createMediaTypeObject(
           response.responseModels,
           "responses"
