@@ -46,7 +46,7 @@
     "js-yaml": "^4.1.0",
     "json-schema-for-openapi": "^0.4.3",
     "lodash.isequal": "^4.5.0",
-    "openapi-to-postmanv2": "^4.18.0",
+    "openapi-to-postmanv2": "^4.21.0",
     "swagger2openapi": "^7.0.8",
     "uuid": "^9.0.1"
   },
