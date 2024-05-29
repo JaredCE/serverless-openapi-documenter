@@ -54,7 +54,7 @@
     "node": ">=14"
   },
   "devDependencies": {
-    "chai": "^4.3.10",
+    "chai": "^5.1.1",
     "mocha": "^10.4.0",
     "nock": "^13.5.4",
     "sinon": "^18.0.0"
