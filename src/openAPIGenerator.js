@@ -133,6 +133,7 @@ class OpenAPIGenerator {
         this.serverless.cli.log(colouredString);
         break;
 
+      case "4":
       case "3":
         this.logOutput[type](str);
         break;
