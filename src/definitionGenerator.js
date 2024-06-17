@@ -70,6 +70,19 @@ class DefinitionGenerator {
     };
 
     try {
+      this.REDOCLY_RULES = require(path.resolve("options", "redocly.json"));
+    } catch (err) {
+      this.REDOCLY_RULES = {
+        spec: "error",
+        "path-parameters-defined": "error",
+        "operation-2xx-response": "error",
+        "operation-4xx-response": "error",
+        "operation-operationId-unique": "error",
+        "path-declaration-must-exist": "error",
+      };
+    }
+
+    try {
       this.refParserOptions = require(path.resolve("options", "ref-parser.js"));
     } catch (err) {
       this.refParserOptions = {};
@@ -1003,16 +1016,7 @@ class DefinitionGenerator {
   async validate() {
     const config = await createConfig({
       apis: {},
-      // styleguide: {
-      rules: {
-        spec: "error",
-        "path-parameters-defined": "error",
-        "operation-2xx-response": "error",
-        "operation-4xx-response": "error",
-        "operation-operationId-unique": "error",
-        "path-declaration-must-exist": "error",
-      },
-      // },
+      rules: this.REDOCLY_RULES,
     });
 
     const apiDesc = stringifyYaml(this.openAPI);
