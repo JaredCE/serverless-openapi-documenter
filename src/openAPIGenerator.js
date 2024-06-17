@@ -195,23 +195,29 @@ class OpenAPIGenerator {
 
     this.log(`Validating generated OpenAPI Description`, this.logTypes.NOTICE);
 
-    await generator.validate().catch((err) => {
+    const validationResults = await generator.validate().catch((err) => {
       this.log(
         `ERROR: An error was thrown validating the OpenAPI v3 Description`,
         this.logTypes.ERROR
       );
 
-      this.validationErrorDetails(err);
-
-      if (this.config.validationWarn === false) {
-        let message = "Error validating OpenAPI Description:\r\n";
-        for (const errorMessage of err) {
-          message += `${errorMessage.message}\r\n`;
-        }
-
-        throw new this.serverless.classes.Error(message);
-      }
+      throw new this.serverless.classes.Error(err);
     });
+
+    this.validationErrorDetails(validationResults);
+
+    if (validationResults.length && this.config.validationWarn === false) {
+      let message = "Error validating OpenAPI Description:\r\n";
+      let shouldThrow = false;
+      for (const error of validationResults) {
+        message += `${error.message}\r\n`;
+        if (error.severity === "error") {
+          shouldThrow = true;
+        }
+      }
+
+      if (shouldThrow) throw new this.serverless.classes.Error(message);
+    }
 
     this.log(
       "OpenAPI v3 Description Successfully Generated",
@@ -306,24 +312,30 @@ class OpenAPIGenerator {
     this.config = config;
   }
 
-  validationErrorDetails(validationError) {
-    this.log(
-      `${chalk.bold.yellow(
-        "[VALIDATION]"
-      )} Validation errors found in OpenAPI Description: \n`,
-      this.logTypes.ERROR
-    );
-
-    for (const error of validationError) {
+  validationErrorDetails(validationErrors) {
+    if (validationErrors.length) {
       this.log(
-        `${chalk.bold.yellow("Message:")} ${error.message}`,
+        `${chalk.bold.yellow(
+          "[VALIDATION]"
+        )} Validation errors found in OpenAPI Description: \n`,
         this.logTypes.ERROR
       );
-      for (const location of error.location) {
+
+      for (const error of validationErrors) {
         this.log(
-          `${chalk.bold.yellow("found at location:")} ${location.pointer}`,
+          `${chalk.bold.red("Severity:")} ${error.severity}`,
           this.logTypes.ERROR
         );
+        this.log(
+          `${chalk.bold.yellow("Message:")} ${error.message}`,
+          this.logTypes.ERROR
+        );
+        for (const location of error.location) {
+          this.log(
+            `${chalk.bold.yellow("found at location:")} ${location.pointer}`,
+            this.logTypes.ERROR
+          );
+        }
       }
     }
   }
