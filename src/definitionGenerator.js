@@ -70,6 +70,7 @@ class DefinitionGenerator {
     };
 
     try {
+      console.log(path.resolve(""));
       this.REDOCLY_RULES = require(path.resolve("options", "redocly.json"));
     } catch (err) {
       this.REDOCLY_RULES = {
