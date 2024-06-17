@@ -48,7 +48,7 @@ Options:
 --format                -f  Whether to output the OpenAPI Description as json or yaml. Default: json
 --indent                -i  File indentation in spaces. Default: 2
 --openApiVersion        -a  OpenAPI version to generate for. Default: 3.0.0
---postmanCollection     -p  Will generate a postman collection (from the generated OpenAPI Description), in json only, if passed in. Default postman.json
+--postmanCollection     -p  Will generate a postman collection (from the generated OpenAPI Description), in json only, if passed in. Default: postman.json
 --validationWarn        -w  Warn about validation errors only.  Will write the OpenAPI file if generation is successful.  Default: false
 ```
 
@@ -967,6 +967,8 @@ However, you can configure your own rules from the [ruleset available on the Red
   "path-declaration-must-exist": "error"
 }
 ```
+
+Since rules can be set to "warn", you no longer are required to tell the plugin to ignore errors with the `--validationWarn` flag.
 
 ## Example configuration
 
