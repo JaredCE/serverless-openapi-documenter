@@ -13,9 +13,15 @@ describe("DefinitionGenerator", () => {
   const v4 = new RegExp(
     /^[0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}$/i
   );
+
   beforeEach(function () {
     mockServerless = JSON.parse(JSON.stringify(serverlessMock));
     Object.assign(mockServerless.service.custom.documentation, modelsDocument);
+  });
+
+  after(function () {
+    delete require
+      .cache[require.resolve(`${path.resolve("options")}/redocly.json`)];
   });
 
   describe("constructor", () => {
