@@ -1021,19 +1021,13 @@ class DefinitionGenerator {
 
     const apiDesc = stringifyYaml(this.openAPI);
 
-    const results = await lintFromString({
+    return await lintFromString({
       source: apiDesc,
       config: config,
     }).catch((err) => {
       console.error(err);
       throw err;
     });
-
-    if (results.length) {
-      throw results;
-    }
-
-    return true;
   }
 }
 
