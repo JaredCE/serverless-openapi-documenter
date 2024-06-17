@@ -1,6 +1,8 @@
 "use strict";
 
 const fs = require("fs");
+const path = require("path");
+
 const PostmanGenerator = require("openapi-to-postmanv2");
 const sinon = require("sinon");
 const expect = require("chai").expect;
@@ -14,6 +16,7 @@ const OpenAPIGenerator = require("../../src/openAPIGenerator");
 
 describe("OpenAPIGenerator", () => {
   let sls, logOutput;
+
   beforeEach(function () {
     sls = {
       service: {
@@ -56,6 +59,11 @@ describe("OpenAPIGenerator", () => {
         success: (str) => {},
       },
     };
+  });
+
+  after(function () {
+    delete require
+      .cache[require.resolve(`${path.resolve("options")}/redocly.json`)];
   });
 
   describe("generationAndValidation", () => {
@@ -168,9 +176,11 @@ describe("OpenAPIGenerator", () => {
       const errSpy = sinon.spy(logOutput.log, "error");
 
       Object.assign(sls.service, basicDocumentation);
+
       const getAllFuncsStub = sinon
         .stub(sls.service, "getAllFunctions")
         .returns(["createUser"]);
+
       const basicInvalidFunction = JSON.parse(
         JSON.stringify(basicValidFunction)
       );
