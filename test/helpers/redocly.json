@@ -1,0 +1,4 @@
+{
+  "spec": "error",
+  "operation-2xx-response": "warn"
+}
