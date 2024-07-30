@@ -18,7 +18,7 @@ Originally based off of: https://github.com/temando/serverless-openapi-documenta
 
 ## Install
 
-This plugin works for Serverless 2.x and up and only supports node.js 14 and up.
+This plugin works for Serverless (2.x, 3.x and 4.x) and only supports node.js 14 and up.
 
 To add this plugin to your package.json:
 
