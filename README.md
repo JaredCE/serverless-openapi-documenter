@@ -18,7 +18,7 @@ Originally based off of: https://github.com/temando/serverless-openapi-documenta
 
 ## Install
 
-This plugin works for Serverless 2.x and up and only supports node.js 14 and up.
+This plugin works for Serverless (2.x, 3.x and 4.x) and only supports node.js 14 and up.
 
 To add this plugin to your package.json:
 
@@ -79,26 +79,30 @@ Options:
 
 | OpenAPI field                                             | Serverless field                                                                                                                                      |
 | --------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| info.title                                                | custom.documentation.title OR service                                                                                                                 |
-| info.description                                          | custom.documentation.description OR blank string                                                                                                      |
-| info.version                                              | custom.documentation.version OR random v4 uuid if not provided                                                                                        |
-| info.termsOfService                                       | custom.documentation.termsOfService                                                                                                                   |
+| info.title                                                | `custom.documentation.title` OR service                                                                                                               |
+| info.description                                          | `custom.documentation.description` OR blank string                                                                                                    |
+| info.version                                              | `custom.documentation.version` OR random v4 uuid if not provided                                                                                      |
+| info.termsOfService                                       | `custom.documentation.termsOfService`                                                                                                                 |
 | info.contact                                              | custom.documentation.contact                                                                                                                          |
-| info.contact.name                                         | custom.documentation.contact.name OR blank string                                                                                                     |
-| info.contact.url                                          | custom.documentation.contact.url if provided                                                                                                          |
+| info.contact.name                                         | `custom.documentation.contact.name` OR blank string                                                                                                   |
+| info.contact.url                                          | `custom.documentation.contact.url` if provided                                                                                                        |
+| info.contact.x-                                           | `custom.documentation.contact.x-` extended specifications provided                                                                                    |
 | info.license                                              | custom.documentation.license                                                                                                                          |
-| info.license.name                                         | custom.documentation.license.name OR blank string                                                                                                     |
-| info.license.url                                          | custom.documentation.license.url if provided                                                                                                          |
-| externalDocs.description                                  | custom.documentation.externalDocumentation.description                                                                                                |
-| externalDocs.url                                          | custom.documentation.externalDocumentation.url                                                                                                        |
-| security                                                  | custom.documentation.security                                                                                                                         |
+| info.license.name                                         | `custom.documentation.license.name` OR blank string                                                                                                   |
+| info.license.url                                          | `custom.documentation.license.url` if provided                                                                                                        |
+| info.license.x-                                           | `custom.documentation.license.x-` if extended specifications provided provided                                                                        |
+| externalDocs.description                                  | `custom.documentation.externalDocumentation.description `                                                                                             |
+| externalDocs.url                                          | `custom.documentation.externalDocumentation.url`                                                                                                      |
+| x-tagGroups                                               | `custom.documentation.x-tagGroups` if provided                                                                                                        |
+| security                                                  | `custom.documentation.security`                                                                                                                       |
 | servers[].description                                     | custom.documentation.servers.description                                                                                                              |
 | servers[].url                                             | custom.documentation.servers.url                                                                                                                      |
 | servers[].variables                                       | custom.documentation.servers.variables                                                                                                                |
-| tags[].name                                               | custom.documentation.tags.name                                                                                                                        |
-| tags[].description                                        | custom.documentation.tags.description                                                                                                                 |
-| tags[].externalDocs.url                                   | custom.documentation.tags.externalDocumentation.url                                                                                                   |
-| tags[].externalDocs.description                           | custom.documentation.tags.externalDocumentation.description                                                                                           |
+| tags[].name                                               | `custom.documentation.tags.name`                                                                                                                      |
+| tags[].description                                        | `custom.documentation.tags.description`                                                                                                               |
+| tags[].externalDocs.url                                   | `custom.documentation.tags.externalDocumentation.url`                                                                                                 |
+| tags[].externalDocs.description                           | `custom.documentation.tags.externalDocumentation.description`                                                                                         |
+| tags[].externalDocs.x-                                    | `custom.documentation.tags.externalDocumentation.x-` if extended specifications provided                                                              |
 | path[path]                                                | functions.functions.events.[http OR httpApi].path                                                                                                     |
 | path[path].servers[].description                          | functions.functions.servers.description                                                                                                               |
 | path[path].servers[].url                                  | functions.functions.servers.url                                                                                                                       |
@@ -189,7 +193,9 @@ custom:
       email: John@example.com
 ```
 
-These fields are optional, though `url` and `email` need to be in the format of an email address (ed: what that might be, i'm not 100% sure... go read the email RFC(s)) and a url.
+These fields are optional, though `url` needs to in the form of a URL and `email` needs to be in the format of an email address (ed: what that might be, I'm not 100% sure... go read the email RFC(s)).
+
+This can be extended using the `^x-` specification extension.
 
 #### License
 
@@ -204,6 +210,8 @@ custom:
 ```
 
 Name is required but `url` is optional and must be in the format of a url.
+
+This can be extended using the `^x-` specification extension.
 
 #### Extended Fields
 
@@ -224,6 +232,58 @@ custom:
 ```
 
 `other-field` here will not make it to the generated OpenAPI schema.
+
+Currently extended specification fields defined under the `documentation` tag will sit under the OpenAPI `info` object e.g.
+
+```yml
+custom:
+  documentation:
+    title: myService
+    x-other-field: This is an extended field
+```
+
+converts to:
+
+```json
+{
+  "info": {
+    "title": "myService",
+    "x-other-field": "This is an extended field"
+  }
+}
+```
+
+An exception to this is Redocly `x-tagGroups`. If defined, they will sit at the root level of the OpenAPI specification, e.g.
+
+```yml
+custom:
+  documentation:
+    title: myService
+    x-other-field: This is an extended field
+    x-tagGroups:
+      - name: Customers
+        tags:
+          - Customers
+```
+
+converts to:
+
+```json
+{
+  "info": {
+    "title": "myService",
+    "x-other-field": "This is an extended field"
+  },
+  "x-tagGroups": [
+    {
+      "name": "Customers",
+      "tags": ["Customers"]
+    }
+  ]
+}
+```
+
+#### Moving documentation to a separate file
 
 These configurations can be quite verbose; you can separate it out into it's own file, such as `serverless.doc.yml` as below:
 

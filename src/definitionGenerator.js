@@ -154,6 +154,13 @@ class DefinitionGenerator {
       if (documentation.contact.url) contactObj.url = documentation.contact.url;
 
       contactObj.email = documentation.contact.email || "";
+
+      const extendedSpec = this.extendSpecification(documentation.contact);
+
+      if (Object.keys(extendedSpec).length) {
+        Object.assign(contactObj, extendedSpec);
+      }
+
       Object.assign(info, { contact: contactObj });
     }
 
@@ -164,14 +171,22 @@ class DefinitionGenerator {
       if (documentation.license.url)
         licenseObj.url = documentation.license.url || "";
 
+      const extendedSpec = this.extendSpecification(documentation.license);
+
+      if (Object.keys(extendedSpec).length) {
+        Object.assign(licenseObj, extendedSpec);
+      }
+
       Object.assign(info, { license: licenseObj });
     }
 
-    // for (const key of Object.keys(documentation)) {
-    //   if (/^[x\-]/i.test(key)) {
-    //     Object.assign(info, { [key]: documentation[key] });
-    //   }
-    // }
+    if (documentation["x-tagGroups"]) {
+      Object.assign(this.openAPI, {
+        "x-tagGroups": documentation["x-tagGroups"],
+      });
+
+      delete documentation["x-tagGroups"];
+    }
 
     const extendedSpec = this.extendSpecification(documentation);
 
@@ -237,6 +252,29 @@ class DefinitionGenerator {
     const serverDoc = servers;
     const newServers = [];
 
+    const variableManipulation = (variables) => {
+      for (const key of Object.keys(variables)) {
+        if (variables[key].enum) {
+          const strEnum = variables[key].enum.map((enumVar) =>
+            enumVar.toString()
+          );
+
+          variables[key].enum = strEnum;
+        }
+
+        if (variables[key].default)
+          variables[key].default = variables[key].default.toString();
+
+        const extendedSpec = this.extendSpecification(variables[key]);
+
+        if (Object.keys(extendedSpec).length) {
+          Object.assign(variables[key], extendedSpec);
+        }
+      }
+
+      return variables;
+    };
+
     if (Array.isArray(serverDoc)) {
       for (const server of serverDoc) {
         const obj = {
@@ -248,7 +286,13 @@ class DefinitionGenerator {
         }
 
         if (server.variables) {
-          obj.variables = server.variables;
+          obj.variables = variableManipulation(server.variables);
+        }
+
+        const extendedSpec = this.extendSpecification(server);
+
+        if (Object.keys(extendedSpec).length) {
+          Object.assign(obj, extendedSpec);
         }
 
         newServers.push(obj);
@@ -263,7 +307,13 @@ class DefinitionGenerator {
       }
 
       if (servers.variables) {
-        obj.variables = servers.variables;
+        obj.variables = variableManipulation(servers.variables);
+      }
+
+      const extendedSpec = this.extendSpecification(servers);
+
+      if (Object.keys(extendedSpec).length) {
+        Object.assign(obj, extendedSpec);
       }
 
       newServers.push(obj);
@@ -297,6 +347,13 @@ class DefinitionGenerator {
           tag.externalDocumentation
         );
       }
+
+      const extendedSpec = this.extendSpecification(tag);
+
+      if (Object.keys(extendedSpec).length) {
+        Object.assign(obj, extendedSpec);
+      }
+
       tags.push(obj);
     }
     Object.assign(this.openAPI, { tags: tags });
