@@ -98,14 +98,14 @@ class DefinitionGenerator {
       throw err;
     });
 
-    if (this.serverless.service.custom.documentation.securitySchemes) {
+    if (this.serverless.service.custom?.documentation?.securitySchemes) {
       this.createSecuritySchemes(
-        this.serverless.service.custom.documentation.securitySchemes
+        this.serverless.service.custom?.documentation?.securitySchemes
       );
 
-      if (this.serverless.service.custom.documentation.security) {
+      if (this.serverless.service.custom?.documentation?.security) {
         this.openAPI.security =
-          this.serverless.service.custom.documentation.security;
+          this.serverless.service.custom?.documentation?.security;
       }
     }
 
@@ -115,20 +115,20 @@ class DefinitionGenerator {
 
     this.cleanupLinks();
 
-    if (this.serverless.service.custom.documentation.servers) {
+    if (this.serverless.service.custom?.documentation?.servers) {
       const servers = this.createServers(
-        this.serverless.service.custom.documentation.servers
+        this.serverless.service.custom?.documentation?.servers
       );
       Object.assign(this.openAPI, { servers: servers });
     }
 
-    if (this.serverless.service.custom.documentation.tags) {
+    if (this.serverless.service.custom?.documentation?.tags) {
       this.createTags();
     }
 
-    if (this.serverless.service.custom.documentation.externalDocumentation) {
+    if (this.serverless.service.custom?.documentation?.externalDocumentation) {
       const extDoc = this.createExternalDocumentation(
-        this.serverless.service.custom.documentation.externalDocumentation
+        this.serverless.service.custom?.documentation?.externalDocumentation
       );
       Object.assign(this.openAPI, { externalDocs: extDoc });
     }
@@ -136,7 +136,7 @@ class DefinitionGenerator {
 
   createInfo() {
     const service = this.serverless.service;
-    const documentation = this.serverless.service.custom.documentation;
+    const documentation = this.serverless.service.custom?.documentation || {};
 
     const info = {
       title: documentation?.title || service.service,
@@ -200,19 +200,19 @@ class DefinitionGenerator {
   async createPaths() {
     const paths = {};
     const httpFunctions = this.getHTTPFunctions();
-
+    
     for (const httpFunction of httpFunctions) {
       for (const event of httpFunction.event) {
-        if (event?.http?.documentation || event?.httpApi?.documentation) {
+        if (event?.http || event?.httpApi) {
           this.currentEvent = event?.http || event?.httpApi;
           const documentation =
-            event?.http?.documentation || event?.httpApi?.documentation;
+            (event?.http?.documentation || event?.httpApi?.documentation) || {};
 
           this.currentFunctionName = httpFunction.functionInfo.name;
           this.operationName = httpFunction.operationName;
 
           const path = await this.createOperationObject(
-            event?.http?.method || event?.httpApi?.method,
+            event?.http || event?.httpApi,
             documentation
           ).catch((err) => {
             throw err;
@@ -324,7 +324,7 @@ class DefinitionGenerator {
 
   createExternalDocumentation(docs) {
     return { ...docs };
-    // const documentation = this.serverless.service.custom.documentation
+    // const documentation = this.serverless.service.custom?.documentation
     // if (documentation.externalDocumentation) {
     //     // Object.assign(this.openAPI, {externalDocs: {...documentation.externalDocumentation}})
     //     return
@@ -333,7 +333,7 @@ class DefinitionGenerator {
 
   createTags() {
     const tags = [];
-    for (const tag of this.serverless.service.custom.documentation.tags) {
+    for (const tag of this.serverless.service.custom?.documentation?.tags) {
       const obj = {
         name: tag.name,
       };
@@ -359,7 +359,7 @@ class DefinitionGenerator {
     Object.assign(this.openAPI, { tags: tags });
   }
 
-  async createOperationObject(method, documentation) {
+  async createOperationObject(http, documentation) {
     let operationId = documentation?.operationId || this.operationName;
     if (this.operationIds.includes(operationId)) {
       operationId += `-${uuid()}`;
@@ -386,6 +386,29 @@ class DefinitionGenerator {
       const paramObject = await this.createParamObject(
         "path",
         documentation
+      ).catch((err) => {
+        throw err;
+      });
+      obj.parameters = obj.parameters.concat(paramObject);
+    } else {
+      const params = http.path.match(/{(.*?)}/g);
+      const schema = {
+        type: "string",
+        pattern: "^[-a-z0-9_]+$"
+      };
+      const requiredParams = http?.request?.parameters?.paths || {};
+      const pathParams = params.map((param) => {
+        const name = param.replace(/{|}/g, "");
+        const required = requiredParams[name] === undefined ? true : requiredParams[name];
+        return {
+          name,
+          schema,
+          required,
+        };
+      });
+      const paramObject = await this.createParamObject(
+        "path",
+        { pathParams }
       ).catch((err) => {
         throw err;
       });
@@ -485,10 +508,31 @@ class DefinitionGenerator {
       );
     }
 
-    if (documentation.methodResponses)
+    if (documentation.methodResponses) {
       obj.responses = await this.createResponses(documentation).catch((err) => {
         throw err;
       });
+    }
+    else {
+      obj.responses = await this.createResponses({
+        methodResponses: [
+          {
+            statusCode: 200,
+            responseBody: {
+              description: "Successful response",
+            },
+          },
+          {
+            statusCode: 400,
+            responseBody: {
+              description: "Error response",
+            },
+          },
+        ],
+      }).catch((err) => {
+        throw err;
+      });
+    }
 
     if (documentation.servers) {
       const servers = this.createServers(documentation.servers);
@@ -501,7 +545,7 @@ class DefinitionGenerator {
       Object.assign(obj, extendedSpec);
     }
 
-    return { [method.toLowerCase()]: obj };
+    return { [http.method.toLowerCase()]: obj };
   }
 
   async createResponses(documentation) {
@@ -754,7 +798,7 @@ class DefinitionGenerator {
         name: param.name,
         in: paramIn,
         description: param.description || "",
-        required: paramIn === "path" ? true : param.required || false,
+        required: param.required === undefined ?  (paramIn === "path" ? true : false) : param.required,
       };
 
       if (Object.keys(param).includes("deprecated")) {
@@ -1004,7 +1048,7 @@ class DefinitionGenerator {
           RegExp(/(get|put|post|delete|options|head|patch|trace)/i).test(name)
         ) {
           for (const [statusCode, responseObj] of Object.entries(
-            value?.responses
+            value?.responses || {}
           )) {
             if (responseObj.links) {
               for (const [linkName, linkObj] of Object.entries(
@@ -1044,7 +1088,7 @@ class DefinitionGenerator {
     };
 
     const functionNames = this.serverless.service.getAllFunctions();
-
+    
     return functionNames
       .map((functionName) => {
         return this.serverless.service.getFunction(functionName);

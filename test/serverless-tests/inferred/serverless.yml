@@ -12,26 +12,18 @@ functions:
     handler: handler.update
     events:
       - httpApi:
-          path: 'PUT /update'
+          method: 'PUT'
+          path: '/update/{id}'
           cors: true
 
   createUser:
     handler: handler.create
     events:
-      - httpApi:
-          path: 'POST /create/{id}'
+      - http:
+          method: 'POST'
+          path: '/create/{id}'
+          request:
+            parameters:
+              paths:
+                id: false
           cors: true
-
-  # createUser:
-  #   handler: handler.create
-  #   events:
-  #     - httpApi:
-  #         path: /create
-  #         method: '*'
-  #         cors: true
-
-  # createUser:
-  #   handler: handler.create
-  #   events:
-  #     - httpApi: '*'
-
