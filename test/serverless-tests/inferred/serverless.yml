@@ -18,6 +18,7 @@ functions:
 
   createUser:
     handler: handler.create
+    description: Creates a user
     events:
       - http:
           method: 'POST'

@@ -207,6 +207,7 @@ class DefinitionGenerator {
           this.currentEvent = event?.http || event?.httpApi;
           const documentation =
             (event?.http?.documentation || event?.httpApi?.documentation) || {};
+          documentation.description = documentation.description || httpFunction.functionInfo.description;
 
           this.currentFunctionName = httpFunction.functionInfo.name;
           this.operationName = httpFunction.operationName;
