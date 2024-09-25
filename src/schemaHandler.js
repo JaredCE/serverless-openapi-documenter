@@ -68,10 +68,10 @@ class SchemaHandler {
       ).catch((err) => {
         if (err.errors) {
           for (const error of err?.errors) {
-            this.__HTTPError(error);
+            this.__HTTPError(error, model);
           }
         } else {
-          this.__HTTPError(err);
+          this.__HTTPError(err, model);
         }
         return modelSchema;
       });
@@ -228,7 +228,7 @@ class SchemaHandler {
     }
   }
 
-  __HTTPError(error) {
+  __HTTPError(error, model) {
     if (error.message.includes("HTTP ERROR")) {
       //   throw err;
       throw new Error(
