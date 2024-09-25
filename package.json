@@ -50,17 +50,17 @@
     "js-yaml": "^4.1.0",
     "json-schema-for-openapi": "^0.5.0",
     "lodash.isequal": "^4.5.0",
-    "openapi-to-postmanv2": "^4.21.0",
+    "openapi-to-postmanv2": "^4.24.0",
     "swagger2openapi": "^7.0.8",
-    "uuid": "^9.0.1"
+    "uuid": "^10.0.0"
   },
   "engines": {
     "node": ">=16"
   },
   "devDependencies": {
-    "chai": "^4.3.10",
-    "mocha": "^10.4.0",
-    "nock": "^13.5.4",
-    "sinon": "^18.0.0"
+    "chai": "^4.5.0",
+    "mocha": "^10.7.3",
+    "nock": "^13.5.5",
+    "sinon": "^19.0.2"
   }
 }
