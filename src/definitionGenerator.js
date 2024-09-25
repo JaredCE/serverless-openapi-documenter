@@ -508,7 +508,7 @@ class DefinitionGenerator {
     const responses = {};
     for (const response of documentation.methodResponses) {
       const obj = {
-        description: response.responseBody.description || "",
+        description: response?.responseBody?.description || "",
       };
 
       this.currentStatusCode = response.statusCode;
