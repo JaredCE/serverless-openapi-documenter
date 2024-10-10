@@ -15,7 +15,9 @@ const SchemaHandler = require("./schemaHandler");
 const oWASP = require("./owasp");
 
 class DefinitionGenerator {
-  constructor(serverless, options = {}) {
+  constructor(serverless, logger) {
+    this.logger = logger;
+
     this.version =
       serverless?.processedInput?.options?.openApiVersion || "3.0.0";
 
@@ -70,6 +72,12 @@ class DefinitionGenerator {
     };
 
     try {
+      this.logger.verbose(
+        `Trying to resolve Redocly rules from: ${path.resolve(
+          "options",
+          "redocly.json"
+        )}`
+      );
       this.REDOCLY_RULES = require(path.resolve("options", "redocly.json"));
     } catch (err) {
       this.REDOCLY_RULES = {
@@ -83,6 +91,12 @@ class DefinitionGenerator {
     }
 
     try {
+      this.logger.verbose(
+        `Trying to resolve Ref-Parser options from: ${path.resolve(
+          "options",
+          "ref-parser.js"
+        )}`
+      );
       this.refParserOptions = require(path.resolve("options", "ref-parser.js"));
     } catch (err) {
       this.refParserOptions = {};
