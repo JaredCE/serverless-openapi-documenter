@@ -47,11 +47,6 @@ class OWASP {
         description:
           "The HTTP Permissions-Policy header provides a mechanism to allow and deny the use of browser features in a document or within any [<iframe>](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/iframe) elements in the document. - [MDN Link](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Permissions-Policy)",
       },
-      Pragma: {
-        description:
-          "The Pragma HTTP/1.0 general header is an implementation-specific header that may have various effects along the request-response chain. This header serves for backwards compatibility with the HTTP/1.0 caches that do not have a [Cache-Control](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control) HTTP/1.1 header. - [MDN Link](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Pragma)",
-        deprecated: true,
-      },
       "Referrer-Policy": {
         description:
           "The Referrer-Policy [HTTP header](https://developer.mozilla.org/en-US/docs/Glossary/HTTP_header) controls how much [referrer information](https://developer.mozilla.org/en-US/docs/Web/Security/Referer_header:_privacy_and_security_concerns) (sent with the [Referer](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Referer) header) should be included with requests. Aside from the HTTP header, you can [set this policy in HTML](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Referrer-Policy#integration_with_html). - [MDN Link](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Referrer-Policy)",
@@ -153,13 +148,44 @@ class OWASP {
   getHeaders(headerList) {
     const obj = {};
     for (const headerName of Object.keys(headerList)) {
-      const defaultHeader =
-        this.DEFAULT_OWASP_HEADERS[this.headerMap[headerName]];
-      Object.assign(obj, { [this.headerMap[headerName]]: defaultHeader });
+      if (headerName === "pragma") {
+        const pragma = {
+          Pragma: {
+            description:
+              "The Pragma HTTP/1.0 general header is an implementation-specific header that may have various effects along the request-response chain. This header serves for backwards compatibility with the HTTP/1.0 caches that do not have a [Cache-Control](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control) HTTP/1.1 header. - [MDN Link](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Pragma)",
+            deprecated: true,
+          },
+        };
 
-      if (typeof headerList[headerName] !== "boolean") {
-        obj[this.headerMap[headerName]].schema.default =
-          headerList[headerName].value;
+        if (typeof headerList["pragma"] !== "boolean") {
+          Object.assign(pragma["Pragma"], {
+            schema: {
+              type: "string",
+              default: headerList["pragma"].value,
+              example: headerList["pragma"].value,
+            },
+          });
+        } else {
+          Object.assign(pragma["Pragma"], {
+            schema: {
+              default: "no-cache",
+              type: "string",
+              example: "no-cache",
+            },
+          });
+        }
+
+        Object.assign(obj, pragma);
+      } else {
+        const defaultHeader =
+          this.DEFAULT_OWASP_HEADERS[this.headerMap[headerName]];
+
+        Object.assign(obj, { [this.headerMap[headerName]]: defaultHeader });
+
+        if (typeof headerList[headerName] !== "boolean") {
+          obj[this.headerMap[headerName]].schema.default =
+            headerList[headerName].value;
+        }
       }
     }
 
