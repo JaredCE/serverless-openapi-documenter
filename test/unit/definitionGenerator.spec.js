@@ -10,6 +10,14 @@ const DefinitionGenerator = require("../../src/definitionGenerator");
 
 describe("DefinitionGenerator", () => {
   let mockServerless;
+  const logger = {
+    verbose: (str) => {
+      console.log(str);
+    },
+    warn: (str) => {
+      console.log(str);
+    },
+  };
   const v4 = new RegExp(
     /^[0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}$/i
   );
@@ -26,11 +34,7 @@ describe("DefinitionGenerator", () => {
 
   describe("constructor", () => {
     it("should return a definitionGenerator", function () {
-      const expected = new DefinitionGenerator(mockServerless, {
-        verbose: (str) => {
-          console.log(str);
-        },
-      });
+      const expected = new DefinitionGenerator(mockServerless, logger);
       expect(expected).to.be.an.instanceOf(DefinitionGenerator);
     });
 
@@ -39,11 +43,10 @@ describe("DefinitionGenerator", () => {
         JSON.stringify(mockServerless)
       );
       delete serverlessWithoutOpenAPIVersion.processedInput;
-      let expected = new DefinitionGenerator(serverlessWithoutOpenAPIVersion, {
-        verbose: (str) => {
-          console.log(str);
-        },
-      });
+      let expected = new DefinitionGenerator(
+        serverlessWithoutOpenAPIVersion,
+        logger
+      );
       expect(expected.version).to.be.equal("3.0.0");
 
       Object.assign(serverlessWithoutOpenAPIVersion, { processedInput: {} });
@@ -57,55 +60,50 @@ describe("DefinitionGenerator", () => {
       serverlessWithoutOpenAPIVersion.processedInput = {
         options: {},
       };
-      expected = new DefinitionGenerator(serverlessWithoutOpenAPIVersion, {
-        verbose: (str) => {
-          console.log(str);
-        },
-      });
+      expected = new DefinitionGenerator(
+        serverlessWithoutOpenAPIVersion,
+        logger
+      );
       expect(expected.version).to.be.equal("3.0.0");
 
       serverlessWithoutOpenAPIVersion.processedInput.options = {
         test: "abc",
       };
 
-      expected = new DefinitionGenerator(serverlessWithoutOpenAPIVersion, {
-        verbose: (str) => {
-          console.log(str);
-        },
-      });
+      expected = new DefinitionGenerator(
+        serverlessWithoutOpenAPIVersion,
+        logger
+      );
       expect(expected.version).to.be.equal("3.0.0");
 
       serverlessWithoutOpenAPIVersion.processedInput.options = {
         openApiVersion: null,
       };
 
-      expected = new DefinitionGenerator(serverlessWithoutOpenAPIVersion, {
-        verbose: (str) => {
-          console.log(str);
-        },
-      });
+      expected = new DefinitionGenerator(
+        serverlessWithoutOpenAPIVersion,
+        logger
+      );
       expect(expected.version).to.be.equal("3.0.0");
 
       serverlessWithoutOpenAPIVersion.processedInput.options = {
         openApiVersion: undefined,
       };
 
-      expected = new DefinitionGenerator(serverlessWithoutOpenAPIVersion, {
-        verbose: (str) => {
-          console.log(str);
-        },
-      });
+      expected = new DefinitionGenerator(
+        serverlessWithoutOpenAPIVersion,
+        logger
+      );
       expect(expected.version).to.be.equal("3.0.0");
 
       serverlessWithoutOpenAPIVersion.processedInput.options = {
         openapiVersion: undefined,
       };
 
-      expected = new DefinitionGenerator(serverlessWithoutOpenAPIVersion, {
-        verbose: (str) => {
-          console.log(str);
-        },
-      });
+      expected = new DefinitionGenerator(
+        serverlessWithoutOpenAPIVersion,
+        logger
+      );
       expect(expected.version).to.be.equal("3.0.0");
     });
 
@@ -115,20 +113,15 @@ describe("DefinitionGenerator", () => {
       );
       serverlessWithOpenAPIVersion.processedInput.options.openApiVersion =
         "3.0.2";
-      let expected = new DefinitionGenerator(serverlessWithOpenAPIVersion, {
-        verbose: (str) => {
-          console.log(str);
-        },
-      });
+      let expected = new DefinitionGenerator(
+        serverlessWithOpenAPIVersion,
+        logger
+      );
       expect(expected.version).to.be.equal("3.0.2");
 
       serverlessWithOpenAPIVersion.processedInput.options.openApiVersion =
         "3.0.1";
-      expected = new DefinitionGenerator(serverlessWithOpenAPIVersion, {
-        verbose: (str) => {
-          console.log(str);
-        },
-      });
+      expected = new DefinitionGenerator(serverlessWithOpenAPIVersion, logger);
       expect(expected.version).to.be.equal("3.0.1");
     });
 
@@ -148,11 +141,7 @@ describe("DefinitionGenerator", () => {
           throw err;
         });
 
-      const expected = new DefinitionGenerator(mockServerless, {
-        verbose: (str) => {
-          console.log(str);
-        },
-      });
+      const expected = new DefinitionGenerator(mockServerless, logger);
 
       expect(expected.REDOCLY_RULES).to.have.property(
         "operation-2xx-response",
@@ -173,7 +162,10 @@ describe("DefinitionGenerator", () => {
 
   describe("createInfo", () => {
     it("should create openAPI info object correctly", function () {
-      const definitionGenerator = new DefinitionGenerator(mockServerless);
+      const definitionGenerator = new DefinitionGenerator(
+        mockServerless,
+        logger
+      );
       definitionGenerator.createInfo();
 
       expect(definitionGenerator.openAPI).to.be.an("object");
@@ -183,7 +175,10 @@ describe("DefinitionGenerator", () => {
 
     it("should use the service name when documentation title has not been supplied", function () {
       delete mockServerless.service.custom.documentation.title;
-      const definitionGenerator = new DefinitionGenerator(mockServerless);
+      const definitionGenerator = new DefinitionGenerator(
+        mockServerless,
+        logger
+      );
       definitionGenerator.createInfo();
 
       expect(definitionGenerator.openAPI).to.be.an("object");
@@ -195,7 +190,10 @@ describe("DefinitionGenerator", () => {
 
     it("should use the service name when documentation description has not been supplied", function () {
       delete mockServerless.service.custom.documentation.description;
-      const definitionGenerator = new DefinitionGenerator(mockServerless);
+      const definitionGenerator = new DefinitionGenerator(
+        mockServerless,
+        logger
+      );
       definitionGenerator.createInfo();
 
       expect(definitionGenerator.openAPI).to.be.an("object");
@@ -205,7 +203,10 @@ describe("DefinitionGenerator", () => {
 
     it("should use an empty string when documentation description has not been supplied", function () {
       delete mockServerless.service.custom.documentation.description;
-      const definitionGenerator = new DefinitionGenerator(mockServerless);
+      const definitionGenerator = new DefinitionGenerator(
+        mockServerless,
+        logger
+      );
       definitionGenerator.createInfo();
 
       expect(definitionGenerator.openAPI).to.be.an("object");
@@ -216,7 +217,10 @@ describe("DefinitionGenerator", () => {
     it("should generate a uuid for version when documentation version has not been supplied", function () {
       delete mockServerless.service.custom.documentation.version;
 
-      const definitionGenerator = new DefinitionGenerator(mockServerless);
+      const definitionGenerator = new DefinitionGenerator(
+        mockServerless,
+        logger
+      );
       definitionGenerator.createInfo();
 
       expect(definitionGenerator.openAPI).to.be.an("object");
@@ -230,7 +234,10 @@ describe("DefinitionGenerator", () => {
         url: "http://example.com",
         email: "john@example.com",
       };
-      const definitionGenerator = new DefinitionGenerator(mockServerless);
+      const definitionGenerator = new DefinitionGenerator(
+        mockServerless,
+        logger
+      );
       definitionGenerator.createInfo();
 
       expect(definitionGenerator.openAPI).to.be.an("object");
@@ -245,7 +252,10 @@ describe("DefinitionGenerator", () => {
         name: "John",
         email: "john@example.com",
       };
-      const definitionGenerator = new DefinitionGenerator(mockServerless);
+      const definitionGenerator = new DefinitionGenerator(
+        mockServerless,
+        logger
+      );
       definitionGenerator.createInfo();
 
       expect(definitionGenerator.openAPI).to.be.an("object");
@@ -263,7 +273,10 @@ describe("DefinitionGenerator", () => {
         name: "Apache 2.0",
         url: "https://www.apache.org/licenses/LICENSE-2.0.html",
       };
-      const definitionGenerator = new DefinitionGenerator(mockServerless);
+      const definitionGenerator = new DefinitionGenerator(
+        mockServerless,
+        logger
+      );
       definitionGenerator.createInfo();
 
       expect(definitionGenerator.openAPI).to.be.an("object");
@@ -277,7 +290,10 @@ describe("DefinitionGenerator", () => {
       mockServerless.service.custom.documentation.license = {
         url: "https://www.apache.org/licenses/LICENSE-2.0.html",
       };
-      const definitionGenerator = new DefinitionGenerator(mockServerless);
+      const definitionGenerator = new DefinitionGenerator(
+        mockServerless,
+        logger
+      );
       definitionGenerator.createInfo();
 
       expect(definitionGenerator.openAPI).to.be.an("object");
@@ -289,7 +305,10 @@ describe("DefinitionGenerator", () => {
       mockServerless.service.custom.documentation.license = {
         name: "John",
       };
-      const definitionGenerator = new DefinitionGenerator(mockServerless);
+      const definitionGenerator = new DefinitionGenerator(
+        mockServerless,
+        logger
+      );
       definitionGenerator.createInfo();
 
       expect(definitionGenerator.openAPI).to.be.an("object");
@@ -304,7 +323,10 @@ describe("DefinitionGenerator", () => {
 
     it("should assign specification extension fields when included", function () {
       mockServerless.service.custom.documentation["x-field"] = "john";
-      const definitionGenerator = new DefinitionGenerator(mockServerless);
+      const definitionGenerator = new DefinitionGenerator(
+        mockServerless,
+        logger
+      );
       definitionGenerator.createInfo();
 
       expect(definitionGenerator.openAPI).to.be.an("object");
@@ -315,7 +337,10 @@ describe("DefinitionGenerator", () => {
 
     it("should ignore fields that do not conform to specifiction extension", function () {
       mockServerless.service.custom.documentation.otherField = "john";
-      const definitionGenerator = new DefinitionGenerator(mockServerless);
+      const definitionGenerator = new DefinitionGenerator(
+        mockServerless,
+        logger
+      );
       definitionGenerator.createInfo();
 
       expect(definitionGenerator.openAPI).to.be.an("object");
@@ -337,7 +362,10 @@ describe("DefinitionGenerator", () => {
           },
         };
 
-        const definitionGenerator = new DefinitionGenerator(mockServerless);
+        const definitionGenerator = new DefinitionGenerator(
+          mockServerless,
+          logger
+        );
         definitionGenerator.createSecuritySchemes(
           mockServerless.service.custom.documentation.securitySchemes
         );
@@ -369,7 +397,10 @@ describe("DefinitionGenerator", () => {
           },
         };
 
-        const definitionGenerator = new DefinitionGenerator(mockServerless);
+        const definitionGenerator = new DefinitionGenerator(
+          mockServerless,
+          logger
+        );
         expect(() => {
           definitionGenerator.createSecuritySchemes(
             mockServerless.service.custom.documentation.securitySchemes
@@ -387,7 +418,10 @@ describe("DefinitionGenerator", () => {
           },
         };
 
-        const definitionGenerator = new DefinitionGenerator(mockServerless);
+        const definitionGenerator = new DefinitionGenerator(
+          mockServerless,
+          logger
+        );
         expect(() => {
           definitionGenerator.createSecuritySchemes(
             mockServerless.service.custom.documentation.securitySchemes
@@ -407,7 +441,10 @@ describe("DefinitionGenerator", () => {
           },
         };
 
-        const definitionGenerator = new DefinitionGenerator(mockServerless);
+        const definitionGenerator = new DefinitionGenerator(
+          mockServerless,
+          logger
+        );
         definitionGenerator.createSecuritySchemes(
           mockServerless.service.custom.documentation.securitySchemes
         );
@@ -432,7 +469,10 @@ describe("DefinitionGenerator", () => {
           },
         };
 
-        const definitionGenerator = new DefinitionGenerator(mockServerless);
+        const definitionGenerator = new DefinitionGenerator(
+          mockServerless,
+          logger
+        );
         expect(() => {
           definitionGenerator.createSecuritySchemes(
             mockServerless.service.custom.documentation.securitySchemes
@@ -450,7 +490,10 @@ describe("DefinitionGenerator", () => {
           },
         };
 
-        const definitionGenerator = new DefinitionGenerator(mockServerless);
+        const definitionGenerator = new DefinitionGenerator(
+          mockServerless,
+          logger
+        );
         definitionGenerator.createSecuritySchemes(
           mockServerless.service.custom.documentation.securitySchemes
         );
@@ -475,7 +518,10 @@ describe("DefinitionGenerator", () => {
           },
         };
 
-        const definitionGenerator = new DefinitionGenerator(mockServerless);
+        const definitionGenerator = new DefinitionGenerator(
+          mockServerless,
+          logger
+        );
         expect(() => {
           definitionGenerator.createSecuritySchemes(
             mockServerless.service.custom.documentation.securitySchemes
@@ -503,7 +549,10 @@ describe("DefinitionGenerator", () => {
           },
         };
 
-        const definitionGenerator = new DefinitionGenerator(mockServerless);
+        const definitionGenerator = new DefinitionGenerator(
+          mockServerless,
+          logger
+        );
         definitionGenerator.createSecuritySchemes(
           mockServerless.service.custom.documentation.securitySchemes
         );
@@ -557,7 +606,10 @@ describe("DefinitionGenerator", () => {
           },
         };
 
-        const definitionGenerator = new DefinitionGenerator(mockServerless);
+        const definitionGenerator = new DefinitionGenerator(
+          mockServerless,
+          logger
+        );
         expect(() => {
           definitionGenerator.createSecuritySchemes(
             mockServerless.service.custom.documentation.securitySchemes
@@ -580,7 +632,10 @@ describe("DefinitionGenerator", () => {
           },
         };
 
-        const definitionGenerator = new DefinitionGenerator(mockServerless);
+        const definitionGenerator = new DefinitionGenerator(
+          mockServerless,
+          logger
+        );
         expect(() => {
           definitionGenerator.createSecuritySchemes(
             mockServerless.service.custom.documentation.securitySchemes
@@ -604,7 +659,10 @@ describe("DefinitionGenerator", () => {
           },
         };
 
-        const definitionGenerator = new DefinitionGenerator(mockServerless);
+        const definitionGenerator = new DefinitionGenerator(
+          mockServerless,
+          logger
+        );
         expect(() => {
           definitionGenerator.createSecuritySchemes(
             mockServerless.service.custom.documentation.securitySchemes
@@ -630,7 +688,10 @@ describe("DefinitionGenerator", () => {
           },
         };
 
-        const definitionGenerator = new DefinitionGenerator(mockServerless);
+        const definitionGenerator = new DefinitionGenerator(
+          mockServerless,
+          logger
+        );
         expect(() => {
           definitionGenerator.createSecuritySchemes(
             mockServerless.service.custom.documentation.securitySchemes
@@ -653,7 +714,10 @@ describe("DefinitionGenerator", () => {
           },
         };
 
-        const definitionGenerator = new DefinitionGenerator(mockServerless);
+        const definitionGenerator = new DefinitionGenerator(
+          mockServerless,
+          logger
+        );
         expect(() => {
           definitionGenerator.createSecuritySchemes(
             mockServerless.service.custom.documentation.securitySchemes
@@ -676,7 +740,10 @@ describe("DefinitionGenerator", () => {
           },
         };
 
-        const definitionGenerator = new DefinitionGenerator(mockServerless);
+        const definitionGenerator = new DefinitionGenerator(
+          mockServerless,
+          logger
+        );
         expect(() => {
           definitionGenerator.createSecuritySchemes(
             mockServerless.service.custom.documentation.securitySchemes
@@ -696,7 +763,10 @@ describe("DefinitionGenerator", () => {
           },
         };
 
-        const definitionGenerator = new DefinitionGenerator(mockServerless);
+        const definitionGenerator = new DefinitionGenerator(
+          mockServerless,
+          logger
+        );
         expect(() => {
           definitionGenerator.createSecuritySchemes(
             mockServerless.service.custom.documentation.securitySchemes
@@ -717,7 +787,10 @@ describe("DefinitionGenerator", () => {
           },
         };
 
-        const definitionGenerator = new DefinitionGenerator(mockServerless);
+        const definitionGenerator = new DefinitionGenerator(
+          mockServerless,
+          logger
+        );
         expect(() => {
           definitionGenerator.createSecuritySchemes(
             mockServerless.service.custom.documentation.securitySchemes
@@ -737,7 +810,10 @@ describe("DefinitionGenerator", () => {
           },
         };
 
-        const definitionGenerator = new DefinitionGenerator(mockServerless);
+        const definitionGenerator = new DefinitionGenerator(
+          mockServerless,
+          logger
+        );
         expect(() => {
           definitionGenerator.createSecuritySchemes(
             mockServerless.service.custom.documentation.securitySchemes
@@ -757,7 +833,10 @@ describe("DefinitionGenerator", () => {
           },
         };
 
-        const definitionGenerator = new DefinitionGenerator(mockServerless);
+        const definitionGenerator = new DefinitionGenerator(
+          mockServerless,
+          logger
+        );
         expect(() => {
           definitionGenerator.createSecuritySchemes(
             mockServerless.service.custom.documentation.securitySchemes
@@ -788,7 +867,10 @@ describe("DefinitionGenerator", () => {
           },
         };
 
-        const definitionGenerator = new DefinitionGenerator(mockServerless);
+        const definitionGenerator = new DefinitionGenerator(
+          mockServerless,
+          logger
+        );
         definitionGenerator.createSecuritySchemes(
           mockServerless.service.custom.documentation.securitySchemes
         );
@@ -814,7 +896,10 @@ describe("DefinitionGenerator", () => {
     it("should add tags to the openAPI object correctly", function () {
       mockServerless.service.custom.documentation.tags = [{ name: "tag1" }];
 
-      const definitionGenerator = new DefinitionGenerator(mockServerless);
+      const definitionGenerator = new DefinitionGenerator(
+        mockServerless,
+        logger
+      );
       definitionGenerator.createTags();
 
       expect(definitionGenerator.openAPI).to.be.an("object");
@@ -823,10 +908,41 @@ describe("DefinitionGenerator", () => {
     });
 
     it("should not add tags when they are not defined", function () {
-      const definitionGenerator = new DefinitionGenerator(mockServerless);
+      const definitionGenerator = new DefinitionGenerator(
+        mockServerless,
+        logger
+      );
       expect(() => {
         definitionGenerator.createTags();
       }).to.throw();
+    });
+  });
+
+  describe(`createResponses`, async function () {
+    it(`handles creating headers with pragma as a default`, async function () {
+      const description = "this is a description";
+      const responseMock = {
+        methodResponses: [
+          {
+            responseBody: { description: description },
+            statusCode: 200,
+            owasp: { pragma: true },
+          },
+        ],
+      };
+
+      const definitionGenerator = new DefinitionGenerator(
+        mockServerless,
+        logger
+      );
+
+      const response = await definitionGenerator.createResponses(responseMock);
+
+      expect(response).to.be.an("object");
+      expect(response).to.have.property("200");
+      expect(response["200"]).to.have.property("description", description);
+      expect(response["200"].headers).to.be.an("object");
+      expect(response["200"].headers).to.have.property("Pragma");
     });
   });
 });

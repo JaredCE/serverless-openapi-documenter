@@ -928,7 +928,7 @@ The generator will interpret your settings for CORS and automatically add the re
 
 You can make use of the [OWASP Secure Headers](https://owasp.org/www-project-secure-headers/#x-permitted-cross-domain-policies) to generate response headers. These are a selection of response headers with default values that OWASP recommends returning with your response to help secure your application.
 
-The OWASP Secure Headers Project contains a set of recommended headers to return with recommended values, when generating the documentation, the generator will attempt to get the latest version of this document and apply the latest recommendations. If you do not allow outside connections, it will default to a version of recommendations from **2023-05-26 12:22:30 UTC**.
+The OWASP Secure Headers Project contains a set of recommended headers to return with recommended values, when generating the documentation, the generator will attempt to get the latest version of this document and apply the latest recommendations. If you do not allow outside connections, it will default to a version of recommendations from **2024-09-19 21:29:28 UTC**.
 
 Like CORS, if you have already set any of the OWASP Secure headers via `responseHeaders`, it will not overwrite them.
 
@@ -973,12 +973,13 @@ The full list of OWASP Secure Headers you can set are:
 - crossOriginOpenerPolicy - Cross-Origin-Opener-Policy,
 - crossOriginResourcePolicy - Cross-Origin-Resource-Policy,
 - permissionsPolicy - Permissions-Policy,
-- pragma - Pragma,
 - referrerPolicy - Referrer-Policy,
 - strictTransportSecurity - Strict-Transport-Security,
 - xContentTypeOptions - X-Content-Type-Options,
 - xFrameOptions - X-Frame-Options,
 - xPermittedCrossDomainPolicies - X-Permitted-Cross-Domain-Policies
+
+You should note that `Pragma` has been [deprecated by owasp](https://owasp.org/www-project-secure-headers/#pragma), this plugin will issue a warning when you are still using Pragma and might drop support.
 
 ###### Subset of OWASP Secure Headers with user defined values
 

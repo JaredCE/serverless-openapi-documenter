@@ -553,6 +553,12 @@ class DefinitionGenerator {
             throw err;
           });
         } else {
+          if (Object.keys(response.owasp).includes("pragma")) {
+            this.logger.warn(
+              "Pragma has been deprecated by owasp (https://owasp.org/www-project-secure-headers/#pragma) and support for defaults will be dropped by this plugin."
+            );
+          }
+
           owaspHeaders = await this.createResponseHeaders(
             oWASP.getHeaders(response.owasp)
           ).catch((err) => {
@@ -603,7 +609,7 @@ class DefinitionGenerator {
       ).catch((err) => {
         throw err;
       });
-    } else if (this.currentEvent.cors) {
+    } else if (this.currentEvent?.cors) {
       const newHeaders = {};
       for (const key of Object.keys(this.DEFAULT_CORS_HEADERS)) {
         if (
