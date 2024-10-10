@@ -11,7 +11,7 @@ class SchemaHandler {
   constructor(serverless, openAPI) {
     this.apiGatewayModels =
       serverless.service?.provider?.apiGateway?.request?.schemas || {};
-    this.documentation = serverless.service.custom.documentation;
+    this.documentation = serverless.service.custom?.documentation;
     this.openAPI = openAPI;
 
     this.modelReferences = {};
@@ -62,7 +62,7 @@ class SchemaHandler {
     for (const model of this.models) {
       const modelName = model.name;
       const modelSchema = model.schema;
-
+      
       const dereferencedSchema = await this.__dereferenceSchema(
         modelSchema
       ).catch((err) => {
