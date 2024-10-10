@@ -26,7 +26,11 @@ describe("DefinitionGenerator", () => {
 
   describe("constructor", () => {
     it("should return a definitionGenerator", function () {
-      const expected = new DefinitionGenerator(mockServerless, {});
+      const expected = new DefinitionGenerator(mockServerless, {
+        verbose: (str) => {
+          console.log(str);
+        },
+      });
       expect(expected).to.be.an.instanceOf(DefinitionGenerator);
     });
 
@@ -35,48 +39,73 @@ describe("DefinitionGenerator", () => {
         JSON.stringify(mockServerless)
       );
       delete serverlessWithoutOpenAPIVersion.processedInput;
-      let expected = new DefinitionGenerator(
-        serverlessWithoutOpenAPIVersion,
-        {}
-      );
+      let expected = new DefinitionGenerator(serverlessWithoutOpenAPIVersion, {
+        verbose: (str) => {
+          console.log(str);
+        },
+      });
       expect(expected.version).to.be.equal("3.0.0");
 
       Object.assign(serverlessWithoutOpenAPIVersion, { processedInput: {} });
-      expected = new DefinitionGenerator(serverlessWithoutOpenAPIVersion, {});
+      expected = new DefinitionGenerator(serverlessWithoutOpenAPIVersion, {
+        verbose: (str) => {
+          console.log(str);
+        },
+      });
       expect(expected.version).to.be.equal("3.0.0");
 
       serverlessWithoutOpenAPIVersion.processedInput = {
         options: {},
       };
-      expected = new DefinitionGenerator(serverlessWithoutOpenAPIVersion, {});
+      expected = new DefinitionGenerator(serverlessWithoutOpenAPIVersion, {
+        verbose: (str) => {
+          console.log(str);
+        },
+      });
       expect(expected.version).to.be.equal("3.0.0");
 
       serverlessWithoutOpenAPIVersion.processedInput.options = {
         test: "abc",
       };
 
-      expected = new DefinitionGenerator(serverlessWithoutOpenAPIVersion, {});
+      expected = new DefinitionGenerator(serverlessWithoutOpenAPIVersion, {
+        verbose: (str) => {
+          console.log(str);
+        },
+      });
       expect(expected.version).to.be.equal("3.0.0");
 
       serverlessWithoutOpenAPIVersion.processedInput.options = {
         openApiVersion: null,
       };
 
-      expected = new DefinitionGenerator(serverlessWithoutOpenAPIVersion, {});
+      expected = new DefinitionGenerator(serverlessWithoutOpenAPIVersion, {
+        verbose: (str) => {
+          console.log(str);
+        },
+      });
       expect(expected.version).to.be.equal("3.0.0");
 
       serverlessWithoutOpenAPIVersion.processedInput.options = {
         openApiVersion: undefined,
       };
 
-      expected = new DefinitionGenerator(serverlessWithoutOpenAPIVersion, {});
+      expected = new DefinitionGenerator(serverlessWithoutOpenAPIVersion, {
+        verbose: (str) => {
+          console.log(str);
+        },
+      });
       expect(expected.version).to.be.equal("3.0.0");
 
       serverlessWithoutOpenAPIVersion.processedInput.options = {
         openapiVersion: undefined,
       };
 
-      expected = new DefinitionGenerator(serverlessWithoutOpenAPIVersion, {});
+      expected = new DefinitionGenerator(serverlessWithoutOpenAPIVersion, {
+        verbose: (str) => {
+          console.log(str);
+        },
+      });
       expect(expected.version).to.be.equal("3.0.0");
     });
 
@@ -86,12 +115,20 @@ describe("DefinitionGenerator", () => {
       );
       serverlessWithOpenAPIVersion.processedInput.options.openApiVersion =
         "3.0.2";
-      let expected = new DefinitionGenerator(serverlessWithOpenAPIVersion, {});
+      let expected = new DefinitionGenerator(serverlessWithOpenAPIVersion, {
+        verbose: (str) => {
+          console.log(str);
+        },
+      });
       expect(expected.version).to.be.equal("3.0.2");
 
       serverlessWithOpenAPIVersion.processedInput.options.openApiVersion =
         "3.0.1";
-      expected = new DefinitionGenerator(serverlessWithOpenAPIVersion, {});
+      expected = new DefinitionGenerator(serverlessWithOpenAPIVersion, {
+        verbose: (str) => {
+          console.log(str);
+        },
+      });
       expect(expected.version).to.be.equal("3.0.1");
     });
 
@@ -111,7 +148,11 @@ describe("DefinitionGenerator", () => {
           throw err;
         });
 
-      const expected = new DefinitionGenerator(mockServerless, {});
+      const expected = new DefinitionGenerator(mockServerless, {
+        verbose: (str) => {
+          console.log(str);
+        },
+      });
 
       expect(expected.REDOCLY_RULES).to.have.property(
         "operation-2xx-response",
