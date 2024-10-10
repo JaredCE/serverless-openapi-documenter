@@ -5,6 +5,7 @@ const yaml = require("js-yaml");
 const chalk = require("chalk");
 
 const DefinitionGenerator = require("./definitionGenerator");
+const Logger = require("./logger");
 const PostmanGenerator = require("openapi-to-postmanv2");
 
 class OpenAPIGenerator {
@@ -12,18 +13,7 @@ class OpenAPIGenerator {
     this.logOutput = log;
     this.serverless = serverless;
     this.options = options;
-
-    this.logTypes = {
-      NOTICE: "notice",
-      DEBUG: "debug",
-      ERROR: "error",
-      WARNING: "warning",
-      INFO: "info",
-      VERBOSE: "verbose",
-      SUCCESS: "success",
-    };
-
-    this.defaultLog = this.logTypes.NOTICE;
+    this.logger = new Logger(this.serverless, this.logOutput);
 
     this.commands = {
       openapi: {
@@ -145,7 +135,9 @@ class OpenAPIGenerator {
   }
 
   async generate() {
-    this.log(chalk.bold.underline("OpenAPI v3 Description Generation"));
+    this.logger.notice(
+      chalk.bold.underline("OpenAPI v3 Description Generation")
+    );
     this.processCliInput();
 
     const validOpenAPI = await this.generationAndValidation().catch((err) => {
@@ -168,37 +160,31 @@ class OpenAPIGenerator {
     }
     try {
       fs.writeFileSync(this.config.file, output);
-      this.log(
-        "OpenAPI v3 Description Successfully Written",
-        this.logTypes.SUCCESS
-      );
+      this.logger.success("OpenAPI v3 Description Successfully Written");
     } catch (err) {
-      this.log(
-        `ERROR: An error was thrown whilst writing the OpenAPI Description`,
-        this.logTypes.ERROR
+      this.logger.error(
+        `ERROR: An error was thrown whilst writing the OpenAPI Description`
       );
       throw new this.serverless.classes.Error(err);
     }
   }
 
   async generationAndValidation() {
-    const generator = new DefinitionGenerator(this.serverless);
+    const generator = new DefinitionGenerator(this.serverless, this.logger);
 
-    this.log(`Generating OpenAPI Description`, this.logTypes.NOTICE);
+    this.logger.notice(`Generating OpenAPI Description`);
     await generator.parse().catch((err) => {
-      this.log(
-        `ERROR: An error was thrown generating the OpenAPI v3 Description`,
-        this.logTypes.ERROR
+      this.logger.error(
+        `ERROR: An error was thrown generating the OpenAPI v3 Description`
       );
       throw new this.serverless.classes.Error(err);
     });
 
-    this.log(`Validating generated OpenAPI Description`, this.logTypes.NOTICE);
+    this.logger.notice(`Validating generated OpenAPI Description`);
 
     const validationResults = await generator.validate().catch((err) => {
-      this.log(
-        `ERROR: An error was thrown validating the OpenAPI v3 Description`,
-        this.logTypes.ERROR
+      this.logger.error(
+        `ERROR: An error was thrown validating the OpenAPI v3 Description`
       );
 
       throw new this.serverless.classes.Error(err);
@@ -219,10 +205,7 @@ class OpenAPIGenerator {
       if (shouldThrow) throw new this.serverless.classes.Error(message);
     }
 
-    this.log(
-      "OpenAPI v3 Description Successfully Generated",
-      this.logTypes.SUCCESS
-    );
+    this.logger.success("OpenAPI v3 Description Successfully Generated");
 
     return generator.openAPI;
   }
@@ -230,31 +213,29 @@ class OpenAPIGenerator {
   createPostman(openAPI) {
     const postmanGeneration = (err, result) => {
       if (err) {
-        this.log(
-          `ERROR: An error was thrown when generating the postman collection`,
-          this.logTypes.ERROR
+        this.logger.error(
+          `ERROR: An error was thrown when generating the postman collection`
         );
         throw new this.serverless.classes.Error(err);
       }
 
-      this.log(
-        "postman collection v2 Documentation Successfully Generated",
-        this.logTypes.SUCCESS
+      this.logger.success(
+        "postman collection v2 Documentation Successfully Generated"
       );
+
       try {
         fs.writeFileSync(
           this.config.postmanCollection,
           JSON.stringify(result.output[0].data)
         );
-        this.log(
-          "postman collection v2 Documentation Successfully Written",
-          this.logTypes.SUCCESS
+        this.logger.success(
+          "postman collection v2 Documentation Successfully Written"
         );
       } catch (err) {
-        this.log(
-          `ERROR: An error was thrown whilst writing the postman collection`,
-          this.logTypes.ERROR
+        this.logger.error(
+          `ERROR: An error was thrown whilst writing the postman collection`
         );
+
         throw new this.serverless.classes.Error(err);
       }
     };
@@ -295,7 +276,7 @@ class OpenAPIGenerator {
       this.serverless.processedInput.options.output ||
       (config.format === "yaml" ? "openapi.yml" : "openapi.json");
 
-    this.log(
+    this.logger.notice(
       `${chalk.bold.green("[OPTIONS]")}
   openApiVersion: "${chalk.bold.green(String(config.openApiVersion))}"
   format: "${chalk.bold.green(config.format)}"
@@ -314,26 +295,18 @@ class OpenAPIGenerator {
 
   validationErrorDetails(validationErrors) {
     if (validationErrors.length) {
-      this.log(
+      this.logger.error(
         `${chalk.bold.yellow(
           "[VALIDATION]"
-        )} Validation errors found in OpenAPI Description: \n`,
-        this.logTypes.ERROR
+        )} Validation errors found in OpenAPI Description: \n`
       );
 
       for (const error of validationErrors) {
-        this.log(
-          `${chalk.bold.red("Severity:")} ${error.severity}`,
-          this.logTypes.ERROR
-        );
-        this.log(
-          `${chalk.bold.yellow("Message:")} ${error.message}`,
-          this.logTypes.ERROR
-        );
+        this.logger.error(`${chalk.bold.red("Severity:")} ${error.severity}`);
+        this.logger.error(`${chalk.bold.yellow("Message:")} ${error.message}`);
         for (const location of error.location) {
-          this.log(
-            `${chalk.bold.yellow("found at location:")} ${location.pointer}`,
-            this.logTypes.ERROR
+          this.logger.error(
+            `${chalk.bold.yellow("found at location:")} ${location.pointer}`
           );
         }
       }

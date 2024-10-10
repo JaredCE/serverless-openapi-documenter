@@ -1,6 +1,6 @@
 {
   "name": "serverless-openapi-documenter",
-  "version": "0.0.107",
+  "version": "0.0.108",
   "description": "Generate OpenAPI v3 documentation and Postman Collections from your Serverless Config",
   "main": "index.js",
   "keywords": [
@@ -27,7 +27,8 @@
     "Api Gateway",
     "APIGateway",
     "AWSAPIGateway",
-    "Serverless OpenAPI"
+    "Serverless OpenAPI",
+    "serverless openapi"
   ],
   "scripts": {
     "test": "mocha --config './test/.mocharc.js'"
