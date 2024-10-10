@@ -27,7 +27,8 @@
     "Api Gateway",
     "APIGateway",
     "AWSAPIGateway",
-    "Serverless OpenAPI"
+    "Serverless OpenAPI",
+    "serverless openapi"
   ],
   "scripts": {
     "test": "mocha --config './test/.mocharc.js'"
