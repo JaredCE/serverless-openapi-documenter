@@ -237,7 +237,9 @@ describe("OpenAPIGenerator", () => {
     it("should throw an error when writing a file fails", function () {
       const errStub = sinon.stub(logOutput.log, "error").returns("");
       const succSpy = sinon.spy(logOutput.log, "success");
-      const fsStub = sinon.stub(fs, "writeFileSync").throws(new Error());
+      const fsStub = sinon
+        .stub(fs, "writeFileSync")
+        .throws(new Error("throwing an error from writeFileSync"));
       const openAPIGenerator = new OpenAPIGenerator(sls, {}, logOutput);
       openAPIGenerator.processCliInput();
 
@@ -258,7 +260,7 @@ describe("OpenAPIGenerator", () => {
       const errStub = sinon.spy(logOutput.log, "error");
       const succSpy = sinon.spy(logOutput.log, "success");
       const pgStub = sinon.stub(PostmanGenerator, "convert");
-      pgStub.yields(new Error());
+      pgStub.yields(new Error("throwing an error from PostmanGenerator"));
 
       const openAPIGenerator = new OpenAPIGenerator(sls, {}, logOutput);
       openAPIGenerator.processCliInput();
