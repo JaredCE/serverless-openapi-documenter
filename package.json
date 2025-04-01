@@ -61,7 +61,7 @@
   "devDependencies": {
     "chai": "^4.5.0",
     "mocha": "^11.1.0",
-    "nock": "^13.5.5",
+    "nock": "^14.0.2",
     "sinon": "^20.0.0"
   }
 }
