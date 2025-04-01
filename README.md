@@ -12,13 +12,13 @@
   </a>
 </p>
 
-This will generate an OpenAPI V3 (up to v3.0.3) file for you from your serverless file. It can optionally generate a [Postman Collection V2](https://github.com/postmanlabs/openapi-to-postman) from the OpenAPI file for you too. This currently works for `http` and `httpApi` configurations.
+This will generate an OpenAPI V3 (up to v3.0.4) file for you from your serverless file. It can optionally generate a [Postman Collection V2](https://github.com/postmanlabs/openapi-to-postman) from the OpenAPI file for you too. This currently works for `http` and `httpApi` configurations.
 
 Originally based off of: https://github.com/temando/serverless-openapi-documentation
 
 ## Install
 
-This plugin works for Serverless (2.x, 3.x and 4.x) and only supports node.js 14 and up.
+This plugin works for Serverless (2.x, 3.x and 4.x) and only supports node.js 20 and up.
 
 To add this plugin to your package.json:
 
@@ -39,7 +39,7 @@ plugins:
 
 ## Adding documentation to serverless
 
-To Run: `serverless openapi generate -o openapi.json -f json -a 3.0.3 -p postman.json`
+To Run: `serverless openapi generate -o openapi.json -f json -a 3.0.4 -p postman.json`
 
 Options:
 
@@ -316,7 +316,7 @@ custom:
         in: header
 ```
 
-It accepts all available Security Schemes and follows the specification: https://spec.openapis.org/oas/v3.0.3#security-scheme-object
+It accepts all available Security Schemes and follows the specification: https://spec.openapis.org/oas/v3.0.4#security-scheme-object
 
 #### Security on each operation
 
@@ -904,7 +904,7 @@ getContent:
 
 You can refer to the `operationId` that you created.
 
-You can read more about [links](https://swagger.io/docs/specification/links/) on the swagger.io site and in the [OpenAPI](https://spec.openapis.org/oas/v3.0.3#link-object) specification. They don't seem widely supported just yet, but perhaps they'll improve your documentation.
+You can read more about [links](https://swagger.io/docs/specification/links/) on the swagger.io site and in the [OpenAPI](https://spec.openapis.org/oas/v3.0.4#link-object) specification. They don't seem widely supported just yet, but perhaps they'll improve your documentation.
 
 ##### `responseHeaders`
 
