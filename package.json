@@ -52,7 +52,6 @@
     "json-schema-for-openapi": "^0.5.0",
     "lodash.isequal": "^4.5.0",
     "openapi-to-postmanv2": "^4.24.0",
-    "swagger2openapi": "^7.0.8",
     "uuid": "^11.1.0"
   },
   "engines": {
