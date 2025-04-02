@@ -1009,18 +1009,18 @@ I am making use of https://www.npmjs.com/package/@redocly/openapi-core, which I 
 
 I have configured the validator to use these Rules:
 
-- [spec](https://redocly.com/docs/cli/rules/spec/)
-- [path-parameters-defined](https://redocly.com/docs/cli/rules/path-parameters-defined/)
-- [operation-2xx-response](https://redocly.com/docs/cli/rules/operation-2xx-response/)
-- [operation-4xx-response](https://redocly.com/docs/cli/rules/operation-4xx-response/)
-- [operation-operationId-unique](https://redocly.com/docs/cli/rules/operation-operationid-unique/)
-- [path-declaration-must-exist](https://redocly.com/docs/cli/rules/path-declaration-must-exist/)
+- [struct](https://redocly.com/docs/cli/rules/oas/struct)
+- [path-parameters-defined](https://redocly.com/docs/cli/rules/oas/path-parameters-defined)
+- [operation-2xx-response](https://redocly.com/docs/cli/rules/oas/operation-2xx-response)
+- [operation-4xx-response](https://redocly.com/docs/cli/rules/oas/operation-4xx-response)
+- [operation-operationId-unique](https://redocly.com/docs/cli/rules/oas/operation-operationId-unique)
+- [path-declaration-must-exist](https://redocly.com/docs/cli/rules/oas/path-declaration-must-exist)
 
 However, you can configure your own rules from the [ruleset available on the Redocly site](https://redocly.com/docs/cli/rules/built-in-rules/). To do this, you will need to create a `redocly.json` file within an `options` folder. The file should look like:
 
 ```json
 {
-  "spec": "error",
+  "struct": "error",
   "path-parameters-defined": "error",
   "operation-2xx-response": "error",
   "operation-4xx-response": "error",
