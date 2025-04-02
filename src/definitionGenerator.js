@@ -81,7 +81,7 @@ class DefinitionGenerator {
       this.REDOCLY_RULES = require(path.resolve("options", "redocly.json"));
     } catch (err) {
       this.REDOCLY_RULES = {
-        spec: "error",
+        struct: "error",
         "path-parameters-defined": "error",
         "operation-2xx-response": "error",
         "operation-4xx-response": "error",
