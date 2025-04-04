@@ -1,5 +1,6 @@
 "use strict";
 
+const isEqual = require("node:util").isDeepStrictEqual;
 const path = require("path");
 
 const {
@@ -8,7 +9,6 @@ const {
   stringifyYaml,
   createConfig,
 } = require("@redocly/openapi-core");
-const isEqual = require("lodash.isequal");
 const { v4: uuid } = require("uuid");
 
 const SchemaHandler = require("./schemaHandler");
@@ -39,7 +39,11 @@ class DefinitionGenerator {
       },
     };
 
-    this.schemaHandler = new SchemaHandler(serverless, this.openAPI);
+    this.schemaHandler = new SchemaHandler(
+      serverless,
+      this.openAPI,
+      this.logger
+    );
 
     this.operationIdMap = {};
     this.functionMap = {};

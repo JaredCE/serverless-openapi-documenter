@@ -1,14 +1,16 @@
 "use strict";
 
+const isEqual = require("node:util").isDeepStrictEqual;
 const path = require("path");
 
 const $RefParser = require("@apidevtools/json-schema-ref-parser");
 const SchemaConvertor = require("json-schema-for-openapi");
-const isEqual = require("lodash.isequal");
 const { v4: uuid } = require("uuid");
 
 class SchemaHandler {
-  constructor(serverless, openAPI) {
+  constructor(serverless, openAPI, logger) {
+    this.logger = logger;
+
     this.apiGatewayModels =
       serverless.service?.provider?.apiGateway?.request?.schemas || {};
     this.documentation = serverless.service.custom.documentation;
@@ -19,6 +21,12 @@ class SchemaHandler {
     this.__standardiseModels();
 
     try {
+      this.logger.verbose(
+        `Trying to resolve Ref-Parser config from: ${path.resolve(
+          "options",
+          "ref-parser.js"
+        )}`
+      );
       this.refParserOptions = require(path.resolve("options", "ref-parser.js"));
     } catch (err) {
       this.refParserOptions = {};
@@ -63,6 +71,7 @@ class SchemaHandler {
       const modelName = model.name;
       const modelSchema = model.schema;
 
+      this.logger.verbose(`dereferencing model: ${model.name}`);
       const dereferencedSchema = await this.__dereferenceSchema(
         modelSchema
       ).catch((err) => {
@@ -76,6 +85,7 @@ class SchemaHandler {
         return modelSchema;
       });
 
+      this.logger.verbose(`convering model: ${model.name}`);
       const convertedSchemas = SchemaConvertor.convert(
         dereferencedSchema,
         modelName

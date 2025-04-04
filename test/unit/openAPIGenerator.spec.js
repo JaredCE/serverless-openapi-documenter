@@ -57,6 +57,7 @@ describe("OpenAPIGenerator", () => {
         notice: (str) => {},
         error: (str) => {},
         success: (str) => {},
+        verbose: (str) => {},
       },
     };
   });
