@@ -39,7 +39,11 @@ class DefinitionGenerator {
       },
     };
 
-    this.schemaHandler = new SchemaHandler(serverless, this.openAPI);
+    this.schemaHandler = new SchemaHandler(
+      serverless,
+      this.openAPI,
+      this.logger
+    );
 
     this.operationIdMap = {};
     this.functionMap = {};
