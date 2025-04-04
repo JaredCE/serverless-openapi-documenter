@@ -1,10 +1,10 @@
 "use strict";
 
+const isEqual = require("node:util").isDeepStrictEqual;
 const path = require("path");
 
 const $RefParser = require("@apidevtools/json-schema-ref-parser");
 const SchemaConvertor = require("json-schema-for-openapi");
-const isEqual = require("lodash.isequal");
 const { v4: uuid } = require("uuid");
 
 class SchemaHandler {

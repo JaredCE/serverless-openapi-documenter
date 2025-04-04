@@ -1,5 +1,6 @@
 "use strict";
 
+const isEqual = require("node:util").isDeepStrictEqual;
 const path = require("path");
 
 const {
@@ -8,7 +9,6 @@ const {
   stringifyYaml,
   createConfig,
 } = require("@redocly/openapi-core");
-const isEqual = require("lodash.isequal");
 const { v4: uuid } = require("uuid");
 
 const SchemaHandler = require("./schemaHandler");
