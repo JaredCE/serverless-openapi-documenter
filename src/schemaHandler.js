@@ -71,6 +71,7 @@ class SchemaHandler {
       const modelName = model.name;
       const modelSchema = model.schema;
 
+      this.logger.verbose(`dereferencing model: ${model.name}`);
       const dereferencedSchema = await this.__dereferenceSchema(
         modelSchema
       ).catch((err) => {
@@ -84,6 +85,7 @@ class SchemaHandler {
         return modelSchema;
       });
 
+      this.logger.verbose(`convering model: ${model.name}`);
       const convertedSchemas = SchemaConvertor.convert(
         dereferencedSchema,
         modelName
