@@ -71,25 +71,14 @@ class SchemaHandler {
       const modelName = model.name;
       const modelSchema = model.schema;
 
-      this.logger.verbose(`dereferencing model: ${model.name}`);
-      const dereferencedSchema = await this.__dereferenceSchema(
-        modelSchema
+      const convertedSchemas = await this.__dereferenceAndConvert(
+        modelSchema,
+        modelName,
+        model
       ).catch((err) => {
-        if (err.errors) {
-          for (const error of err?.errors) {
-            this.__HTTPError(error, model);
-          }
-        } else {
-          this.__HTTPError(err, model);
-        }
-        return modelSchema;
+        if (err instanceof Error) throw err;
+        else return err;
       });
-
-      this.logger.verbose(`converting model: ${model.name}`);
-      const convertedSchemas = SchemaConvertor.convert(
-        dereferencedSchema,
-        modelName
-      );
 
       if (
         typeof convertedSchemas.schemas === "object" &&
@@ -129,13 +118,12 @@ class SchemaHandler {
       return this.modelReferences[name];
     }
 
-    const dereferencedSchema = await this.__dereferenceSchema(schema).catch(
-      (err) => {
-        throw err;
-      }
-    );
-
-    const convertedSchemas = SchemaConvertor.convert(dereferencedSchema, name);
+    const convertedSchemas = await this.__dereferenceAndConvert(schema, name, {
+      name,
+      schema,
+    }).catch((err) => {
+      throw err;
+    });
 
     for (const [schemaName, schemaValue] of Object.entries(
       convertedSchemas.schemas
@@ -155,6 +143,24 @@ class SchemaHandler {
     }
 
     return `#/components/schemas/${finalName}`;
+  }
+
+  async __dereferenceAndConvert(schema, name, model) {
+    this.logger.verbose(`dereferencing model: ${name}`);
+    const dereferencedSchema = await this.__dereferenceSchema(schema).catch(
+      (err) => {
+        this.__checkForHTTPErrorsAndThrow(err, model);
+
+        this.__checkForMissingPathAndThrow(err, model);
+
+        return schema;
+      }
+    );
+
+    this.logger.verbose(`converting model: ${name}`);
+    const convertedSchemas = SchemaConvertor.convert(dereferencedSchema, name);
+
+    return convertedSchemas;
   }
 
   async __dereferenceSchema(schema) {
@@ -238,9 +244,23 @@ class SchemaHandler {
     }
   }
 
+  __checkForMissingPathAndThrow(error, model) {
+    if (error.message === "Expected a file path, URL, or object. Got undefined")
+      throw error;
+  }
+
+  __checkForHTTPErrorsAndThrow(error, model) {
+    if (error.errors) {
+      for (const err of error?.errors) {
+        this.__HTTPError(err, model);
+      }
+    } else {
+      this.__HTTPError(error, model);
+    }
+  }
+
   __HTTPError(error, model) {
     if (error.message.includes("HTTP ERROR")) {
-      //   throw err;
       throw new Error(
         `There was an error dereferencing ${
           model.name
