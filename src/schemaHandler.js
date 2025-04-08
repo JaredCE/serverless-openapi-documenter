@@ -85,7 +85,7 @@ class SchemaHandler {
         return modelSchema;
       });
 
-      this.logger.verbose(`convering model: ${model.name}`);
+      this.logger.verbose(`converting model: ${model.name}`);
       const convertedSchemas = SchemaConvertor.convert(
         dereferencedSchema,
         modelName
