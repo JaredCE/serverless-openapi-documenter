@@ -43,12 +43,12 @@ describe(`SchemaHandler`, function () {
   };
 
   beforeEach(function () {
-    mockServerless = JSON.parse(JSON.stringify(serverlessMock));
-    modelsDocument = JSON.parse(JSON.stringify(modelsDocumentOG));
-    modelsAltDocument = JSON.parse(JSON.stringify(modelsAltDocumentOG));
-    modelsListDocument = JSON.parse(JSON.stringify(modelsListDocumentOG));
-    modelsListAltDocument = JSON.parse(JSON.stringify(modelsListAltDocumentOG));
-    openAPI = JSON.parse(JSON.stringify(openAPISchema));
+    mockServerless = structuredClone(serverlessMock);
+    modelsDocument = structuredClone(modelsDocumentOG);
+    modelsAltDocument = structuredClone(modelsAltDocumentOG);
+    modelsListDocument = structuredClone(modelsListDocumentOG);
+    modelsListAltDocument = structuredClone(modelsListAltDocumentOG);
+    openAPI = structuredClone(openAPISchema);
   });
 
   describe(`constuctor`, function () {
@@ -135,7 +135,7 @@ describe(`SchemaHandler`, function () {
       });
 
       it(`should standardise mixed models syntax in to the correct format`, function () {
-        const newModelsDocument = JSON.parse(JSON.stringify(modelsDocument));
+        const newModelsDocument = structuredClone(modelsDocument);
         Object.assign(
           mockServerless.service.custom.documentation,
           newModelsDocument
@@ -168,9 +168,7 @@ describe(`SchemaHandler`, function () {
       });
 
       it(`should standardise mixed modelsList syntax in to the correct format`, function () {
-        const newModelsDocument = JSON.parse(
-          JSON.stringify(modelsListDocument)
-        );
+        const newModelsDocument = structuredClone(modelsListDocument);
         Object.assign(
           mockServerless.service.custom.documentation,
           newModelsDocument
@@ -203,9 +201,7 @@ describe(`SchemaHandler`, function () {
       });
 
       it(`should standardise mixed models and modelsList syntax in to the correct format`, function () {
-        const newModelsDocument = JSON.parse(
-          JSON.stringify(modelsListDocument)
-        );
+        const newModelsDocument = structuredClone(modelsListDocument);
         Object.assign(
           mockServerless.service.custom.documentation,
           newModelsDocument
