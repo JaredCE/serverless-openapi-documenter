@@ -23,7 +23,7 @@ describe("DefinitionGenerator", () => {
   );
 
   beforeEach(function () {
-    mockServerless = JSON.parse(JSON.stringify(serverlessMock));
+    mockServerless = structuredClone(serverlessMock);
     Object.assign(mockServerless.service.custom.documentation, modelsDocument);
   });
 
@@ -39,9 +39,7 @@ describe("DefinitionGenerator", () => {
     });
 
     it("should default to version 3.0.0 of openAPI when openAPI version is not passed in", function () {
-      const serverlessWithoutOpenAPIVersion = JSON.parse(
-        JSON.stringify(mockServerless)
-      );
+      const serverlessWithoutOpenAPIVersion = structuredClone(mockServerless);
       delete serverlessWithoutOpenAPIVersion.processedInput;
       let expected = new DefinitionGenerator(
         serverlessWithoutOpenAPIVersion,
@@ -108,9 +106,7 @@ describe("DefinitionGenerator", () => {
     });
 
     it("should respect the version of openAPI when passed in", function () {
-      const serverlessWithOpenAPIVersion = JSON.parse(
-        JSON.stringify(mockServerless)
-      );
+      const serverlessWithOpenAPIVersion = structuredClone(mockServerless);
       serverlessWithOpenAPIVersion.processedInput.options.openApiVersion =
         "3.0.2";
       let expected = new DefinitionGenerator(

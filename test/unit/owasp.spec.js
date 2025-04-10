@@ -56,7 +56,7 @@ describe(`owasp`, function () {
     });
 
     it(`adds any properties contained in a new release`, async function () {
-      const newOWASPJSONAdded = JSON.parse(JSON.stringify(newOWASPJSON));
+      const newOWASPJSONAdded = structuredClone(newOWASPJSON);
       newOWASPJSONAdded.headers.push({ name: "x-added", value: "true" });
 
       nock("https://owasp.org")

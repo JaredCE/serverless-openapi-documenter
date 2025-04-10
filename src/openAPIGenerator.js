@@ -241,7 +241,7 @@ class OpenAPIGenerator {
     };
 
     PostmanGenerator.convert(
-      { type: "json", data: JSON.parse(JSON.stringify(openAPI)) },
+      { type: "json", data: structuredClone(openAPI) },
       {},
       postmanGeneration
     );

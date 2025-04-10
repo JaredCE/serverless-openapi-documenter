@@ -107,9 +107,7 @@ describe("OpenAPIGenerator", () => {
       const getAllFuncsStub = sinon
         .stub(sls.service, "getAllFunctions")
         .returns(["createUser"]);
-      const basicInvalidFunction = JSON.parse(
-        JSON.stringify(basicValidFunction)
-      );
+      const basicInvalidFunction = structuredClone(basicValidFunction);
 
       delete basicInvalidFunction.createUser.events[0].http.documentation
         .methodResponses[0].responseModels;
@@ -145,9 +143,7 @@ describe("OpenAPIGenerator", () => {
       const getAllFuncsStub = sinon
         .stub(sls.service, "getAllFunctions")
         .returns(["createUser"]);
-      const basicInvalidFunction = JSON.parse(
-        JSON.stringify(basicValidFunction)
-      );
+      const basicInvalidFunction = structuredClone(basicValidFunction);
 
       const getFuncStub = sinon
         .stub(sls.service, "getFunction")
@@ -182,9 +178,7 @@ describe("OpenAPIGenerator", () => {
         .stub(sls.service, "getAllFunctions")
         .returns(["createUser"]);
 
-      const basicInvalidFunction = JSON.parse(
-        JSON.stringify(basicValidFunction)
-      );
+      const basicInvalidFunction = structuredClone(basicValidFunction);
 
       delete basicInvalidFunction.createUser.events[0].http.documentation
         .pathParams;

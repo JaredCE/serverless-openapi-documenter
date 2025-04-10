@@ -624,7 +624,7 @@ class DefinitionGenerator {
           continue;
         }
 
-        const obj = JSON.parse(JSON.stringify(this.DEFAULT_CORS_HEADERS[key]));
+        const obj = structuredClone(this.DEFAULT_CORS_HEADERS[key]);
 
         if (key === "Access-Control-Allow-Origin") {
           if (
