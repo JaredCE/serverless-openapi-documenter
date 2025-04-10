@@ -151,14 +151,22 @@ class SchemaHandler {
       (err) => {
         this.__checkForHTTPErrorsAndThrow(err, model);
 
-        this.__checkForMissingPathAndThrow(err, model);
+        this.__checkForMissingPathAndThrow(err);
 
         return schema;
       }
     );
 
+    this.logger.verbose(
+      `dereferenced model: ${JSON.stringify(dereferencedSchema)}`
+    );
+
     this.logger.verbose(`converting model: ${name}`);
     const convertedSchemas = SchemaConvertor.convert(dereferencedSchema, name);
+
+    this.logger.verbose(
+      `converted schemas: ${JSON.stringify(convertedSchemas)}`
+    );
 
     return convertedSchemas;
   }
@@ -244,7 +252,7 @@ class SchemaHandler {
     }
   }
 
-  __checkForMissingPathAndThrow(error, model) {
+  __checkForMissingPathAndThrow(error) {
     if (error.message === "Expected a file path, URL, or object. Got undefined")
       throw error;
   }
