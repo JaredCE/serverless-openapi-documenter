@@ -103,6 +103,7 @@ Options:
 | tags[].externalDocs.url                                   | `custom.documentation.tags.externalDocumentation.url`                                                                                                 |
 | tags[].externalDocs.description                           | `custom.documentation.tags.externalDocumentation.description`                                                                                         |
 | tags[].externalDocs.x-                                    | `custom.documentation.tags.externalDocumentation.x-` if extended specifications provided                                                              |
+| paths                                                     | `custom.documentation.paths` OpenAPI paths that are not backed by Lambda functions                                                                    |
 | path[path]                                                | functions.functions.events.[http OR httpApi].path                                                                                                     |
 | path[path].servers[].description                          | functions.functions.servers.description                                                                                                               |
 | path[path].servers[].url                                  | functions.functions.servers.url                                                                                                                       |
@@ -543,6 +544,53 @@ functions:
           request:
             schemas:
               application/json: ${file(create_request.json)}
+```
+
+#### Adding non-Lambda endpoints with `paths`
+
+You can add OpenAPI paths that are not backed by Lambda functions using the `paths` field under `custom.documentation`. This is useful for documenting endpoints handled outside of Serverless functions, such as static assets, third-party integrations, or legacy APIs.
+
+The `paths` field should follow the [OpenAPI Paths Object](https://spec.openapis.org/oas/v3.0.4#paths-object) structure. Any paths defined here will be merged into the generated OpenAPI document alongside Lambda-backed endpoints.
+
+**Example:**
+
+```yml
+custom:
+  documentation:
+    title: My API
+    version: "1"
+    paths:
+      /static/health:
+        get:
+          summary: Health check for static endpoint
+          description: Returns status of the static service
+          responses:
+            "200":
+              description: OK
+              content:
+                application/json:
+                  schema:
+                    type: object
+                    properties:
+                      status:
+                        type: string
+                        example: ok
+      /external/webhook:
+        post:
+          summary: Webhook endpoint
+          description: Receives webhook calls from external service
+          requestBody:
+            required: true
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    event:
+                      type: string
+          responses:
+            "204":
+              description: No Content
 ```
 
 #### Functions
