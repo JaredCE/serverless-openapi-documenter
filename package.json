@@ -1,5 +1,5 @@
 {
-  "name": "serverless-openapi-documenter",
+  "name": "@tellihealth/serverless-openapi-documenter",
   "version": "0.0.113",
   "description": "Generate OpenAPI v3 documentation and Postman Collections from your Serverless Config",
   "main": "index.js",
