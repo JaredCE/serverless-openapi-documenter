@@ -127,9 +127,13 @@ class DefinitionGenerator {
       }
     }
 
-    await this.createPaths().catch((err) => {
-      throw err;
-    });
+    await this.createPaths()
+      .then(() => {
+        this.mergeExistingPaths();
+      })
+      .catch((err) => {
+        throw err;
+      });
 
     this.cleanupLinks();
 
@@ -264,6 +268,16 @@ class DefinitionGenerator {
       }
     }
     Object.assign(this.openAPI, { paths });
+  }
+
+  mergeExistingPaths() {
+    const paths = this.serverless.service.custom.documentation.paths;
+
+    const origPaths = this.openAPI.paths || {};
+
+    if (paths) {
+      Object.assign(this.openAPI, { paths: { ...origPaths, ...paths } });
+    }
   }
 
   createServers(servers) {
