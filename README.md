@@ -25,14 +25,14 @@ To add this plugin to your package.json:
 **Using npm:**
 
 ```bash
-npm install --save-dev serverless-openapi-documenter
+npm install --save-dev @telllihealth/serverless-openapi-documenter
 ```
 
 Next you need to add the plugin to the `plugins` section of your `serverless.yml` file.
 
 ```yml
 plugins:
-  - serverless-openapi-documenter
+  - @telllihealth/serverless-openapi-documenter
 ```
 
 > Note: Add this plugin _after_ `serverless-offline` to prevent issues with `String.replaceAll` being overridden incorrectly.
