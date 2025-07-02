@@ -32,7 +32,7 @@ Next you need to add the plugin to the `plugins` section of your `serverless.yml
 
 ```yml
 plugins:
-  - @telllihealth/serverless-openapi-documenter
+  - "@telllihealth/serverless-openapi-documenter"
 ```
 
 > Note: Add this plugin _after_ `serverless-offline` to prevent issues with `String.replaceAll` being overridden incorrectly.
