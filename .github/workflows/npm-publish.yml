@@ -20,6 +20,9 @@ jobs:
           node-version: ${{ matrix.node-version }}
           registry-url: https://npm.pkg.github.com/
       - run: npm ci
+      - run: |
+          git config --global user.email "ci-bot@tellihealth.com"
+          git config --global user.name "CI Bot"
       - run: npm version minor
       - run: npm publish
         env:
