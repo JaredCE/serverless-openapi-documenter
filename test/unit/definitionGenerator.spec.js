@@ -886,6 +886,42 @@ describe("DefinitionGenerator", () => {
         ).to.have.property("api_key");
       });
     });
+
+    describe("x-amazon-* extensions", () => {
+      it("should add an x-amazon-* security scheme to components", function () {
+        mockServerless.service.custom.documentation.securitySchemes = {
+          x_amazon_api_key: {
+            type: "apiKey",
+            name: "x-amz-security-token",
+            in: "header",
+            "x-amazon-apigateway-authtype": "awsSigv4",
+          },
+        };
+
+        const definitionGenerator = new DefinitionGenerator(
+          mockServerless,
+          logger
+        );
+        definitionGenerator.createSecuritySchemes(
+          mockServerless.service.custom.documentation.securitySchemes
+        );
+
+        expect(definitionGenerator.openAPI).to.be.an("object");
+        expect(definitionGenerator.openAPI.components).to.be.an("object");
+        expect(definitionGenerator.openAPI.components).to.have.property(
+          "securitySchemes"
+        );
+        expect(definitionGenerator.openAPI.components.securitySchemes).to.be.an(
+          "object"
+        );
+        expect(
+          definitionGenerator.openAPI.components.securitySchemes
+        ).to.have.property("x_amazon_api_key");
+        expect(
+          definitionGenerator.openAPI.components.securitySchemes.x_amazon_api_key
+        ).to.have.property("x-amazon-apigateway-authtype");
+      });
+    });
   });
 
   describe("createTags", () => {

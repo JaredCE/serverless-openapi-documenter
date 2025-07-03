@@ -920,6 +920,12 @@ class DefinitionGenerator {
           break;
       }
 
+      const extendedSpec = this.extendSpecification(securityScheme);
+
+      if (Object.keys(extendedSpec).length) {
+        Object.assign(schema, extendedSpec);
+      }
+
       this.addToComponents(this.componentTypes.securitySchemes, schema, scheme);
     }
   }
