@@ -273,9 +273,9 @@ class DefinitionGenerator {
   mergeExistingPaths() {
     const paths = this.serverless.service.custom.documentation.paths;
 
-    const origPaths = this.openAPI.paths || {};
-
     if (paths) {
+      const origPaths = this.openAPI.paths || {};
+
       Object.assign(this.openAPI, { paths: { ...origPaths, ...paths } });
     }
   }
