@@ -259,6 +259,10 @@ class DefinitionGenerator {
             slashPath = `/${(event?.http?.path || event.httpApi?.path) ?? ""}`;
           }
 
+          const basePath = this.getBasePath();
+          // append the base path so server is just the pure domain
+          slashPath = `/${basePath}${slashPath}`;
+
           if (paths[slashPath]) {
             Object.assign(paths[slashPath], path);
           } else {
@@ -278,6 +282,22 @@ class DefinitionGenerator {
 
       Object.assign(this.openAPI, { paths: { ...origPaths, ...paths } });
     }
+  }
+
+  /**
+   * @description Retrieves the basePath value if the domain manager plugin is used, allowing the server URL to be just the plain domain. The `basePath` will be prepended to each Lambda HTTP path.
+   * @returns {string}
+   */
+  getBasePath() {
+    const plugins = this.serverless.service.plugins;
+
+    let basePath = "";
+
+    if (plugins.includes("serverless-domain-manager")) {
+      basePath = this.serverless.service.custom.basePath || "";
+    }
+
+    return basePath;
   }
 
   createServers(servers) {
