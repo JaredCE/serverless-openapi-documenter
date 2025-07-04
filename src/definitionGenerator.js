@@ -260,8 +260,11 @@ class DefinitionGenerator {
           }
 
           const basePath = this.getBasePath();
-          // append the base path so server is just the pure domain
-          slashPath = `/${basePath}${slashPath}`;
+
+          if (basePath) {
+            // append the base path so server is just the pure domain
+            slashPath = `/${basePath}${slashPath}`;
+          }
 
           if (paths[slashPath]) {
             Object.assign(paths[slashPath], path);
@@ -289,7 +292,7 @@ class DefinitionGenerator {
    * @returns {string}
    */
   getBasePath() {
-    const plugins = this.serverless.service.plugins;
+    const plugins = this.serverless.service.plugins || [];
 
     let basePath = "";
 
