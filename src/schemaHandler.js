@@ -15,8 +15,9 @@ class SchemaHandler {
       serverless.service?.provider?.apiGateway?.request?.schemas || {};
     this.documentation = serverless.service.custom.documentation;
     this.openAPI = openAPI;
+
     this.shouldConvert = true;
-    if (/(3\.1\.\d)/g(this.openAPI.openapi)) this.shouldConvert = false;
+    if (/(3\.1\.\d)/g.test(this.openAPI.openapi)) this.shouldConvert = false;
 
     this.shouldConvert = true;
     if (/(3\.1\.\d)/g.test(this.openAPI.openapi)) this.shouldConvert = false;
