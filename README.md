@@ -318,6 +318,8 @@ custom:
 
 It accepts all available Security Schemes and follows the specification: https://spec.openapis.org/oas/v3.0.4#security-scheme-object
 
+This can be extended using the `^x-` specification extension.
+
 #### Security on each operation
 
 To apply an overall security scheme to all of your operations without having to add the documentation to each one, you can write it like:
