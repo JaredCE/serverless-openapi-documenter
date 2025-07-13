@@ -15,8 +15,9 @@ class SchemaHandler {
       serverless.service?.provider?.apiGateway?.request?.schemas || {};
     this.documentation = serverless.service.custom.documentation;
     this.openAPI = openAPI;
+
     this.shouldConvert = true;
-    if (/(3\.1\.\d)/g(this.openAPI.openapi)) this.shouldConvert = false;
+    if (/(3\.1\.\d)/g.test(this.openAPI.openapi)) this.shouldConvert = false;
 
     this.modelReferences = {};
 
@@ -159,11 +160,11 @@ class SchemaHandler {
       }
     );
 
-    this.logger.verbose(
-      `dereferenced model: ${JSON.stringify(dereferencedSchema)}`
-    );
-
     if (this.shouldConvert) {
+      this.logger.verbose(
+        `dereferenced model: ${JSON.stringify(dereferencedSchema)}`
+      );
+
       this.logger.verbose(`converting model: ${name}`);
       const convertedSchemas = SchemaConvertor.convert(
         dereferencedSchema,
@@ -176,7 +177,13 @@ class SchemaHandler {
       return convertedSchemas;
     }
 
-    return dereferencedSchema;
+    this.logger.verbose(
+      `dereferenced model: ${JSON.stringify({
+        schemas: { [name]: dereferencedSchema },
+      })}`
+    );
+
+    return { schemas: { [name]: dereferencedSchema } };
   }
 
   async __dereferenceSchema(schema) {
