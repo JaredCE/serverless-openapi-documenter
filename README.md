@@ -14,7 +14,7 @@
 
 This will generate an OpenAPI V3 (up to v3.0.4) file for you from your serverless file. It can optionally generate a [Postman Collection V2](https://github.com/postmanlabs/openapi-to-postman) or (as of 0.0.120) [Bruno Collection](https://docs.usebruno.com/) from the OpenAPI file. This currently works for `http` and `httpApi` configurations.
 
-If you are using the beta of 0.0.115, it will now try and create OpenAPI V3.1 (3.1.x) specs for you. Please see this [guide on migrating to V3.1](https://www.openapis.org/blog/2021/02/16/migrating-from-openapi-3-0-to-3-1-0)
+If you are using the beta of 0.0.115, it will now try and create OpenAPI V3.1 (3.1.x) specs for you. Please see this [guide on migrating to V3.1](https://www.openapis.org/blog/2021/02/16/migrating-from-openapi-3-0-to-3-1-0). Whilst I perosnally use this plugin all the time, please do open and report bugs, and I will do my best to fix them.
 
 Originally based off of: https://github.com/temando/serverless-openapi-documentation
 
