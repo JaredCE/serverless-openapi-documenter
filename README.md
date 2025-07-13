@@ -16,6 +16,8 @@ This will generate an [OpenAPI V3](https://spec.openapis.org/oas/v3.0.0.html) (u
 
 If you are using the beta of 0.0.115, it will now try and create [OpenAPI V3.1 (3.1.x)](https://spec.openapis.org/oas/v3.1.0.html) specification file for you, should you run the command `serverless openapi generate -o openapi.json -f json -a 3.1.1 -p postman.json`. Please see this [guide on migrating to V3.1](https://www.openapis.org/blog/2021/02/16/migrating-from-openapi-3-0-to-3-1-0). Whilst I perosnally use this plugin all the time, please do open and report bugs, and I will do my best to fix them.
 
+If you are using the beta of 0.0.115, it will now try and create OpenAPI V3.1 (3.1.x) specs for you. Please see this [guide on migrating to V3.1](https://www.openapis.org/blog/2021/02/16/migrating-from-openapi-3-0-to-3-1-0)
+
 Originally based off of: https://github.com/temando/serverless-openapi-documentation
 
 ## Install
