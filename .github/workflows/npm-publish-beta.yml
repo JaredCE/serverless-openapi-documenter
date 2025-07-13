@@ -30,6 +30,8 @@ jobs:
           registry-url: https://registry.npmjs.org/
       - run: npm ci
       - name: Bump version and publish
-        run: npm publish --tag beta
         env:
           NODE_AUTH_TOKEN: ${{secrets.npm_token}}
+        run: |
+          npm version prerelease --preid beta
+          npm publish --tag beta
