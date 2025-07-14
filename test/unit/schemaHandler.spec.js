@@ -4,7 +4,9 @@ const fs = require("fs").promises;
 const path = require("path");
 
 const expect = require("chai").expect;
+const SchemaConvertor = require("json-schema-for-openapi");
 const nock = require("nock");
+const sinon = require("sinon");
 
 const modelsDocumentOG = require("../models/models/models.json");
 const modelsAltDocumentOG = require("../models/models/models-alt.json");
@@ -36,7 +38,7 @@ describe(`SchemaHandler`, function () {
   );
 
   const openAPISchema = {
-    version: "3.0.3",
+    openapi: "3.0.3",
     components: {
       schemas: {},
     },
@@ -277,7 +279,7 @@ describe(`SchemaHandler`, function () {
 
   describe(`addModelsToOpenAPI`, function () {
     describe(`embedded simple schemas`, function () {
-      it(`should add the model to the openAPI schema`, async function () {
+      it(`should add the model to the OpenAPI schema`, async function () {
         Object.assign(
           mockServerless.service.custom.documentation,
           modelsDocument
@@ -306,7 +308,7 @@ describe(`SchemaHandler`, function () {
         });
       });
 
-      it(`should add a model with references to the openAPI schema`, async function () {
+      it(`should add a model with references to the OpenAPI schema`, async function () {
         Object.assign(
           mockServerless.service.custom.documentation,
           modelsDocument
@@ -379,7 +381,7 @@ describe(`SchemaHandler`, function () {
         });
       });
 
-      it(`should add a model with poorly dereferenced references to the openAPI schema`, async function () {
+      it(`should add a model with poorly dereferenced references to the OpenAPI schema`, async function () {
         Object.assign(
           mockServerless.service.custom.documentation,
           modelsDocument
@@ -446,7 +448,7 @@ describe(`SchemaHandler`, function () {
       });
 
       describe(`component references`, function () {
-        it(`should add schemas with component references to the openAPI schema`, async function () {
+        it(`should add schemas with component references to the OpenAPI schema`, async function () {
           Object.assign(
             mockServerless.service.custom.documentation,
             modelsDocument
@@ -517,10 +519,86 @@ describe(`SchemaHandler`, function () {
             type: "string",
           });
         });
+
+        it(`should add schemas with component references to the OpenAPI schema using OpenAPI 3.1`, async function () {
+          Object.assign(
+            mockServerless.service.custom.documentation,
+            modelsDocument
+          );
+
+          mockServerless.service.custom.documentation.models.push({
+            name: "SuccessResponse",
+            contentType: "application/json",
+            schema: {
+              type: "array",
+              items: {
+                $ref: "#/components/schemas/Agency",
+              },
+            },
+          });
+
+          mockServerless.service.custom.documentation.models.push({
+            name: "Agency",
+            contentType: "application/json",
+            schema: {
+              type: "string",
+            },
+          });
+
+          openAPI.openapi = "3.1.0";
+
+          const schemaHandler = new SchemaHandler(
+            mockServerless,
+            openAPI,
+            logger
+          );
+
+          await schemaHandler.addModelsToOpenAPI();
+
+          expect(schemaHandler.openAPI).to.have.property("components");
+          expect(schemaHandler.openAPI.components).to.have.property("schemas");
+          expect(schemaHandler.openAPI.components.schemas).to.have.property(
+            "ErrorResponse"
+          );
+          expect(
+            schemaHandler.openAPI.components.schemas.ErrorResponse
+          ).to.be.an("object");
+          expect(
+            schemaHandler.openAPI.components.schemas.ErrorResponse
+          ).to.be.eql({
+            type: "object",
+            properties: { error: { type: "string" } },
+          });
+
+          expect(schemaHandler.openAPI.components.schemas).to.have.property(
+            "SuccessResponse"
+          );
+          expect(
+            schemaHandler.openAPI.components.schemas.SuccessResponse
+          ).to.be.an("object");
+          expect(
+            schemaHandler.openAPI.components.schemas.SuccessResponse
+          ).to.be.eql({
+            type: "array",
+            items: {
+              $ref: "#/components/schemas/Agency",
+            },
+          });
+
+          expect(schemaHandler.openAPI.components.schemas).to.have.property(
+            "Agency"
+          );
+          expect(schemaHandler.openAPI.components.schemas.Agency).to.be.an(
+            "object"
+          );
+          expect(schemaHandler.openAPI.components.schemas.Agency).to.be.eql({
+            type: "string",
+          });
+        });
       });
 
       describe(`other references`, function () {
-        it(`should add a model that is a webUrl to the openAPI schema`, async function () {
+        it(`should add a model that is a webUrl to the OpenAPI schema`, async function () {
           Object.assign(
             mockServerless.service.custom.documentation,
             modelsDocument
@@ -589,7 +667,7 @@ describe(`SchemaHandler`, function () {
           });
         });
 
-        it(`should add a complex model that is a webUrl to the openAPI schema`, async function () {
+        it(`should add a complex model that is a webUrl to the OpenAPI schema`, async function () {
           Object.assign(
             mockServerless.service.custom.documentation,
             modelsDocument
@@ -710,6 +788,28 @@ describe(`SchemaHandler`, function () {
   });
 
   describe(`createSchema`, function () {
+    it(`does not convert schemas when using OpenAPI 3.1.x`, async function () {
+      Object.assign(
+        mockServerless.service.custom.documentation,
+        modelsDocument
+      );
+
+      openAPI.openapi = "3.1.0";
+
+      const schemaHandler = new SchemaHandler(mockServerless, openAPI, logger);
+
+      const spy = sinon.spy(SchemaConvertor, "convert");
+
+      await schemaHandler.addModelsToOpenAPI();
+
+      const expected = await schemaHandler.createSchema("ErrorResponse");
+
+      expect(expected).to.be.equal("#/components/schemas/ErrorResponse");
+      expect(spy.calledOnce).to.be.false;
+
+      spy.restore();
+    });
+
     it(`returns a reference to the schema when the schema already exists in components and we don't pass through a schema`, async function () {
       Object.assign(
         mockServerless.service.custom.documentation,
