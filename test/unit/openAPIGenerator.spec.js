@@ -68,7 +68,7 @@ describe("OpenAPIGenerator", () => {
   });
 
   describe("generationAndValidation", () => {
-    it("should correctly generate a valid openAPI document", async function () {
+    it("should correctly generate a valid OpenAPI document", async function () {
       const succSpy = sinon.spy(logOutput.log, "success");
       const errSpy = sinon.spy(logOutput.log, "error");
 
@@ -99,7 +99,7 @@ describe("OpenAPIGenerator", () => {
       getFuncStub.reset();
     });
 
-    xit("should throw an error when trying to generate an invalid openAPI document", async function () {
+    xit("should throw an error when trying to generate an invalid OpenAPI document", async function () {
       const succSpy = sinon.spy(logOutput.log, "success");
       const errSpy = sinon.spy(logOutput.log, "error");
 
@@ -135,7 +135,7 @@ describe("OpenAPIGenerator", () => {
       getFuncStub.reset();
     });
 
-    it("should correctly validate a valid openAPI document", async function () {
+    it("should correctly validate a valid OpenAPI document", async function () {
       const succSpy = sinon.spy(logOutput.log, "success");
       const errSpy = sinon.spy(logOutput.log, "error");
 
@@ -168,7 +168,7 @@ describe("OpenAPIGenerator", () => {
       getFuncStub.reset();
     });
 
-    it("should throw an error when trying to validate an invalid openAPI document", async function () {
+    it("should throw an error when trying to validate an invalid OpenAPI document", async function () {
       const succSpy = sinon.spy(logOutput.log, "success");
       const errSpy = sinon.spy(logOutput.log, "error");
 
@@ -212,7 +212,7 @@ describe("OpenAPIGenerator", () => {
   });
 
   describe("createPostman", () => {
-    it("should generate a postman collection when a valid openAPI file is generated", function () {
+    it("should generate a postman collection when a valid OpenAPI file is generated", function () {
       const fsStub = sinon.stub(fs, "writeFileSync").returns(true);
       const succSpy = sinon.spy(logOutput.log, "success");
       const errSpy = sinon.spy(logOutput.log, "error");
