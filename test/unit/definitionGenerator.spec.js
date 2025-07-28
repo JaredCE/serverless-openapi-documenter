@@ -38,7 +38,7 @@ describe("DefinitionGenerator", () => {
       expect(expected).to.be.an.instanceOf(DefinitionGenerator);
     });
 
-    it("should default to version 3.0.0 of openAPI when openAPI version is not passed in", function () {
+    it("should default to version 3.0.0 of OpenAPI when OpenAPI version is not passed in", function () {
       const serverlessWithoutOpenAPIVersion = structuredClone(mockServerless);
       delete serverlessWithoutOpenAPIVersion.processedInput;
       let expected = new DefinitionGenerator(
@@ -105,7 +105,7 @@ describe("DefinitionGenerator", () => {
       expect(expected.version).to.be.equal("3.0.0");
     });
 
-    it("should respect the version of openAPI when passed in", function () {
+    it("should respect the version of OpenAPI when passed in", function () {
       const serverlessWithOpenAPIVersion = structuredClone(mockServerless);
       serverlessWithOpenAPIVersion.processedInput.options.openApiVersion =
         "3.0.2";
@@ -157,7 +157,7 @@ describe("DefinitionGenerator", () => {
   });
 
   describe("createInfo", () => {
-    it("should create openAPI info object correctly", function () {
+    it("should create OpenAPI info object correctly", function () {
       const definitionGenerator = new DefinitionGenerator(
         mockServerless,
         logger
@@ -918,14 +918,15 @@ describe("DefinitionGenerator", () => {
           definitionGenerator.openAPI.components.securitySchemes
         ).to.have.property("x_amazon_api_key");
         expect(
-          definitionGenerator.openAPI.components.securitySchemes.x_amazon_api_key
+          definitionGenerator.openAPI.components.securitySchemes
+            .x_amazon_api_key
         ).to.have.property("x-amazon-apigateway-authtype");
       });
     });
   });
 
   describe("createTags", () => {
-    it("should add tags to the openAPI object correctly", function () {
+    it("should add tags to the OpenAPI object correctly", function () {
       mockServerless.service.custom.documentation.tags = [{ name: "tag1" }];
 
       const definitionGenerator = new DefinitionGenerator(
