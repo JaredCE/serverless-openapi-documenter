@@ -281,6 +281,18 @@ class DefinitionGenerator {
     const paths = this.serverless.service.custom.documentation.paths;
 
     if (paths) {
+      const basePath = this.getBasePath();
+
+      if (basePath) {
+        // check is paths's keys are not starting with `basePath` prefix and if set append it
+        for (const key of Object.keys(paths)) {
+          if (!key.startsWith(`/${basePath}`)) {
+            paths[`/${basePath}${key}`] = paths[key];
+            delete paths[key];
+          }
+        }
+      }
+
       const origPaths = this.openAPI.paths || {};
 
       Object.assign(this.openAPI, { paths: { ...origPaths, ...paths } });
@@ -288,19 +300,13 @@ class DefinitionGenerator {
   }
 
   /**
-   * @description Retrieves the basePath value if the domain manager plugin is used, allowing the server URL to be just the plain domain. The `basePath` will be prepended to each Lambda HTTP path.
+   * @description Retrieves the basePath value if set, allowing the server URL to be just the plain domain. The `basePath` will be prepended to each Lambda HTTP path. If `basePath` starts with a slash (/) returns the basePath without the leading slash.
    * @returns {string}
    */
   getBasePath() {
-    const plugins = this.serverless.service.plugins || [];
-
-    let basePath = "";
-
-    if (plugins.includes("serverless-domain-manager")) {
-      basePath = this.serverless.service.custom.basePath || "";
-    }
-
-    return basePath;
+    const basePath =
+      this.serverless.service.custom.documentation.basePath || "";
+    return basePath.replace(/^\//, "");
   }
 
   createServers(servers) {

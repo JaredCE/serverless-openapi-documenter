@@ -103,6 +103,7 @@ Options:
 | tags[].externalDocs.url                                   | `custom.documentation.tags.externalDocumentation.url`                                                                                                 |
 | tags[].externalDocs.description                           | `custom.documentation.tags.externalDocumentation.description`                                                                                         |
 | tags[].externalDocs.x-                                    | `custom.documentation.tags.externalDocumentation.x-` if extended specifications provided                                                              |
+| basePath                                                  | `custom.documentation.basePath`Specifies the base path to prepend to all Lambda HTTP function paths in the generated OpenAPI specification            |
 | paths                                                     | `custom.documentation.paths` OpenAPI paths that are not backed by Lambda functions                                                                    |
 | path[path]                                                | functions.functions.events.[http OR httpApi].path                                                                                                     |
 | path[path].servers[].description                          | functions.functions.servers.description                                                                                                               |

@@ -105,6 +105,44 @@ describe("DefinitionGenerator", () => {
       expect(expected.version).to.be.equal("3.0.0");
     });
 
+    it("should use the basePath when supplied", async function () {
+      const serverlessWithOpenAPIVersion = structuredClone(mockServerless);
+      const expected = new DefinitionGenerator(
+        serverlessWithOpenAPIVersion,
+        logger
+      );
+      const serverlessWithOpenAPIVersion2 = structuredClone(mockServerless);
+      delete serverlessWithOpenAPIVersion2.service.custom.documentation
+        .basePath;
+      const expectedWithoutBasePath = new DefinitionGenerator(
+        serverlessWithOpenAPIVersion2,
+        logger
+      );
+
+      expected.mergeExistingPaths();
+      expectedWithoutBasePath.mergeExistingPaths();
+
+      expect(expected.getBasePath()).to.be.equal(
+        serverlessWithOpenAPIVersion.service.custom.documentation.basePath
+      );
+      expect(
+        Object.keys(expected.openAPI.paths).every((key) =>
+          key.startsWith(`/${expected.getBasePath()}`)
+        )
+      ).to.be.equal(true);
+
+      expect(expectedWithoutBasePath.getBasePath()).to.be.equal("");
+      expect(
+        Object.keys(expectedWithoutBasePath.openAPI.paths).every((key, idx) =>
+          key.startsWith(
+            Object.keys(
+              serverlessWithOpenAPIVersion2.service.custom.documentation.paths
+            )[idx]
+          )
+        )
+      ).to.be.equal(true);
+    });
+
     it("should respect the version of openAPI when passed in", function () {
       const serverlessWithOpenAPIVersion = structuredClone(mockServerless);
       serverlessWithOpenAPIVersion.processedInput.options.openApiVersion =
