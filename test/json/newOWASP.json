@@ -42,6 +42,10 @@
       "value": "nosniff"
     },
     {
+      "name": "X-DNS-Prefetch-Control",
+      "value": "off"
+    },
+    {
       "name": "X-Frame-Options",
       "value": "deny"
     },

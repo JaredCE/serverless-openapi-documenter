@@ -59,6 +59,9 @@ class OWASP {
         description:
           "The X-Content-Type-Options response HTTP header is a marker used by the server to indicate that the [MIME types](https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types) advertised in the [Content-Type](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Type) headers should be followed and not be changed. The header allows you to avoid [MIME type sniffing](https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types#mime_sniffing) by saying that the MIME types are deliberately configured. - [MDN Link](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Content-Type-Options)",
       },
+      "X-DNS-Prefetch-Control": {
+        description: "Controls DNS prefetching.",
+      },
       "X-Frame-Options": {
         description:
           "The X-Frame-Options [HTTP](https://developer.mozilla.org/en-US/docs/Web/HTTP) response header can be used to indicate whether or not a browser should be allowed to render a page in a [<frame>](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/frame), [<iframe>](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/iframe), [<embed>](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/embed) or [<object>](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/object). Sites can use this to avoid [click-jacking](https://developer.mozilla.org/en-US/docs/Web/Security/Types_of_attacks#click-jacking) attacks, by ensuring that their content is not embedded into other sites. - [MDN Link](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Frame-Options)",
@@ -81,6 +84,7 @@ class OWASP {
       referrerPolicy: "Referrer-Policy",
       strictTransportSecurity: "Strict-Transport-Security",
       xContentTypeOptions: "X-Content-Type-Options",
+      xDnsPrefetchControl: "X-DNS-Prefetch-Control",
       xFrameOptions: "X-Frame-Options",
       xPermittedCrossDomainPolicies: "X-Permitted-Cross-Domain-Policies",
     };
