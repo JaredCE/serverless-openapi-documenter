@@ -29,7 +29,7 @@ describe(`owasp`, function () {
       expect(
         owasp.DEFAULT_OWASP_HEADERS["Permissions-Policy"].schema.default
       ).to.be.equal(permissionsPolicyDefault[0].value);
-      expect(Object.keys(owasp.DEFAULT_OWASP_HEADERS).length).to.be.equal(12);
+      expect(Object.keys(owasp.DEFAULT_OWASP_HEADERS).length).to.be.equal(13);
     });
 
     it(`populates the defaults with information from a new OWASP release`, async function () {
@@ -52,7 +52,7 @@ describe(`owasp`, function () {
         owasp.DEFAULT_OWASP_HEADERS["Cross-Origin-Embedder-Policy"].schema
           .default
       ).to.be.equal(newCrossOriginEmbedderPolicy[0].value);
-      expect(Object.keys(owasp.DEFAULT_OWASP_HEADERS).length).to.be.equal(12);
+      expect(Object.keys(owasp.DEFAULT_OWASP_HEADERS).length).to.be.equal(13);
     });
 
     it(`adds any properties contained in a new release`, async function () {
@@ -73,7 +73,7 @@ describe(`owasp`, function () {
       expect(owasp.DEFAULT_OWASP_HEADERS["x-added"].schema.default).to.be.equal(
         "true"
       );
-      expect(Object.keys(owasp.DEFAULT_OWASP_HEADERS).length).to.be.equal(13);
+      expect(Object.keys(owasp.DEFAULT_OWASP_HEADERS).length).to.be.equal(14);
     });
   });
 
