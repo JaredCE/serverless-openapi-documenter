@@ -980,6 +980,7 @@ The full list of OWASP Secure Headers you can set are:
 - xContentTypeOptions - X-Content-Type-Options,
 - xFrameOptions - X-Frame-Options,
 - xPermittedCrossDomainPolicies - X-Permitted-Cross-Domain-Policies
+- xDNSPrefetchControl - X-DNS-Prefetch-Control
 
 You should note that `Pragma` has been [deprecated by owasp](https://owasp.org/www-project-secure-headers/#pragma), this plugin will issue a warning when you are still using Pragma and might drop support.
 
