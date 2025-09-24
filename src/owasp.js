@@ -67,6 +67,10 @@ class OWASP {
         description:
           "A cross-domain policy file is an XML document that grants a web client, such as Adobe Flash Player or Adobe Acrobat (though not necessarily limited to these), permission to handle data across domains. When clients request content hosted on a particular source domain and that content makes requests directed towards a domain other than its own, the remote domain needs to host a cross-domain policy file that grants access to the source domain, allowing the client to continue the transaction. Normally a meta-policy is declared in the master policy file, but for those who can't write to the root directory, they can also declare a meta-policy using the X-Permitted-Cross-Domain-Policies HTTP response header. - [OWASP Link](https://owasp.org/www-project-secure-headers/#x-permitted-cross-domain-policies)",
       },
+      "X-DNS-Prefetch-Control": {
+        description:
+          "The HTTP X-DNS-Prefetch-Control response header controls DNS prefetching, a feature by which browsers proactively perform domain name resolution on links that the user may choose to follow as well as URLs for items referenced by the document, including images, CSS, JavaScript, and so forth. - [MDN Link](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/X-DNS-Prefetch-Control)",
+      },
     };
 
     this.headerMap = {
@@ -83,6 +87,7 @@ class OWASP {
       xContentTypeOptions: "X-Content-Type-Options",
       xFrameOptions: "X-Frame-Options",
       xPermittedCrossDomainPolicies: "X-Permitted-Cross-Domain-Policies",
+      xDNSPrefetchControl: "X-DNS-Prefetch-Control",
     };
   }
 
