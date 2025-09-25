@@ -930,7 +930,7 @@ The generator will interpret your settings for CORS and automatically add the re
 
 You can make use of the [OWASP Secure Headers](https://owasp.org/www-project-secure-headers/#x-permitted-cross-domain-policies) to generate response headers. These are a selection of response headers with default values that OWASP recommends returning with your response to help secure your application.
 
-The OWASP Secure Headers Project contains a set of recommended headers to return with recommended values, when generating the documentation, the generator will attempt to get the latest version of this document and apply the latest recommendations. If you do not allow outside connections, it will default to a version of recommendations from **2024-09-19 21:29:28 UTC**.
+The OWASP Secure Headers Project contains a set of recommended headers to return with recommended values, when generating the documentation, the generator will attempt to get the latest version of this document and apply the latest recommendations. If you do not allow outside connections, it will default to a version of recommendations from **2025-08-17 15:23:47 UTC**.
 
 Like CORS, if you have already set any of the OWASP Secure headers via `responseHeaders`, it will not overwrite them.
 
