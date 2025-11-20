@@ -1,6 +1,6 @@
 {
   "name": "serverless-openapi-documenter",
-  "version": "0.0.117-beta.1",
+  "version": "0.0.118-beta.1",
   "description": "Generate OpenAPI v3 documentation and Postman Collections from your Serverless Config",
   "main": "index.js",
   "keywords": [
@@ -48,9 +48,9 @@
     "@apidevtools/json-schema-ref-parser": "^9.1.0",
     "@redocly/openapi-core": "^1.34.5",
     "chalk": "^4.1.2",
-    "js-yaml": "^4.1.0",
+    "js-yaml": "^4.1.1",
     "json-schema-for-openapi": "^0.5.0",
-    "openapi-to-postmanv2": "^5.3.0",
+    "openapi-to-postmanv2": "^5.4.1",
     "uuid": "^11.1.0"
   },
   "engines": {
