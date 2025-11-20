@@ -19,9 +19,6 @@ class SchemaHandler {
     this.shouldConvert = true;
     if (/(3\.1\.\d)/g.test(this.openAPI.openapi)) this.shouldConvert = false;
 
-    this.shouldConvert = true;
-    if (/(3\.1\.\d)/g.test(this.openAPI.openapi)) this.shouldConvert = false;
-
     this.modelReferences = {};
 
     this.__standardiseModels();
