@@ -5,7 +5,9 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "generate": "npx serverless openapi generate -o openapi.json -f json -a 3.0.3"
+    "generate": "npx serverless openapi generate -o openapi.json -f json -a 3.0.3",
+    "generate-postman": "npx serverless openapi generate -o openapi.json -p postman.json -f json -a 3.0.3",
+    "generate-bruno": "npx serverless openapi generate -o openapi.json -b bruno.json -f json -a 3.0.3"
   },
   "keywords": [],
   "author": "",

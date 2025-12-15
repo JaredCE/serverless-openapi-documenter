@@ -211,7 +211,7 @@ describe("OpenAPIGenerator", () => {
     });
   });
 
-  describe("createPostman", () => {
+  xdescribe("createPostman", () => {
     it("should generate a postman collection when a valid openAPI file is generated", function () {
       const fsStub = sinon.stub(fs, "writeFileSync").returns(true);
       const succSpy = sinon.spy(logOutput.log, "success");

@@ -1,6 +1,6 @@
 {
   "name": "serverless-openapi-documenter",
-  "version": "0.0.119",
+  "version": "0.0.120",
   "description": "Generate OpenAPI v3 documentation and Postman Collections from your Serverless Config",
   "main": "index.js",
   "keywords": [
@@ -22,6 +22,9 @@
     "PostmanCollections",
     "Postman-Collections",
     "Postman Collections",
+    "Bruno Collection",
+    "Bruno",
+    "Use Bruno",
     "AWS",
     "AWS APIGateway",
     "Api Gateway",
@@ -47,6 +50,7 @@
   "dependencies": {
     "@apidevtools/json-schema-ref-parser": "^9.1.0",
     "@redocly/openapi-core": "^1.2.0",
+    "@usebruno/converters": "^0.15.0",
     "chalk": "^4.1.2",
     "js-yaml": "^4.1.1",
     "json-schema-for-openapi": "^0.5.0",
