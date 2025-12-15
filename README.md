@@ -12,7 +12,7 @@
   </a>
 </p>
 
-This will generate an OpenAPI V3 (up to v3.0.4) file for you from your serverless file. It can optionally generate a [Postman Collection V2](https://github.com/postmanlabs/openapi-to-postman) from the OpenAPI file for you too. This currently works for `http` and `httpApi` configurations.
+This will generate an OpenAPI V3 (up to v3.0.4) file for you from your serverless file. It can optionally generate a [Postman Collection V2](https://github.com/postmanlabs/openapi-to-postman) or (as of 0.0.120) [Bruno Collection](https://docs.usebruno.com/) from the OpenAPI file. This currently works for `http` and `httpApi` configurations.
 
 Originally based off of: https://github.com/temando/serverless-openapi-documentation
 
@@ -49,6 +49,7 @@ Options:
 --indent                -i  File indentation in spaces. Default: 2
 --openApiVersion        -a  OpenAPI version to generate for. Default: 3.0.0
 --postmanCollection     -p  Will generate a postman collection (from the generated OpenAPI Description), in json only, if passed in. Default: postman.json
+--brunoCollection       -b  Will generate a Bruno collection (from the generated OpenAPI Description), in json only, if passed in. Default: bruno.json
 --validationWarn        -w  Warn about validation errors only.  Will write the OpenAPI file if generation is successful.  Default: false
 ```
 
