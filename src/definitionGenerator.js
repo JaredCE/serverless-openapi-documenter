@@ -167,11 +167,12 @@ class DefinitionGenerator {
 
     if (documentation.contact) {
       const contactObj = {};
-      contactObj.name = documentation.contact.name || "";
+
+      if (documentation.contact.name) contactObj.name = documentation.contact.name;
 
       if (documentation.contact.url) contactObj.url = documentation.contact.url;
 
-      contactObj.email = documentation.contact.email || "";
+      if (documentation.contact.email) contactObj.email = documentation.contact.email;
 
       const extendedSpec = this.extendSpecification(documentation.contact);
 
