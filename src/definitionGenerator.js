@@ -592,7 +592,7 @@ class DefinitionGenerator {
           obj.headers = corsHeaders;
           addHeaders(owaspHeaders);
         } else {
-          if (owaspHeaders){
+          if (Object.keys(owaspHeaders).length){
             obj.headers = owaspHeaders;
           }
         }
