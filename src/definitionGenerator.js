@@ -592,7 +592,7 @@ class DefinitionGenerator {
           obj.headers = corsHeaders;
           addHeaders(owaspHeaders);
         } else {
-          if (Object.keys(owaspHeaders).length){
+          if (Object.keys(owaspHeaders).length) {
             obj.headers = owaspHeaders;
           }
         }
@@ -680,9 +680,12 @@ class DefinitionGenerator {
 
   async createRequestBody(requestBodyDetails) {
     const obj = {
-      description: requestBodyDetails.description || '',
       required: requestBodyDetails.required || false,
     };
+
+    if (requestBodyDetails.description) {
+      obj.description = requestBodyDetails.description;
+    }
 
     obj.content = await this.createMediaTypeObject(
       requestBodyDetails.models
@@ -868,7 +871,7 @@ class DefinitionGenerator {
         if (
           this.openAPI.components[type][name] &&
           isEqual(schemaObj[name], this.openAPI.components[type][name]) ===
-            false
+          false
         ) {
           delete schemaObj[name];
           newName = `${name}-${uuid()}`;
