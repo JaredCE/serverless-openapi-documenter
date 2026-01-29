@@ -53,6 +53,11 @@ functions:
                   description: A user object along with generated API Keys
                 responseModels:
                   application/json: PutDocumentResponse
+              - statusCode: 400
+                responseBody:
+                  description: An error message when creating a new user
+                responseModels:
+                  application/json: ErrorResponse
               - statusCode: 500
                 responseBody:
                   description: An error message when creating a new user

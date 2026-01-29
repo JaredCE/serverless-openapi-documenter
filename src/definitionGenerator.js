@@ -167,11 +167,12 @@ class DefinitionGenerator {
 
     if (documentation.contact) {
       const contactObj = {};
-      contactObj.name = documentation.contact.name || "";
+
+      if (documentation.contact.name) contactObj.name = documentation.contact.name;
 
       if (documentation.contact.url) contactObj.url = documentation.contact.url;
 
-      contactObj.email = documentation.contact.email || "";
+      if (documentation.contact.email) contactObj.email = documentation.contact.email;
 
       const extendedSpec = this.extendSpecification(documentation.contact);
 
@@ -591,7 +592,9 @@ class DefinitionGenerator {
           obj.headers = corsHeaders;
           addHeaders(owaspHeaders);
         } else {
-          obj.headers = owaspHeaders;
+          if (Object.keys(owaspHeaders).length) {
+            obj.headers = owaspHeaders;
+          }
         }
       }
 
@@ -677,9 +680,12 @@ class DefinitionGenerator {
 
   async createRequestBody(requestBodyDetails) {
     const obj = {
-      description: requestBodyDetails.description,
       required: requestBodyDetails.required || false,
     };
+
+    if (requestBodyDetails.description) {
+      obj.description = requestBodyDetails.description;
+    }
 
     obj.content = await this.createMediaTypeObject(
       requestBodyDetails.models
@@ -692,7 +698,6 @@ class DefinitionGenerator {
 
   async createMediaTypeObject(models, type) {
     const mediaTypeObj = {};
-
     for (const mediaTypeDocumentation of this.schemaHandler.models) {
       if (models === undefined || models === null) {
         throw new Error(
@@ -700,48 +705,53 @@ class DefinitionGenerator {
         );
       }
 
-      if (Object.values(models).includes(mediaTypeDocumentation.name)) {
-        let contentKey = "";
-        for (const [key, value] of Object.entries(models)) {
-          if (value === mediaTypeDocumentation.name) contentKey = key;
-        }
-        const obj = {};
+      for (const modelContentType in models) {
+        let contentKey
 
-        let schema;
-        if (mediaTypeDocumentation?.content) {
-          if (mediaTypeDocumentation.content[contentKey]?.example)
-            obj.example = mediaTypeDocumentation.content[contentKey].example;
-
-          if (mediaTypeDocumentation.content[contentKey]?.examples)
-            obj.examples = this.createExamples(
-              mediaTypeDocumentation.content[contentKey].examples
-            );
-
-          schema = mediaTypeDocumentation.content[contentKey].schema;
-        } else if (
-          mediaTypeDocumentation?.contentType &&
-          mediaTypeDocumentation.schema
-        ) {
-          if (mediaTypeDocumentation?.example)
-            obj.example = mediaTypeDocumentation.example;
-
-          if (mediaTypeDocumentation?.examples)
-            obj.examples = this.createExamples(mediaTypeDocumentation.examples);
-
-          schema = mediaTypeDocumentation.schema;
+        if (models[modelContentType] === mediaTypeDocumentation.name) {
+          contentKey = modelContentType;
         }
 
-        const schemaRef = await this.schemaHandler
-          .createSchema(mediaTypeDocumentation.name)
-          .catch((err) => {
-            throw err;
-          });
+        if (contentKey) {
 
-        obj.schema = {
-          $ref: schemaRef,
-        };
+          const obj = {};
+          let schema;
+          if (mediaTypeDocumentation.content) {
+            if (mediaTypeDocumentation.content[contentKey]?.example) {
+              obj.example = mediaTypeDocumentation.content[contentKey]?.example;
+            }
 
-        Object.assign(mediaTypeObj, { [contentKey]: obj });
+            if (mediaTypeDocumentation.content[contentKey]?.examples) {
+              obj.examples = this.createExamples(
+                mediaTypeDocumentation.content[contentKey].examples
+              );
+            }
+
+            schema = (mediaTypeDocumentation.schema) ? mediaTypeDocumentation.schema : mediaTypeDocumentation.schemas[contentKey];
+          } else if (mediaTypeDocumentation?.contentType && mediaTypeDocumentation.schema) {
+            if (mediaTypeDocumentation.example) {
+              obj.example = mediaTypeDocumentation.example;
+            }
+
+            if (mediaTypeDocumentation.examples) {
+              obj.example = mediaTypeDocumentation.examples;
+            }
+
+            schema = mediaTypeDocumentation.schema;
+          }
+
+          const schemaRef = await this.schemaHandler
+            .createSchema(mediaTypeDocumentation.name)
+            .catch((err) => {
+              throw err;
+            });
+
+          obj.schema = {
+            $ref: schemaRef,
+          };
+
+          Object.assign(mediaTypeObj, { [contentKey]: obj });
+        }
       }
     }
 
@@ -861,7 +871,7 @@ class DefinitionGenerator {
         if (
           this.openAPI.components[type][name] &&
           isEqual(schemaObj[name], this.openAPI.components[type][name]) ===
-            false
+          false
         ) {
           delete schemaObj[name];
           newName = `${name}-${uuid()}`;

@@ -4,9 +4,9 @@ const fs = require("fs");
 const yaml = require("js-yaml");
 const chalk = require("chalk");
 
+const Collection = require('./collection')
 const DefinitionGenerator = require("./definitionGenerator");
 const Logger = require("./logger");
-const PostmanGenerator = require("openapi-to-postmanv2");
 
 class OpenAPIGenerator {
   constructor(serverless, options, { log = {} } = {}) {
@@ -44,8 +44,14 @@ class OpenAPIGenerator {
               },
               postmanCollection: {
                 usage:
-                  "Output a postman collection and attach to OpenApi external documents [default: postman.json if passed]",
+                  "Output a Postman collection and attach to OpenApi external documents [default: postman.json if passed]",
                 shortcut: "p",
+                type: "string",
+              },
+              brunoCollection: {
+                usage:
+                  "Output a Bruno collection and attach to OpenApi external documents [default: bruno.json if passed]",
+                shortcut: "b",
                 type: "string",
               },
               validationWarn: {
@@ -144,8 +150,9 @@ class OpenAPIGenerator {
       throw new this.serverless.classes.Error(err);
     });
 
-    if (this.config.postmanCollection) {
-      this.createPostman(validOpenAPI);
+    if (this.shouldCreateCollection()) {
+      await this.createCollection(validOpenAPI)
+
     }
 
     let output;
@@ -210,41 +217,21 @@ class OpenAPIGenerator {
     return generator.openAPI;
   }
 
-  createPostman(openAPI) {
-    const postmanGeneration = (err, result) => {
-      if (err) {
-        this.logger.error(
-          `ERROR: An error was thrown when generating the postman collection`
-        );
-        throw new this.serverless.classes.Error(err);
-      }
+  async createCollection(validOpenAPI) {
+    const collectionOutputFile = this.config.postmanCollection || this.config.brunoCollection
+    const collection = new Collection(collectionOutputFile, this.serverless, this.logger)
+    const collectionCreator = collection.createCollection(this.collectionType())
 
-      this.logger.success(
-        "postman collection v2 Documentation Successfully Generated"
-      );
+    await collectionCreator.create(validOpenAPI)
+  }
 
-      try {
-        fs.writeFileSync(
-          this.config.postmanCollection,
-          JSON.stringify(result.output[0].data)
-        );
-        this.logger.success(
-          "postman collection v2 Documentation Successfully Written"
-        );
-      } catch (err) {
-        this.logger.error(
-          `ERROR: An error was thrown whilst writing the postman collection`
-        );
+  shouldCreateCollection() {
+    return Boolean(this.config.postmanCollection || this.config.brunoCollection)
+  }
 
-        throw new this.serverless.classes.Error(err);
-      }
-    };
-
-    PostmanGenerator.convert(
-      { type: "json", data: structuredClone(openAPI) },
-      {},
-      postmanGeneration
-    );
+  collectionType() {
+    if (this.config.postmanCollection) return 'postman'
+    else return 'bruno'
   }
 
   processCliInput() {
@@ -254,6 +241,7 @@ class OpenAPIGenerator {
       indent: 2,
       openApiVersion: "3.0.0",
       postmanCollection: "postman.json",
+      brunoCollection: "bruno.json",
       validationWarn: false,
     };
 
@@ -263,6 +251,8 @@ class OpenAPIGenerator {
       this.serverless.processedInput.options.openApiVersion || "3.0.0";
     config.postmanCollection =
       this.serverless.processedInput.options.postmanCollection || null;
+    config.brunoCollection =
+      this.serverless.processedInput.options.brunoCollection || null;
     config.validationWarn =
       this.serverless.processedInput.options.validationWarn || false;
 
@@ -285,7 +275,12 @@ class OpenAPIGenerator {
   validationWarn: ${chalk.bold.green(String(config.validationWarn))}
   ${
     config.postmanCollection
-      ? `postman collection: ${chalk.bold.green(config.postmanCollection)}`
+      ? `Postman collection: ${chalk.bold.green(config.postmanCollection)}`
+      : `\n\n`
+  }
+  ${
+    config.brunoCollection
+      ? `Bruno collection: ${chalk.bold.green(config.brunoCollection)}`
       : `\n\n`
   }`
     );

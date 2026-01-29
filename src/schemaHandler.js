@@ -48,9 +48,21 @@ class SchemaHandler {
         return model;
       }
 
-      const contentType = Object.keys(model.content)[0];
-      model.contentType = contentType;
-      model.schema = model.content[contentType].schema;
+      if (Object.keys(model.content).length === 1) {
+        const contentType = Object.keys(model.content)[0];
+        model.contentType = contentType;
+        model.contentTypes = [contentType];
+        model.schema = model.content[contentType].schema;
+      } else {
+        model.contentType = null;
+        model.contentTypes = Object.keys(model.content);
+        model.schema = null;
+        model.schemas = {};
+        for (const key in model.content) {
+          Object.assign(model.schemas, { [key]: { schema: model.content[key].schema } });
+        }
+        // model.schema = model.content[contentType].schema;
+      }
 
       return model;
     };
@@ -75,43 +87,52 @@ class SchemaHandler {
   async addModelsToOpenAPI() {
     for (const model of this.models) {
       const modelName = model.name;
-      const modelSchema = model.schema;
-
-      const convertedSchemas = await this.__dereferenceAndConvert(
-        modelSchema,
-        modelName,
-        model
-      ).catch((err) => {
-        if (err instanceof Error) throw err;
-        else return err;
-      });
-
-      if (
-        typeof convertedSchemas.schemas === "object" &&
-        !Array.isArray(convertedSchemas.schemas) &&
-        convertedSchemas.schemas !== null
-      ) {
-        for (const [schemaName, schemaValue] of Object.entries(
-          convertedSchemas.schemas
-        )) {
-          if (schemaName === modelName) {
-            this.modelReferences[
-              schemaName
-            ] = `#/components/schemas/${modelName}`;
-          }
-
-          this.__addToComponents("schemas", schemaValue, schemaName);
-        }
+      const schemas = []
+      if (model.schema) {
+        // const modelSchema = model.schema;
+        schemas.push(model.schema)
       } else {
-        throw new Error(
-          `There was an error converting the ${
-            model.name
-          } schema. Model received looks like: \n\n${JSON.stringify(
-            model
-          )}.  The convereted schema looks like \n\n${JSON.stringify(
-            convertedSchemas
-          )}`
-        );
+        for (const key in model.schemas) {
+          schemas.push(model.schemas[key].schema);
+        }
+      }
+
+      for (const modelSchema of schemas) {
+        const convertedSchemas = await this.__dereferenceAndConvert(
+          modelSchema,
+          modelName,
+          model
+        ).catch((err) => {
+          if (err instanceof Error) throw err;
+          else return err;
+        });
+
+        if (
+          typeof convertedSchemas.schemas === "object" &&
+          !Array.isArray(convertedSchemas.schemas) &&
+          convertedSchemas.schemas !== null
+        ) {
+          for (const [schemaName, schemaValue] of Object.entries(
+            convertedSchemas.schemas
+          )) {
+            if (schemaName === modelName) {
+              this.modelReferences[
+                schemaName
+              ] = `#/components/schemas/${modelName}`;
+            }
+
+            this.__addToComponents("schemas", schemaValue, schemaName);
+          }
+        } else {
+          throw new Error(
+            `There was an error converting the ${model.name
+            } schema. Model received looks like: \n\n${JSON.stringify(
+              model
+            )}.  The convereted schema looks like \n\n${JSON.stringify(
+              convertedSchemas
+            )}`
+          );
+        }
       }
     }
   }
@@ -288,10 +309,8 @@ class SchemaHandler {
   __HTTPError(error, model) {
     if (error.message.includes("HTTP ERROR")) {
       throw new Error(
-        `There was an error dereferencing ${
-          model.name
-        } schema.  \n\n dereferencing message: ${
-          error.message
+        `There was an error dereferencing ${model.name
+        } schema.  \n\n dereferencing message: ${error.message
         } \n\n Model received: ${JSON.stringify(model)}`
       );
     }
