@@ -1,11 +1,17 @@
 "use strict";
 
+const expect = require("chai").expect;
+const sinon = require('sinon');
+
+
 const fs = require("fs").promises;
 const path = require("path");
-const expect = require("chai").expect;
 
 const serverlessMock = require("../helpers/serverless");
 const modelsDocument = require("../models/models/models.json");
+
+const schemaHandler = require('../../src/schemaHandler');
+
 const DefinitionGenerator = require("../../src/definitionGenerator");
 
 describe("DefinitionGenerator", () => {
@@ -1020,31 +1026,233 @@ describe("DefinitionGenerator", () => {
     });
   });
 
-  describe(`createResponses`, async function () {
-    it(`handles creating headers with pragma as a default`, async function () {
-      const description = "this is a description";
-      const responseMock = {
-        methodResponses: [
-          {
-            responseBody: { description: description },
-            statusCode: 200,
-            owasp: { pragma: true },
-          },
-        ],
-      };
+  describe(`createRequestBody`, function () {
+    it(`required should default to false if required is not true`, async function () {
+      const requestBody = {
+        models: {
+          'application/json': 'PostRequestBody'
+        }
+      }
 
       const definitionGenerator = new DefinitionGenerator(
         mockServerless,
         logger
       );
 
-      const response = await definitionGenerator.createResponses(responseMock);
+      const stub = sinon.stub(schemaHandler.prototype, 'createSchema').resolves('#components/schemas/PostRequestBody')
 
-      expect(response).to.be.an("object");
-      expect(response).to.have.property("200");
-      expect(response["200"]).to.have.property("description", description);
-      expect(response["200"].headers).to.be.an("object");
-      expect(response["200"].headers).to.have.property("Pragma");
+      const expected = await definitionGenerator.createRequestBody(requestBody)
+
+      expect(expected).to.be.an('object');
+      expect(expected).to.not.have.property('description');
+      expect(expected).to.have.property('required', false);
+      expect(expected).to.have.property('content');
+
+      stub.restore();
+    });
+
+    it(`required should be true if required is true`, async function () {
+      const requestBody = {
+        required: true,
+        models: {
+          'application/json': 'PostRequestBody'
+        }
+      }
+
+      const definitionGenerator = new DefinitionGenerator(
+        mockServerless,
+        logger
+      );
+
+      const stub = sinon.stub(schemaHandler.prototype, 'createSchema').resolves('#components/schemas/PostRequestBody')
+
+      const expected = await definitionGenerator.createRequestBody(requestBody)
+
+      expect(expected).to.be.an('object');
+      expect(expected).to.not.have.property('description');
+      expect(expected).to.have.property('required', true);
+      expect(expected).to.have.property('content');
+
+      stub.restore();
+    });
+
+    it(`should have a description when description is passed through`, async function () {
+      const description = 'a description'
+      const requestBody = {
+        description,
+        models: {
+          'application/json': 'PostRequestBody'
+        }
+      }
+
+      const definitionGenerator = new DefinitionGenerator(
+        mockServerless,
+        logger
+      );
+
+      const stub = sinon.stub(schemaHandler.prototype, 'createSchema').resolves('#components/schemas/PostRequestBody')
+
+      const expected = await definitionGenerator.createRequestBody(requestBody)
+
+      expect(expected).to.be.an('object');
+      expect(expected).to.have.property('description', description);
+      expect(expected).to.have.property('required', false);
+      expect(expected).to.have.property('content');
+
+      stub.restore();
+    });
+
+    it(`should handle more than one requestModel type`, async function () {
+      const description = 'a description'
+      const requestBody = {
+        description,
+        models: {
+          'application/json': 'PostRequestBody',
+          'application/xml': 'PostRequestBodyXML',
+        }
+      }
+
+      const definitionGenerator = new DefinitionGenerator(
+        mockServerless,
+        logger
+      );
+
+      const stub = sinon.stub(schemaHandler.prototype, 'createSchema').onFirstCall().resolves('#components/schemas/PostRequestBody').onSecondCall().resolves('#components/schemas/PostRequestBodyXML');
+
+      const expected = await definitionGenerator.createRequestBody(requestBody)
+
+      expect(expected).to.be.an('object');
+      expect(expected).to.have.property('description', description);
+      expect(expected).to.have.property('required', false);
+      expect(expected).to.have.property('content');
+      expect(expected.content).to.be.an('object');
+      expect(Object.keys(expected.content)).to.have.lengthOf(2);
+      expect(Object.keys(expected.content)).to.be.eql(['application/json', 'application/xml']);
+
+      stub.restore();
+    });
+  });
+
+  describe(`createResponses`, async function () {
+    describe(`responseHeaders`, function () {
+      it(`does not create headers when headers are not specified`, async function () {
+        const description = "this is a description";
+        const responseMock = {
+          methodResponses: [
+            {
+              responseBody: { description: description },
+              statusCode: 200,
+            },
+          ],
+        };
+
+        const definitionGenerator = new DefinitionGenerator(
+          mockServerless,
+          logger
+        );
+
+        const response = await definitionGenerator.createResponses(responseMock);
+
+        expect(response).to.be.an("object");
+        expect(response).to.have.property("200");
+        expect(response["200"]).to.have.property("description", description);
+        expect(response["200"]).to.not.have.property('headers');
+      });
+
+      it(`only creates headers when headers are specified`, async function () {
+        const description = "this is a description";
+        const responseMock = {
+          methodResponses: [
+            {
+              responseBody: { description: description },
+              statusCode: 200,
+              responseHeaders: {
+                'x-rate-limit': {
+                  description: 'The number of allowed requests in the current period',
+                  schema: {
+                    type: 'integer'
+                  }
+                }
+              }
+            },
+          ],
+        };
+
+        const definitionGenerator = new DefinitionGenerator(
+          mockServerless,
+          logger
+        );
+
+        const response = await definitionGenerator.createResponses(responseMock);
+
+        expect(response).to.be.an("object");
+        expect(response).to.have.property("200");
+        expect(response["200"]).to.have.property("description", description);
+        expect(response["200"]).to.have.property('headers');
+        expect(response["200"].headers).to.be.an("object");
+        expect(response["200"].headers).to.have.property("x-rate-limit");
+      });
+
+      it(`handles creating headers with pragma as a default`, async function () {
+        const description = "this is a description";
+        const responseMock = {
+          methodResponses: [
+            {
+              responseBody: { description: description },
+              statusCode: 200,
+              owasp: { pragma: true },
+            },
+          ],
+        };
+
+        const definitionGenerator = new DefinitionGenerator(
+          mockServerless,
+          logger
+        );
+
+        const response = await definitionGenerator.createResponses(responseMock);
+
+        expect(response).to.be.an("object");
+        expect(response).to.have.property("200");
+        expect(response["200"]).to.have.property("description", description);
+        expect(response["200"].headers).to.be.an("object");
+        expect(response["200"].headers).to.have.property("Pragma");
+      });
+
+      it(`handles creating headers with owasp and user specified headers`, async function () {
+        const description = "this is a description";
+        const responseMock = {
+          methodResponses: [
+            {
+              responseBody: { description: description },
+              statusCode: 200,
+              responseHeaders: {
+                'x-rate-limit': {
+                  description: 'The number of allowed requests in the current period',
+                  schema: {
+                    type: 'integer'
+                  }
+                }
+              },
+              owasp: { pragma: true },
+            },
+          ],
+        };
+
+        const definitionGenerator = new DefinitionGenerator(
+          mockServerless,
+          logger
+        );
+
+        const response = await definitionGenerator.createResponses(responseMock);
+
+        expect(response).to.be.an("object");
+        expect(response).to.have.property("200");
+        expect(response["200"]).to.have.property("description", description);
+        expect(response["200"].headers).to.be.an("object");
+        expect(response["200"].headers).to.have.property("Pragma");
+        expect(response["200"].headers).to.have.property("x-rate-limit");
+      });
     });
   });
 });
