@@ -15,6 +15,8 @@ class SchemaHandler {
       serverless.service?.provider?.apiGateway?.request?.schemas || {};
     this.documentation = serverless.service.custom.documentation;
     this.openAPI = openAPI;
+    this.shouldConvert = true;
+    if (/(3\.1\.\d)/g(this.openAPI.openapi)) this.shouldConvert = false;
 
     this.shouldConvert = true;
     if (/(3\.1\.\d)/g.test(this.openAPI.openapi)) this.shouldConvert = false;
@@ -59,7 +61,7 @@ class SchemaHandler {
         model.schema = null;
         model.schemas = {};
         for (const key in model.content) {
-          Object.assign(model.schemas, {[key]: {schema: model.content[key].schema}});
+          Object.assign(model.schemas, { [key]: { schema: model.content[key].schema } });
         }
         // model.schema = model.content[contentType].schema;
       }
@@ -88,7 +90,7 @@ class SchemaHandler {
     for (const model of this.models) {
       const modelName = model.name;
       const schemas = []
-      if (model.schema){
+      if (model.schema) {
         // const modelSchema = model.schema;
         schemas.push(model.schema)
       } else {
@@ -125,8 +127,7 @@ class SchemaHandler {
           }
         } else {
           throw new Error(
-            `There was an error converting the ${
-              model.name
+            `There was an error converting the ${model.name
             } schema. Model received looks like: \n\n${JSON.stringify(
               model
             )}.  The convereted schema looks like \n\n${JSON.stringify(
@@ -310,10 +311,8 @@ class SchemaHandler {
   __HTTPError(error, model) {
     if (error.message.includes("HTTP ERROR")) {
       throw new Error(
-        `There was an error dereferencing ${
-          model.name
-        } schema.  \n\n dereferencing message: ${
-          error.message
+        `There was an error dereferencing ${model.name
+        } schema.  \n\n dereferencing message: ${error.message
         } \n\n Model received: ${JSON.stringify(model)}`
       );
     }
