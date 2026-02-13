@@ -713,7 +713,6 @@ class DefinitionGenerator {
         }
 
         if (contentKey) {
-
           const obj = {};
           let schema;
           if (mediaTypeDocumentation.content) {
@@ -734,7 +733,9 @@ class DefinitionGenerator {
             }
 
             if (mediaTypeDocumentation.examples) {
-              obj.example = mediaTypeDocumentation.examples;
+              obj.examples = this.createExamples(
+                mediaTypeDocumentation.examples
+              );
             }
 
             schema = mediaTypeDocumentation.schema;

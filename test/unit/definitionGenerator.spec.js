@@ -9,6 +9,7 @@ const path = require("path");
 
 const serverlessMock = require("../helpers/serverless");
 const modelsDocument = require("../models/models/models.json");
+const alternativeModelsDocument = require("../models/models/models-alt.json");
 
 const schemaHandler = require('../../src/schemaHandler');
 
@@ -1252,6 +1253,90 @@ describe("DefinitionGenerator", () => {
         expect(response["200"].headers).to.be.an("object");
         expect(response["200"].headers).to.have.property("Pragma");
         expect(response["200"].headers).to.have.property("x-rate-limit");
+      });
+    });
+
+    describe(`mediaTypeObjects`, function () {
+      describe(`content style`, function () {
+        it(`should add examples when examples are specified`, async function () {
+          const modelsWithExample = structuredClone(modelsDocument);
+          modelsWithExample.models.at(0).content["application/json"].examples = [{ name: '404Error', summary: 'an example of a 404 error', description: 'This is what a 404 error looks like', value: '404' }]
+          Object.assign(mockServerless.service.custom.documentation, modelsWithExample);
+
+          const description = "this is a description";
+          const responseMock = {
+            methodResponses: [
+              {
+                responseBody: { description: description },
+                responseModels: { 'application/json': 'ErrorResponse' },
+                statusCode: 200,
+              },
+            ],
+          };
+
+          const stub = sinon.stub(schemaHandler.prototype, 'createSchema').resolves('#components/schemas/ErrorResponse')
+
+          const definitionGenerator = new DefinitionGenerator(
+            mockServerless,
+            logger
+          );
+
+          const response = await definitionGenerator.createResponses(responseMock);
+
+          expect(response).to.be.an("object");
+          expect(response).to.have.property("200");
+          expect(response["200"]).to.have.property('content')
+          expect(response["200"].content).to.be.an('object')
+          expect(response["200"].content).to.have.property('application/json')
+          expect(response["200"].content['application/json']).to.be.an('object')
+          expect(response["200"].content['application/json']).to.have.property('examples')
+          expect(response["200"].content['application/json'].examples).to.be.an('object')
+          expect(response["200"].content['application/json'].examples).to.have.property('404Error')
+
+
+          stub.restore()
+        });
+      });
+
+      describe(`contentType style`, function () {
+        it(`should add examples when examples are specified`, async function () {
+          const altModelsWithExample = structuredClone(alternativeModelsDocument);
+          altModelsWithExample.models.at(0).examples = [{ name: '404Error', summary: 'an example of a 404 error', description: 'This is what a 404 error looks like', value: '404' }]
+          Object.assign(mockServerless.service.custom.documentation, altModelsWithExample);
+
+          const description = "this is a description";
+          const responseMock = {
+            methodResponses: [
+              {
+                responseBody: { description: description },
+                responseModels: { 'application/json': 'ErrorResponse' },
+                statusCode: 200,
+              },
+            ],
+          };
+
+          const stub = sinon.stub(schemaHandler.prototype, 'createSchema').resolves('#components/schemas/ErrorResponse')
+
+          const definitionGenerator = new DefinitionGenerator(
+            mockServerless,
+            logger
+          );
+
+
+          const response = await definitionGenerator.createResponses(responseMock);
+
+          expect(response).to.be.an("object");
+          expect(response).to.have.property("200");
+          expect(response["200"]).to.have.property('content')
+          expect(response["200"].content).to.be.an('object')
+          expect(response["200"].content).to.have.property('application/json')
+          expect(response["200"].content['application/json']).to.be.an('object')
+          expect(response["200"].content['application/json']).to.have.property('examples')
+          expect(response["200"].content['application/json'].examples).to.be.an('object')
+          expect(response["200"].content['application/json'].examples).to.have.property('404Error')
+
+          stub.restore()
+        });
       });
     });
   });
