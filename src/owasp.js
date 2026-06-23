@@ -95,7 +95,7 @@ class OWASP {
     const headerJSON = await new Promise((resolve, reject) => {
       const req = https
         .get(
-          "https://owasp.org/www-project-secure-headers/ci/headers_add.json",
+          "https://raw.githubusercontent.com/OWASP/www-project-secure-headers/refs/heads/master/ci/headers_add.json",
           (res) => {
             let data = [];
 

@@ -11,8 +11,8 @@ const newOWASPJSON = require("../json/newOWASP.json");
 describe(`owasp`, function () {
   describe(`getLatest`, function () {
     it(`populates the defaults from the included OWASP release when the online version can not be reached`, async function () {
-      nock("https://owasp.org")
-        .get("/www-project-secure-headers/ci/headers_add.json")
+      nock("https://raw.githubusercontent.com")
+        .get("/OWASP/www-project-secure-headers/refs/heads/master/ci/headers_add.json")
         .reply(404, {});
 
       await owasp.getLatest().catch((err) => {
@@ -33,8 +33,8 @@ describe(`owasp`, function () {
     });
 
     it(`populates the defaults with information from a new OWASP release`, async function () {
-      nock("https://owasp.org")
-        .get("/www-project-secure-headers/ci/headers_add.json")
+      nock("https://raw.githubusercontent.com")
+        .get("/OWASP/www-project-secure-headers/refs/heads/master/ci/headers_add.json")
         .reply(200, newOWASPJSON);
 
       await owasp.getLatest().catch((err) => {
@@ -59,8 +59,8 @@ describe(`owasp`, function () {
       const newOWASPJSONAdded = structuredClone(newOWASPJSON);
       newOWASPJSONAdded.headers.push({ name: "x-added", value: "true" });
 
-      nock("https://owasp.org")
-        .get("/www-project-secure-headers/ci/headers_add.json")
+      nock("https://raw.githubusercontent.com")
+        .get("/OWASP/www-project-secure-headers/refs/heads/master/ci/headers_add.json")
         .reply(200, newOWASPJSONAdded);
 
       await owasp.getLatest().catch((err) => {
