@@ -1,0 +1,42 @@
+# Keeps the bundled OWASP secure headers data (json/owasp.json) up to date by
+# fetching the latest upstream data on a schedule and opening a PR with the diff.
+# This replaces the old runtime fetch, keeping document generation deterministic.
+
+name: Update OWASP Headers
+
+on:
+  schedule:
+    # Every Monday at 06:00 UTC
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - name: Fetch latest OWASP headers
+        run: npm run update:owasp
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v8
+        with:
+          commit-message: "chore: update bundled OWASP secure headers"
+          branch: chore/update-owasp-headers
+          delete-branch: true
+          title: "chore: update bundled OWASP secure headers"
+          body: |
+            Automated update of the bundled OWASP Secure Headers data
+            (`json/owasp.json`) from the upstream
+            [www-project-secure-headers](https://github.com/OWASP/www-project-secure-headers)
+            project.
+
+            Source provenance is recorded in `json/owasp.source.json`.
+            Please review the diff before merging.
+          labels: dependencies

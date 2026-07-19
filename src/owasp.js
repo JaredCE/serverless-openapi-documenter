@@ -1,7 +1,5 @@
 "use strict";
 
-const https = require("https");
-
 const defaultOWASP = require("../json/owasp.json");
 
 /**
@@ -91,39 +89,17 @@ class OWASP {
     };
   }
 
+  /**
+   * Populates the OWASP header defaults from the bundled `json/owasp.json`.
+   *
+   * The bundled file is kept up to date out-of-band by the `update:owasp`
+   * script and its scheduled GitHub Action, which fetch the latest upstream
+   * OWASP Secure Headers project data and open a PR with the diff. This keeps
+   * document generation deterministic and offline-capable rather than
+   * depending on a live third-party URL at runtime.
+   */
   async getLatest() {
-    const headerJSON = await new Promise((resolve, reject) => {
-      const req = https
-        .get(
-          "https://raw.githubusercontent.com/OWASP/www-project-secure-headers/refs/heads/master/ci/headers_add.json",
-          (res) => {
-            let data = [];
-
-            if (res.statusCode !== 200) {
-              resolve(defaultOWASP);
-            }
-
-            res.on("error", (err) => {
-              resolve(defaultOWASP);
-            });
-
-            res.on("data", (chunk) => {
-              data.push(chunk);
-            });
-
-            res.on("end", () => {
-              resolve(JSON.parse(Buffer.concat(data).toString()));
-            });
-          }
-        )
-        .on("error", (err) => {
-          resolve(defaultOWASP);
-        });
-
-      req.end();
-    });
-
-    this.populateDefaults(headerJSON);
+    this.populateDefaults(defaultOWASP);
   }
 
   /**
