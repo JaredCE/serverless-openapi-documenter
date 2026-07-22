@@ -38,7 +38,8 @@
     "serverless openapi"
   ],
   "scripts": {
-    "test": "mocha --config './test/.mocharc.js'"
+    "test": "mocha --config './test/.mocharc.js'",
+    "update:owasp": "node scripts/update-owasp-headers.js"
   },
   "author": {
     "name": "Jared Evans"

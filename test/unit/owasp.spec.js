@@ -1,7 +1,6 @@
 "use strict";
 
 const expect = require("chai").expect;
-const nock = require("nock");
 
 const owasp = require("../../src/owasp");
 
@@ -10,11 +9,7 @@ const newOWASPJSON = require("../json/newOWASP.json");
 
 describe(`owasp`, function () {
   describe(`getLatest`, function () {
-    it(`populates the defaults from the included OWASP release when the online version can not be reached`, async function () {
-      nock("https://raw.githubusercontent.com")
-        .get("/OWASP/www-project-secure-headers/refs/heads/master/ci/headers_add.json")
-        .reply(404, {});
-
+    it(`populates the defaults from the bundled OWASP release`, async function () {
       await owasp.getLatest().catch((err) => {
         console.error(err);
         expect(err).to.be.undefined;
@@ -31,16 +26,11 @@ describe(`owasp`, function () {
       ).to.be.equal(permissionsPolicyDefault[0].value);
       expect(Object.keys(owasp.DEFAULT_OWASP_HEADERS).length).to.be.equal(13);
     });
+  });
 
-    it(`populates the defaults with information from a new OWASP release`, async function () {
-      nock("https://raw.githubusercontent.com")
-        .get("/OWASP/www-project-secure-headers/refs/heads/master/ci/headers_add.json")
-        .reply(200, newOWASPJSON);
-
-      await owasp.getLatest().catch((err) => {
-        console.error(err);
-        expect(err).to.be.undefined;
-      });
+  describe(`populateDefaults`, function () {
+    it(`populates the defaults with information from an OWASP release`, function () {
+      owasp.populateDefaults(newOWASPJSON);
 
       expect(
         owasp.DEFAULT_OWASP_HEADERS["Cross-Origin-Embedder-Policy"]
@@ -55,18 +45,11 @@ describe(`owasp`, function () {
       expect(Object.keys(owasp.DEFAULT_OWASP_HEADERS).length).to.be.equal(13);
     });
 
-    it(`adds any properties contained in a new release`, async function () {
+    it(`adds any properties contained in a new release`, function () {
       const newOWASPJSONAdded = structuredClone(newOWASPJSON);
       newOWASPJSONAdded.headers.push({ name: "x-added", value: "true" });
 
-      nock("https://raw.githubusercontent.com")
-        .get("/OWASP/www-project-secure-headers/refs/heads/master/ci/headers_add.json")
-        .reply(200, newOWASPJSONAdded);
-
-      await owasp.getLatest().catch((err) => {
-        console.error(err);
-        expect(err).to.be.undefined;
-      });
+      owasp.populateDefaults(newOWASPJSONAdded);
 
       expect(owasp.DEFAULT_OWASP_HEADERS).to.have.property("x-added");
       expect(owasp.DEFAULT_OWASP_HEADERS["x-added"]).to.have.property("schema");
