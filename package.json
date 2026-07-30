@@ -70,5 +70,8 @@
     "mocha": "^11.7.6",
     "nock": "^14.0.15",
     "sinon": "^22.0.0"
+  },
+  "overrides": {
+    "brace-expansion": "2.1.2"
   }
 }
