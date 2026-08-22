@@ -1,6 +1,6 @@
 {
   "name": "serverless-openapi-documenter",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "Generate OpenAPI v3 documentation and Postman Collections from your Serverless Config",
   "main": "index.js",
   "keywords": [
@@ -46,7 +46,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/JaredCE/serverless-openapi-documenter.git"
+    "url": "git+https://github.com/JaredCE/serverless-openapi-documenter.git"
   },
   "bugs": {
     "url": "https://github.com/JaredCE/serverless-openapi-documenter/issues"

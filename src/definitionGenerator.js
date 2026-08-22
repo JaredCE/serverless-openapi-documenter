@@ -696,6 +696,10 @@ class DefinitionGenerator {
     return obj;
   }
 
+  schemaExistsInSchemaModels(model, currentContentType) {
+    return currentContentType === model.name || currentContentType === model?.apiGatewayKey
+  }
+
   async createMediaTypeObject(models, type) {
     const mediaTypeObj = {};
     for (const mediaTypeDocumentation of this.schemaHandler.models) {
@@ -706,9 +710,11 @@ class DefinitionGenerator {
       }
 
       for (const modelContentType in models) {
-        let contentKey
+        let contentKey;
+        let modelName = mediaTypeDocumentation.name;
 
-        if (models[modelContentType] === mediaTypeDocumentation.name) {
+        if (this.schemaExistsInSchemaModels(mediaTypeDocumentation, models[modelContentType])) {
+          if (models[modelContentType] === mediaTypeDocumentation?.apiGatewayKey) { modelName = mediaTypeDocumentation.apiGatewayKey; }
           contentKey = modelContentType;
         }
 
@@ -742,7 +748,7 @@ class DefinitionGenerator {
           }
 
           const schemaRef = await this.schemaHandler
-            .createSchema(mediaTypeDocumentation.name)
+            .createSchema(modelName)
             .catch((err) => {
               throw err;
             });
