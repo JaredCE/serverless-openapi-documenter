@@ -75,7 +75,9 @@ class SchemaHandler {
     const standardisedGatewayModels =
       Object.keys(this.apiGatewayModels).flatMap((key) => {
         const gatewayModel = this.apiGatewayModels[key];
-        return standardModel(gatewayModel);
+        const model = standardModel(gatewayModel);
+        model.apiGatewayKey = key;
+        return model;
       }) || [];
 
     this.models = standardisedModels.concat(
@@ -86,7 +88,8 @@ class SchemaHandler {
 
   async addModelsToOpenAPI() {
     for (const model of this.models) {
-      const modelName = model.name;
+      const modelName = model?.apiGatewayKey || model.name;
+
       const schemas = []
       if (model.schema) {
         // const modelSchema = model.schema;
