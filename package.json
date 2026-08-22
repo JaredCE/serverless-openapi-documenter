@@ -59,7 +59,7 @@
     "chalk": "^4.1.2",
     "js-yaml": "^5.3.0",
     "json-schema-for-openapi": "^0.5.0",
-    "openapi-to-postmanv2": "^6.3.1",
+    "openapi-to-postmanv2": "^6.3.3",
     "uuid": "^11.1.1"
   },
   "engines": {
