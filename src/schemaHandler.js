@@ -179,7 +179,7 @@ class SchemaHandler {
     this.logger.verbose(`dereferencing model: ${name}`);
     const dereferencedSchema = await this.__dereferenceSchema(schema).catch(
       (err) => {
-        this.__checkForHTTPErrorsAndThrow(err, model);
+        this.__checkForHTTPErrorsAndThrow(err, model, name);
 
         this.__checkForMissingPathAndThrow(err);
 
@@ -299,22 +299,22 @@ class SchemaHandler {
       throw error;
   }
 
-  __checkForHTTPErrorsAndThrow(error, model) {
+  __checkForHTTPErrorsAndThrow(error, model, name) {
     if (error.errors) {
       for (const err of error?.errors) {
-        this.__HTTPError(err, model);
+        this.__HTTPError(err, model, name);
       }
     } else {
-      this.__HTTPError(error, model);
+      this.__HTTPError(error, model, name);
     }
   }
 
-  __HTTPError(error, model) {
+  __HTTPError(error, model, name) {
     if (error.message.includes("HTTP ERROR")) {
       throw new Error(
-        `There was an error dereferencing ${model.name
-        } schema.  \n\n dereferencing message: ${error.message
-        } \n\n Model received: ${JSON.stringify(model)}`
+        `There was an error dereferencing ${name} schema.
+        \n\n dereferencing message: ${error.message}
+        \n\n Model received: ${JSON.stringify(model)}`
       );
     }
   }
