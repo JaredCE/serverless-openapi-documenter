@@ -3,6 +3,6 @@
   "repo": "OWASP/www-project-secure-headers",
   "path": "ci/headers_add.json",
   "branch": "master",
-  "commit": "5f378d52e0c5c3a465f16b83224fdf7d466b13b7",
-  "last_update_utc": "2026-09-13 06:28:41"
+  "commit": "1d97b53132534e5e14b25d0d4c699847d3c781c6",
+  "last_update_utc": "2026-10-04 07:23:38"
 }
